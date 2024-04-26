@@ -2,7 +2,7 @@ group 'io.axept.axeptio_sdk'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.9.10'
     repositories {
         google()
         mavenCentral()
@@ -46,10 +46,12 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 26
     }
 
     dependencies {
+        implementation("io.axept.android:sdk:1.1-alpha03")
+
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }
