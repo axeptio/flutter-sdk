@@ -1,36 +1,42 @@
 
+import 'package:axeptio_sdk/events/event_listener.dart';
+
 import 'axeptio_sdk_platform_interface.dart';
 
 class AxeptioSdk {
-  Future<String?> getPlatformVersion() {
-    return AxeptioSdkPlatform.instance.getPlatformVersion();
+  static Future<String?> get axeptioToken {
+    return AxeptioSdkPlatform.axeptioToken;
   }
 
-  Future<String?> get axeptioToken {
-    return AxeptioSdkPlatform.instance.axeptioToken;
+  static Future<void> initialize(String clientId, String cookiesVersion, String? token) {
+    return AxeptioSdkPlatform.initialize(clientId, cookiesVersion, token);
   }
 
-  Future<void> initialize(String clientId, String cookiesVersion, String? token) {
-    return AxeptioSdkPlatform.instance.initialize(clientId, cookiesVersion, token);
+  static Future<void> setupUI() {
+    return AxeptioSdkPlatform.setupUI();
   }
 
-  Future<void> setupUI() {
-    return AxeptioSdkPlatform.instance.setupUI();
+  static Future<void> setUserDeniedTracking() {
+    return AxeptioSdkPlatform.setUserDeniedTracking();
   }
 
-  Future<void> setUserDeniedTracking() {
-    return AxeptioSdkPlatform.instance.setUserDeniedTracking();
+  static Future<String?> appendAxeptioTokenURL(String url, String token) {
+    return AxeptioSdkPlatform.appendAxeptioTokenURL(url, token);
   }
 
-  Future<String?> appendAxeptioTokenURL(String url, String token) {
-    return AxeptioSdkPlatform.instance.appendAxeptioTokenURL(url, token);
+  static Future<void> showConsentScreen() {
+    return AxeptioSdkPlatform.showConsentScreen();
   }
 
-  Future<void> showConsentScreen() {
-    return AxeptioSdkPlatform.instance.showConsentScreen();
+  static Future<void> clearConsent() {
+    return AxeptioSdkPlatform.clearConsent();
   }
 
-  Future<void> clearConsent() {
-    return AxeptioSdkPlatform.instance.clearConsent();
+  static addEventListener(EventListener listener) {
+    return AxeptioSdkPlatform.addEventListener(listener);
+  }
+
+  static removeEventListener(EventListener listener) {
+    return AxeptioSdkPlatform.removeEventListener(listener);
   }
 }

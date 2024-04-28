@@ -1,3 +1,4 @@
+import 'package:axeptio_sdk/events/event_listener.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'axeptio_sdk_method_channel.dart';
@@ -23,35 +24,39 @@ abstract class AxeptioSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
-
-  Future<String?> get axeptioToken {
+  static Future<String?> get axeptioToken {
     throw UnimplementedError('axeptioToken() has not been implemented.');
   }
 
-  Future<void> initialize(String clientId, String cookiesVersion, String? token) {
+  static Future<void> initialize(String clientId, String cookiesVersion, String? token) {
     throw UnimplementedError('initialize() has not been implemented');
   }
 
-  Future<void> setupUI() {
+  static Future<void> setupUI() {
     throw UnimplementedError('setupUI() has not been implemented');
   }
 
-  Future<void> setUserDeniedTracking() {
+  static Future<void> setUserDeniedTracking() {
     throw UnimplementedError('setUserDeniedTracking() has not been implemented');
   }
 
-  Future<String?> appendAxeptioTokenURL(String url, String token) {
+  static Future<String?> appendAxeptioTokenURL(String url, String token) {
     throw UnimplementedError('appendAxeptioTokenURL() has not been implemented');
   }
 
-  Future<void> showConsentScreen() {
+  static Future<void> showConsentScreen() {
     throw UnimplementedError('showConsentScreen() has not been implemented');
   }
 
-  Future<void> clearConsent() {
+  static Future<void> clearConsent() {
     throw UnimplementedError('clearConsent() has not been implemented');
+  }
+
+  static addEventListener(EventListener listener) {
+    throw UnimplementedError('addEventListener() has not been implemented');
+  }
+
+  static removeEventListener(EventListener listener) {
+    throw UnimplementedError('removeListener() has not been implemented');
   }
 }
