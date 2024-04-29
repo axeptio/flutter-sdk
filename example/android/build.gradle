@@ -5,8 +5,8 @@ allprojects {
         maven {
             url = uri("https://maven.pkg.github.com/axeptio/tcf-android-sdk")
             credentials {
-                username = "davinncia" // TODO: GITHUB USERNAME
-                password = "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" // TODO: GITHUB TOKEN
+                username = "" // TODO: GITHUB USERNAME
+                password = "" // TODO: GITHUB TOKEN
             }
         }
     }
