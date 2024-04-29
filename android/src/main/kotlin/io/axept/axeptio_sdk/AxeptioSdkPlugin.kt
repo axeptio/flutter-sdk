@@ -2,6 +2,7 @@ package io.axept.axeptio_sdk
 
 import androidx.annotation.NonNull
 import android.app.Activity
+import android.net.Uri
 
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -58,6 +59,39 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                 AxeptioSDK.instance().initialize(activity!!, clientId, cookiesVersion, token)
 
+                result.success(null)
+            }
+
+            "showConsentScreen" -> {
+                AxeptioSDK.instance().showConsentScreen(activity!!)
+                result.success(null)
+            }
+
+            "axeptioToken" -> {
+                result.success(AxeptioSDK.instance().token)
+            }
+
+            "appendAxeptioTokenURL" -> {
+                val arguments = call.arguments?.let { it as? HashMap<String, Any> } ?: run {
+                    result.error("invalid_args", "Wrong arguments for appendAxeptioTokenURL", null)
+                    return
+                }
+
+                val urlStr = arguments.get("url") as String
+                val uri = Uri.parse(urlStr)
+                val token = arguments.get("token") as String
+
+                val response = AxeptioSDK.instance().appendAxeptioToken(uri = uri, token = token)
+                result.success(response.toString())
+            }
+
+            "clearConsent" -> {
+                AxeptioSDK.instance().clearConsents()
+                result.success(null)
+            }
+
+            // iOS specific
+            "setupUI", "setUserDeniedTracking",  -> {
                 result.success(null)
             }
 
