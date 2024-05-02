@@ -23,6 +23,22 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+    androidSdkTest();
+  }
+
+  Future<void> androidSdkTest() async {
+    try {
+      await _axeptioSdkPlugin.setupUI();
+      await _axeptioSdkPlugin.setUserDeniedTracking();
+      await _axeptioSdkPlugin.initialize('5fbfa806a0787d3985c6ee5f', 'google cmp partner program sandbox-en-EU', "5sj42u50ta2ys8c3nhjkxi");
+      await _axeptioSdkPlugin.showConsentScreen();
+      String? token = await _axeptioSdkPlugin.axeptioToken;
+      print("TOKEN: $token");
+      String? urlWithToken = await _axeptioSdkPlugin.appendAxeptioTokenURL("https://example.com", token ?? "");
+      print("URL: $urlWithToken");
+    } catch (e) {
+      print("ERROR $e");
+    }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -31,10 +47,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      await _axeptioSdkPlugin.initialize('5fbfa806a0787d3985c6ee5f', 'google cmp partner program sandbox-en-EU', "5sj42u50ta2ys8c3nhjkxi");
       platformVersion =
           await _axeptioSdkPlugin.getPlatformVersion() ?? 'Unknown platform version';
-          
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
