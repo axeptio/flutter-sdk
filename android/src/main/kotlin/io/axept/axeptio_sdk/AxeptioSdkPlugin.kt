@@ -67,7 +67,7 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
 
             "showConsentScreen" -> {
-                AxeptioSDK.instance().showConsentScreen(activity!!)
+                AxeptioSDK.instance().showConsentScreen(activity!!, true)
                 result.success(null)
             }
 
