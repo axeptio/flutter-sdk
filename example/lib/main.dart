@@ -36,6 +36,9 @@ class _MyAppState extends State<MyApp> {
       print("TOKEN: $token");
       String? urlWithToken = await _axeptioSdkPlugin.appendAxeptioTokenURL("https://example.com", token ?? "");
       print("URL: $urlWithToken");
+      EventChannel('axeptio_sdk/events').receiveBroadcastStream().listen( (dynamic event)
+        { print('Event channel: $event'); }
+      );
     } catch (e) {
       print("ERROR $e");
     }
