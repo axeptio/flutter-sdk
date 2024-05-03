@@ -1,18 +1,17 @@
 package io.axept.axeptio_sdk
 
-import androidx.annotation.NonNull
+
 import android.app.Activity
 import android.net.Uri
-
+import io.axept.android.library.AxeptioSDK
+import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-
-import io.axept.android.library.AxeptioSDK
 
 
 /** AxeptioSdkPlugin */
@@ -20,9 +19,14 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private var activity: Activity? = null
 
+    private lateinit var eventChannel: EventChannel
+
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "axeptio_sdk")
         channel.setMethodCallHandler(this)
+
+        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "axeptio_sdk/events")
+        eventChannel.setStreamHandler(AxeptioEventStreamHandler)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -63,7 +67,7 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
 
             "showConsentScreen" -> {
-                AxeptioSDK.instance().showConsentScreen(activity!!)
+                AxeptioSDK.instance().showConsentScreen(activity!!, true)
                 result.success(null)
             }
 
@@ -91,7 +95,7 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
 
             // iOS specific
-            "setupUI", "setUserDeniedTracking",  -> {
+            "setupUI", "setUserDeniedTracking" -> {
                 result.success(null)
             }
 
