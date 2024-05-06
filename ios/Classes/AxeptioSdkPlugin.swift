@@ -5,7 +5,7 @@ import Flutter
 
 public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
 
-   static var eventStreamHandler: AxeptioEventStreamHandler? = nil
+  static var eventStreamHandler: AxeptioEventStreamHandler? = nil
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "axeptio_sdk", binaryMessenger: registrar.messenger())
@@ -48,6 +48,18 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
         Axeptio.shared.clearConsent()
         result(nil)
 
+    case "appendAxeptioTokenURL":
+        guard let arguments = call.arguments as? [String: String],
+            let urlArg = arguments["url"],
+            let url = URL(string: urlArg),
+            let token = arguments["token"] else {
+            result(nil)
+            return
+        }
+
+        let axeptioUrl = Axeptio.shared.appendAxeptioTokenToURL(url, token: token)
+        result(axeptioUrl.absoluteString)
+
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -71,13 +83,12 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
 
     let token = args["token"] as? String
 
-    print("initialize method called")
-    print("initialize method called with clientId: \(clientId)")
-    print("initialize method called with cookiesVersion: \(cookiesVersion)")
-    print("initialize method called with token: \(String(describing: token ))")
+    if let token = args["token"] as? String {
+      Axeptio.shared.initialize(clientId: clientId, cookiesVersion: cookiesVersion, token: token)
+    } else {
+      Axeptio.shared.initialize(clientId: clientId, cookiesVersion: cookiesVersion)
+    }
 
-//    TODO: import last framework version to test init
-//      Axeptio.shared.initialize(clientId: clientId, cookiesVersion: cookiesVersion, token: token)
     result(nil)
   }
 }
