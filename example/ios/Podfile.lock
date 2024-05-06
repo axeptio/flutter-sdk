@@ -6,6 +6,9 @@ PODS:
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - webview_flutter_wkwebview (0.0.1):
     - Flutter
 
@@ -13,6 +16,7 @@ DEPENDENCIES:
   - axeptio_sdk (from `.symlinks/plugins/axeptio_sdk/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
 
 SPEC REPOS:
@@ -26,6 +30,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   webview_flutter_wkwebview:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/ios"
 
@@ -34,6 +40,7 @@ SPEC CHECKSUMS:
   AxeptioTCFSDK: 04a6a9fd75b30cd744b25828c9745a9f97332222
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: 13825b8a9334a850581300559b8839134b124670
+  shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
   webview_flutter_wkwebview: be0f0d33777f1bfd0c9fdcb594786704dbf65f36
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

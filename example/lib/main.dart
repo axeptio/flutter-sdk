@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:axeptio_sdk/axeptio_sdk.dart';
+import 'package:axeptio_sdk_example/preferences.dart';
 import 'package:axeptio_sdk_example/webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -216,7 +217,15 @@ class HomePage extends StatelessWidget {
             ),
             ElevatedButton(
               style: style,
-              onPressed: null,
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (BuildContext context) {
+                    return const PreferencesPage();
+                  },
+                );
+              },
               child: const Text(
                 'User Defaults',
                 style: textStyle,
