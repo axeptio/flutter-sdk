@@ -1,4 +1,3 @@
-
 import 'axeptio_sdk_platform_interface.dart';
 
 class AxeptioSdk {
@@ -10,8 +9,10 @@ class AxeptioSdk {
     return AxeptioSdkPlatform.instance.axeptioToken;
   }
 
-  Future<void> initialize(String clientId, String cookiesVersion, String? token) {
-    return AxeptioSdkPlatform.instance.initialize(clientId, cookiesVersion, token);
+  Future<void> initialize(
+      String clientId, String cookiesVersion, String? token) {
+    return AxeptioSdkPlatform.instance
+        .initialize(clientId, cookiesVersion, token);
   }
 
   Future<void> setupUI() {
