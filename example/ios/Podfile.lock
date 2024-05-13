@@ -4,6 +4,13 @@ PODS:
     - Flutter
   - AxeptioTCFSDK (1.1.0)
   - Flutter (1.0.0)
+  - Google-Mobile-Ads-SDK (11.2.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - google_mobile_ads (1.0.0):
+    - Flutter
+    - Google-Mobile-Ads-SDK (~> 11.2.0)
+    - webview_flutter_wkwebview
+  - GoogleUserMessagingPlatform (2.4.0)
   - integration_test (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -15,6 +22,7 @@ PODS:
 DEPENDENCIES:
   - axeptio_sdk (from `.symlinks/plugins/axeptio_sdk/ios`)
   - Flutter (from `Flutter`)
+  - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
@@ -22,12 +30,16 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AxeptioTCFSDK
+    - Google-Mobile-Ads-SDK
+    - GoogleUserMessagingPlatform
 
 EXTERNAL SOURCES:
   axeptio_sdk:
     :path: ".symlinks/plugins/axeptio_sdk/ios"
   Flutter:
     :path: Flutter
+  google_mobile_ads:
+    :path: ".symlinks/plugins/google_mobile_ads/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
   shared_preferences_foundation:
@@ -39,10 +51,13 @@ SPEC CHECKSUMS:
   axeptio_sdk: 3ded086de99c92e98c433d2786f9d3bd11b82b43
   AxeptioTCFSDK: 04a6a9fd75b30cd744b25828c9745a9f97332222
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Google-Mobile-Ads-SDK: 5a6d005a6cb5b5e8f4c7b69ca05cdea79c181139
+  google_mobile_ads: 5698dd1cd5a3cfc6688abec7db5428f237d6b1ac
+  GoogleUserMessagingPlatform: f131fa7978d2ba88d7426702b057c2cc318e6595
   integration_test: 13825b8a9334a850581300559b8839134b124670
   shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
   webview_flutter_wkwebview: be0f0d33777f1bfd0c9fdcb594786704dbf65f36
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.3

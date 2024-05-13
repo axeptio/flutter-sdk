@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
+//TODO quit dialog
 class WebViewPage extends StatelessWidget {
   WebViewPage({super.key, required String url}) {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
+      ..clearLocalStorage()
       ..loadRequest(Uri.parse(url));
   }
 

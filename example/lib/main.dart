@@ -3,14 +3,15 @@ import 'dart:io';
 
 import 'package:axeptio_sdk/axeptio_sdk.dart';
 import 'package:axeptio_sdk_example/preferences.dart';
+import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:axeptio_sdk_example/webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // MobileAds.instance.initialize();
+  MobileAds.instance.initialize();
 
   runApp(const MyApp());
 }
@@ -24,7 +25,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  // InterstitialAd? _interstitialAd;
+  InterstitialAd? _interstitialAd;
+  Function()? _onAdBtnPressed = null;
 
   final _axeptioSdkPlugin = AxeptioSdk();
 
@@ -32,30 +34,40 @@ class _MyAppState extends State<MyApp> {
       ? 'ca-app-pub-3940256099942544/1033173712'
       : 'ca-app-pub-3940256099942544/4411468910';
 
+  /// Loads an interstitial ad.
+  void loadAd() {
+    InterstitialAd.load(
+        adUnitId: adUnitId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          // Called when an ad is successfully received.
+          onAdLoaded: (ad) {
+            print('$ad loaded.');
+            // Keep a reference to the ad so you can show it later.
+            setState(() {
+              _interstitialAd = ad;
+              _onAdBtnPressed = () {
+                _interstitialAd?.show();
+                loadAd();
+              };
+            });
+          },
+          // Called when an ad request failed.
+          onAdFailedToLoad: (LoadAdError error) {
+            print('InterstitialAd failed to load: $error');
+            setState(() {
+              _onAdBtnPressed = null;
+            });
+          },
+        ));
+  }
+
   @override
   void initState() {
     super.initState();
     initSDK();
+    loadAd();
   }
-
-  /// Loads an interstitial ad.
-  // void loadAd() {
-  //   InterstitialAd.load(
-  //       adUnitId: adUnitId,
-  //       request: const AdRequest(),
-  //       adLoadCallback: InterstitialAdLoadCallback(
-  //         // Called when an ad is successfully received.
-  //         onAdLoaded: (ad) {
-  //           debugPrint('$ad loaded.');
-  //           // Keep a reference to the ad so you can show it later.
-  //           _interstitialAd = ad;
-  //         },
-  //         // Called when an ad request failed.
-  //         onAdFailedToLoad: (LoadAdError error) {
-  //           debugPrint('InterstitialAd failed to load: $error');
-  //         },
-  //       ));
-  // }
 
   Future<void> initSDK() async {
     try {
@@ -71,6 +83,9 @@ class _MyAppState extends State<MyApp> {
           .receiveBroadcastStream()
           .listen((dynamic event) {
         print('Event channel: $event');
+        if (event['type'] == 'onPopupClosedEvent') {
+          loadAd();
+        }
       });
     } catch (e) {
       print("ERROR $e");
@@ -101,84 +116,26 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: HomePage(axeptioSdk: _axeptioSdkPlugin));
+    return MaterialApp(
+        home: HomePage(
+            axeptioSdk: _axeptioSdkPlugin,
+            onAdBtnPressed: _onAdBtnPressed,
+            onClearPressed: () {
+              loadAd();
+            }));
   }
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({
-    super.key,
-    required this.axeptioSdk,
-  });
+  const HomePage(
+      {super.key,
+      required this.axeptioSdk,
+      required this.onAdBtnPressed,
+      required this.onClearPressed});
 
   final AxeptioSdk axeptioSdk;
-
-  Future<void> _showMyDialog(BuildContext context) async {
-    String userInput = '';
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('AlertDialog Title'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                const Text('Enter axeptio token'),
-                TextField(
-                  onChanged: (value) {
-                    userInput = value;
-                  },
-                  decoration: const InputDecoration(hintText: 'Axeptio token'),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Open on browser'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                final token = await axeptioSdk.axeptioToken;
-                String? url = '';
-
-                if (userInput.isNotEmpty) {
-                  url = await axeptioSdk.appendAxeptioTokenURL(
-                    "https://google-cmp-partner.axept.io/cmp-for-publishers.html",
-                    userInput,
-                  );
-                } else if (token != null && token.isNotEmpty) {
-                  url = await axeptioSdk.appendAxeptioTokenURL(
-                    "https://google-cmp-partner.axept.io/cmp-for-publishers.html",
-                    token,
-                  );
-                }
-
-                if (url != null && url.isNotEmpty) {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (BuildContext context) {
-                      return WebViewPage(
-                        url: url!,
-                      );
-                    },
-                  );
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  final Function()? onAdBtnPressed;
+  final Function() onClearPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -197,69 +154,76 @@ class HomePage extends StatelessWidget {
       backgroundColor: const Color.fromRGBO(205, 97, 91, 1),
     );
 
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(20.0),
-        color: backgroundColor,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            ElevatedButton(
-              style: style,
-              onPressed: () {
-                axeptioSdk.showConsentScreen();
-              },
-              child: const Text(
-                'Consent popup',
-                style: textStyle,
+    return SafeArea(
+      child: Scaffold(
+        body: Container(
+          padding: const EdgeInsets.all(20.0),
+          color: backgroundColor,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              ElevatedButton(
+                style: style,
+                onPressed: () {
+                  axeptioSdk.showConsentScreen();
+                },
+                child: const Text(
+                  'Consent popup',
+                  style: textStyle,
+                ),
               ),
-            ),
-            ElevatedButton(
-              style: style,
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (BuildContext context) {
-                    return const PreferencesPage();
-                  },
-                );
-              },
-              child: const Text(
-                'User Defaults',
-                style: textStyle,
+              ElevatedButton(
+                style: style,
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (BuildContext context) {
+                      return const PreferencesPage();
+                    },
+                  );
+                },
+                child: const Text(
+                  'User Defaults',
+                  style: textStyle,
+                ),
               ),
-            ),
-            ElevatedButton(
-              style: style,
-              onPressed: null,
-              child: const Text(
-                'Google ad',
-                style: textStyle,
+              ElevatedButton(
+                style: style,
+                onPressed: onAdBtnPressed,
+                child: const Text(
+                  'Google ad',
+                  style: textStyle,
+                ),
               ),
-            ),
-            ElevatedButton(
-              style: clearConsentStyle,
-              onPressed: () {
-                axeptioSdk.clearConsent();
-              },
-              child: const Text(
-                'Clear consent',
-                style: textStyle,
+              ElevatedButton(
+                style: clearConsentStyle,
+                onPressed: () {
+                  axeptioSdk.clearConsent();
+                  onClearPressed();
+                },
+                child: const Text(
+                  'Clear consent',
+                  style: textStyle,
+                ),
               ),
-            ),
-            ElevatedButton(
-              style: style,
-              onPressed: () {
-                _showMyDialog(context);
-              },
-              child: const Text(
-                'Show webview with token',
-                style: textStyle,
+              ElevatedButton(
+                style: style,
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) => TokenAppendDialog(
+                            axeptioSdk: axeptioSdk,
+                          ));
+                },
+                child: const Text(
+                  'Show webview with token',
+                  style: textStyle,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
