@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:axeptio_sdk/axeptio_sdk.dart';
+import 'package:axeptio_sdk/events/event_listener.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
-import 'package:axeptio_sdk_example/webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -76,16 +76,13 @@ class _MyAppState extends State<MyApp> {
         null,
       );
 
-      await _axeptioSdkPlugin.setupUI();
+      var listener = AxeptioEventListener();
+      listener.onPopupClosedEvent = () {
+        loadAd();
+      };
+      _axeptioSdkPlugin.addEventListerner(listener);
 
-      const EventChannel('axeptio_sdk/events')
-          .receiveBroadcastStream()
-          .listen((dynamic event) {
-        print('Event channel: $event');
-        if (event['type'] == 'onPopupClosedEvent') {
-          loadAd();
-        }
-      });
+      await _axeptioSdkPlugin.setupUI();
     } catch (e) {
       print("ERROR $e");
     }

@@ -1,3 +1,5 @@
+import 'package:axeptio_sdk/events/event_listener.dart';
+
 import 'axeptio_sdk_platform_interface.dart';
 
 class AxeptioSdk {
@@ -33,5 +35,13 @@ class AxeptioSdk {
 
   Future<void> clearConsent() {
     return AxeptioSdkPlatform.instance.clearConsent();
+  }
+
+  addEventListerner(AxeptioEventListener listener) {
+    AxeptioSdkPlatform.instance.addEventListener(listener);
+  }
+
+  removeEventListener(AxeptioEventListener listener) {
+    AxeptioSdkPlatform.instance.removeEventListener(listener);
   }
 }
