@@ -1,7 +1,8 @@
 import 'package:axeptio_sdk/model/consentsV2.dart';
 
-class EventListener {
+class AxeptioEventListener {
   dynamic Function() onPopupClosedEvent = () {};
   dynamic Function() onConsentChanged = () {};
-  dynamic Function(ConsentsV2 consents) onGoogleConsentModeUpdate = (consents) {};
+  dynamic Function(ConsentsV2 consents) onGoogleConsentModeUpdate =
+      (consents) {};
 }

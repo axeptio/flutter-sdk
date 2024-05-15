@@ -1,21 +1,21 @@
+import 'package:axeptio_sdk/events/event_listener.dart';
+import 'package:axeptio_sdk/events/events_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'axeptio_sdk_platform_interface.dart';
-
-import 'package:axeptio_sdk/events/event_listener.dart';
-import 'package:axeptio_sdk/events/events_handler.dart';
 
 /// An implementation of [AxeptioSdkPlatform] that uses method channels.
 class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('axeptio_sdk');
-  EventsHandler _eventsHandler = EventsHandler();
+  final EventsHandler _eventsHandler = EventsHandler();
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    final version =
+        await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
   }
 
@@ -26,7 +26,8 @@ class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
   }
 
   @override
-  Future<void> initialize(String clientId, String cookiesVersion, String? token) async {
+  Future<void> initialize(
+      String clientId, String cookiesVersion, String? token) async {
     await methodChannel.invokeMethod('initialize', {
       "clientId": clientId,
       "cookiesVersion": cookiesVersion,
@@ -46,10 +47,8 @@ class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
 
   @override
   Future<String?> appendAxeptioTokenURL(String url, String token) async {
-    final updatedUrl = await methodChannel.invokeMethod('appendAxeptioTokenURL', {
-      "url": url,
-      "token": token
-    });
+    final updatedUrl = await methodChannel
+        .invokeMethod('appendAxeptioTokenURL', {"url": url, "token": token});
     return updatedUrl;
   }
 
@@ -63,11 +62,13 @@ class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
     await methodChannel.invokeMethod('clearConsent');
   }
 
-  addEventListener(EventListener listener) {
+  @override
+  addEventListener(AxeptioEventListener listener) {
     _eventsHandler.addEventListener(listener);
   }
 
-  removeEventListener(EventListener listener) {
+  @override
+  removeEventListener(AxeptioEventListener listener) {
     _eventsHandler.removeEventListener(listener);
   }
 }

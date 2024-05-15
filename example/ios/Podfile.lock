@@ -1,4 +1,6 @@
 PODS:
+  - app_tracking_transparency (0.0.1):
+    - Flutter
   - axeptio_sdk (1.0.0):
     - AxeptioTCFSDK
     - Flutter
@@ -20,6 +22,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - app_tracking_transparency (from `.symlinks/plugins/app_tracking_transparency/ios`)
   - axeptio_sdk (from `.symlinks/plugins/axeptio_sdk/ios`)
   - Flutter (from `Flutter`)
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
@@ -34,6 +37,8 @@ SPEC REPOS:
     - GoogleUserMessagingPlatform
 
 EXTERNAL SOURCES:
+  app_tracking_transparency:
+    :path: ".symlinks/plugins/app_tracking_transparency/ios"
   axeptio_sdk:
     :path: ".symlinks/plugins/axeptio_sdk/ios"
   Flutter:
@@ -48,6 +53,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/ios"
 
 SPEC CHECKSUMS:
+  app_tracking_transparency: e169b653478da7bb15a6c61209015378ca73e375
   axeptio_sdk: 3ded086de99c92e98c433d2786f9d3bd11b82b43
   AxeptioTCFSDK: 04a6a9fd75b30cd744b25828c9745a9f97332222
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
@@ -60,4 +66,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.13.0

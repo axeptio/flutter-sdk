@@ -1,7 +1,7 @@
 name: axeptio_sdk
 description: "A new Flutter plugin project."
 version: 1.0.0
-homepage:
+repository: https://github.com/axeptio/flutter-sdk
 
 environment:
   sdk: '>=3.3.1 <4.0.0'

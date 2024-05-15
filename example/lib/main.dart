@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
+import 'package:axeptio_sdk/events/event_listener.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
-import 'package:axeptio_sdk_example/webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -76,16 +77,40 @@ class _MyAppState extends State<MyApp> {
         null,
       );
 
-      await _axeptioSdkPlugin.setupUI();
+      var listener = AxeptioEventListener();
+      listener.onPopupClosedEvent = () {
+        // The CMP notice is being hidden
+        loadAd();
+      };
+      listener.onConsentChanged = () {
+        // The consent of the user changed
+        // Do something
+      };
+      listener.onGoogleConsentModeUpdate = (consents) {
+        // The Google Consent V2 status
+        // Do something
+      };
+      _axeptioSdkPlugin.addEventListerner(listener);
 
-      const EventChannel('axeptio_sdk/events')
-          .receiveBroadcastStream()
-          .listen((dynamic event) {
-        print('Event channel: $event');
-        if (event['type'] == 'onPopupClosedEvent') {
-          loadAd();
+      try {
+        TrackingStatus status =
+            await AppTrackingTransparency.trackingAuthorizationStatus;
+        // If the system can show an authorization request dialog
+        if (status == TrackingStatus.notDetermined) {
+          // Request system's tracking authorization dialog
+          status = await AppTrackingTransparency.requestTrackingAuthorization();
         }
-      });
+
+        if (status == TrackingStatus.denied) {
+          await _axeptioSdkPlugin.setUserDeniedTracking();
+        } else {
+          // Run setupUI if accepted
+          await _axeptioSdkPlugin.setupUI();
+        }
+      } on PlatformException {
+        // Run setupUI on android
+        await _axeptioSdkPlugin.setupUI();
+      }
     } catch (e) {
       print("ERROR $e");
     }

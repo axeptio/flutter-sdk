@@ -31,6 +31,7 @@ dependencies:
   webview_flutter: ^4.7.0
   shared_preferences: ^2.2.3
   google_mobile_ads: ^5.0.0
+  app_tracking_transparency: ^2.0.5
 
 dev_dependencies:
   integration_test:
