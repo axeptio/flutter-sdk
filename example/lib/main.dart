@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
 import 'package:axeptio_sdk/events/event_listener.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
@@ -78,11 +79,38 @@ class _MyAppState extends State<MyApp> {
 
       var listener = AxeptioEventListener();
       listener.onPopupClosedEvent = () {
+        // The CMP notice is being hidden
         loadAd();
+      };
+      listener.onConsentChanged = () {
+        // The consent of the user changed
+        // Do something
+      };
+      listener.onGoogleConsentModeUpdate = (consents) {
+        // The Google Consent V2 status
+        // Do something
       };
       _axeptioSdkPlugin.addEventListerner(listener);
 
-      await _axeptioSdkPlugin.setupUI();
+      try {
+        TrackingStatus status =
+            await AppTrackingTransparency.trackingAuthorizationStatus;
+        // If the system can show an authorization request dialog
+        if (status == TrackingStatus.notDetermined) {
+          // Request system's tracking authorization dialog
+          status = await AppTrackingTransparency.requestTrackingAuthorization();
+        }
+
+        if (status == TrackingStatus.denied) {
+          await _axeptioSdkPlugin.setUserDeniedTracking();
+        } else {
+          // Run setupUI if accepted
+          await _axeptioSdkPlugin.setupUI();
+        }
+      } on PlatformException {
+        // Run setupUI on android
+        await _axeptioSdkPlugin.setupUI();
+      }
     } catch (e) {
       print("ERROR $e");
     }
