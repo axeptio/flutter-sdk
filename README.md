@@ -29,9 +29,10 @@ repositories {
 We support iOS versions >= 15.
 The sdk do not manage App Tracking Transparency, you can find more information [there](#app-tracking-transparency-att).
 
-## Example
+## Sample
 
 You can find a basic usage of the Axeptio SDK in the `example` folder.
+Read the specific [documentation](./example/README.md).
 
 ## Usage
 ### Initialize the SDK on app start up:
