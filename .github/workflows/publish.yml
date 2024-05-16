@@ -1,0 +1,16 @@
+name: Publish to pub.dev
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: macos-14
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Publish
+        run: dart pub publish --dry-run
