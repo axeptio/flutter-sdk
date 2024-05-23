@@ -15,4 +15,4 @@ jobs:
         with:
           flutter-version: 3.19.6
       - name: Publish
-        run: flutter pub publish --dry-run
+        run: flutter pub publish --force
