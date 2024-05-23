@@ -1,10 +1,8 @@
 import 'package:axeptio_sdk/axeptio_sdk.dart';
 import 'package:axeptio_sdk_example/webview.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class TokenAppendDialog extends StatelessWidget {
-
   final AxeptioSdk axeptioSdk;
 
   const TokenAppendDialog({super.key, required this.axeptioSdk});
@@ -14,17 +12,31 @@ class TokenAppendDialog extends StatelessWidget {
     String userInput = '';
 
     return AlertDialog(
+      backgroundColor: const Color.fromRGBO(253, 247, 231, 1),
       title: const Text('Enter axeptio token'),
       content: SingleChildScrollView(
         child: TextField(
           onChanged: (value) {
             userInput = value;
           },
-          decoration: const InputDecoration(hintText: 'Axeptio token'),
+          cursorColor: Colors.black,
+          decoration: const InputDecoration(
+            hintText: 'Axeptio token',
+            border: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+            ),
+            focusColor: Colors.black,
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+            ),
+          ),
         ),
       ),
       actions: <Widget>[
         TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.black,
+          ),
           child: const Text('Open on browser'),
           onPressed: () async {
             Navigator.of(context).pop();
@@ -42,14 +54,15 @@ class TokenAppendDialog extends StatelessWidget {
                 token,
               );
             } else {
-              url = "https://google-cmp-partner.axept.io/cmp-for-publishers.html";
+              url =
+                  "https://google-cmp-partner.axept.io/cmp-for-publishers.html";
             }
 
             if (url != null && url.isNotEmpty) {
               showDialog(
                 context: context,
                 barrierLabel: "Close",
-                barrierColor: Colors.amber,
+                barrierColor: Colors.black,
                 barrierDismissible: true,
                 // isScrollControlled: false,
                 builder: (BuildContext context) {
@@ -62,6 +75,9 @@ class TokenAppendDialog extends StatelessWidget {
           },
         ),
         TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: const Color.fromRGBO(205, 97, 91, 1),
+          ),
           child: const Text('Cancel'),
           onPressed: () {
             Navigator.of(context).pop();

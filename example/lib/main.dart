@@ -178,60 +178,59 @@ class HomePage extends StatelessWidget {
       backgroundColor: const Color.fromRGBO(205, 97, 91, 1),
     );
 
-    return SafeArea(
-      child: Scaffold(
-        body: Container(
-          padding: const EdgeInsets.all(20.0),
-          color: backgroundColor,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              ElevatedButton(
-                style: style,
-                onPressed: () {
-                  axeptioSdk.showConsentScreen();
-                },
-                child: const Text(
-                  'Consent popup',
-                  style: textStyle,
-                ),
+    return Scaffold(
+      backgroundColor: const Color.fromRGBO(255, 0, 0, 1),
+      body: Container(
+        padding: const EdgeInsets.all(20.0),
+        color: backgroundColor,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            ElevatedButton(
+              style: style,
+              onPressed: () {
+                axeptioSdk.showConsentScreen();
+              },
+              child: const Text(
+                'Consent popup',
+                style: textStyle,
               ),
-              ElevatedButton(
-                style: style,
-                onPressed: onAdBtnPressed,
-                child: const Text(
-                  'Google ad',
-                  style: textStyle,
-                ),
+            ),
+            ElevatedButton(
+              style: style,
+              onPressed: onAdBtnPressed,
+              child: const Text(
+                'Google ad',
+                style: textStyle,
               ),
-              ElevatedButton(
-                style: clearConsentStyle,
-                onPressed: () {
-                  axeptioSdk.clearConsent();
-                  onClearPressed();
-                },
-                child: const Text(
-                  'Clear consent',
-                  style: textStyle,
-                ),
+            ),
+            ElevatedButton(
+              style: clearConsentStyle,
+              onPressed: () {
+                axeptioSdk.clearConsent();
+                onClearPressed();
+              },
+              child: const Text(
+                'Clear consent',
+                style: textStyle,
               ),
-              ElevatedButton(
-                style: style,
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) => TokenAppendDialog(
-                            axeptioSdk: axeptioSdk,
-                          ));
-                },
-                child: const Text(
-                  'Show webview with token',
-                  style: textStyle,
-                ),
+            ),
+            ElevatedButton(
+              style: style,
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) => TokenAppendDialog(
+                          axeptioSdk: axeptioSdk,
+                        ));
+              },
+              child: const Text(
+                'Show webview with token',
+                style: textStyle,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

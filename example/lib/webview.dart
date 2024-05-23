@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-//TODO quit dialog
+
 class WebViewPage extends StatelessWidget {
   WebViewPage({super.key, required String url}) {
     _controller = WebViewController()
@@ -15,7 +15,10 @@ class WebViewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WebViewWidget(controller: _controller),
-    );
+        appBar: AppBar(
+          title: const Text('WebView'),
+        ),
+        body: WebViewWidget(controller: _controller),
+        backgroundColor: const Color.fromRGBO(253, 247, 231, 1));
   }
 }
