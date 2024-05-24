@@ -1,4 +1,6 @@
-import 'package:axeptio_sdk/model/consentsV2.dart';
+// ignore_for_file: avoid_print
+
+import 'package:axeptio_sdk/model/consents_v2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -46,7 +48,6 @@ class EventsHandler {
     }
   }
 
-  // ignore: avoid_print
   handleDAxeptioErrorEvent(dynamic error) =>
       print('Received error: ${error.message}');
 

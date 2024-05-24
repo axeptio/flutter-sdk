@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:io';
 
@@ -24,9 +26,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // ignore: unused_field
   String _platformVersion = 'Unknown';
   InterstitialAd? _interstitialAd;
-  Function()? _onAdBtnPressed = null;
+  Function()? _onAdBtnPressed;
 
   final _axeptioSdkPlugin = AxeptioSdk();
 

@@ -60,6 +60,7 @@ class TokenAppendDialog extends StatelessWidget {
 
             if (url != null && url.isNotEmpty) {
               showDialog(
+                // ignore: use_build_context_synchronously
                 context: context,
                 barrierLabel: "Close",
                 barrierColor: Colors.black,

@@ -1,4 +1,4 @@
-import 'package:axeptio_sdk/model/consentsV2.dart';
+import 'package:axeptio_sdk/model/consents_v2.dart';
 
 class AxeptioEventListener {
   dynamic Function() onPopupClosedEvent = () {};
