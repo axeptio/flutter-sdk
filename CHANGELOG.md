@@ -1,4 +1,5 @@
 ## 1.2.1
+
 * Fix xcprivacy in iOS SDK
 
 ## 1.2.0
