@@ -1,3 +1,7 @@
+## 1.3.1
+
+Fix CMP first show on iOS SDK
+
 ## 1.2.1
 
 * Fix xcprivacy in iOS SDK
