@@ -10,6 +10,8 @@ import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:axeptio_sdk/axeptio_sdk_platform_interface.dart';
+import 'package:axeptio_sdk/model/axeptio_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +77,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> initSDK() async {
     try {
       await _axeptioSdkPlugin.initialize(
+        AxeptioService.brands,
         '5fbfa806a0787d3985c6ee5f',
         'google cmp partner program sandbox-en-EU',
         null,

@@ -1,7 +1,8 @@
 import 'package:axeptio_sdk/events/event_listener.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
+import 'package:axeptio_sdk/model/axeptio_service.dart';
 import 'axeptio_sdk_method_channel.dart';
+
 
 abstract class AxeptioSdkPlatform extends PlatformInterface {
   /// Constructs a AxeptioSdkPlatform.
@@ -33,7 +34,7 @@ abstract class AxeptioSdkPlatform extends PlatformInterface {
   }
 
   Future<void> initialize(
-      String clientId, String cookiesVersion, String? token) {
+      AxeptioService targetService, String clientId, String cookiesVersion, String? token) {
     throw UnimplementedError('initialize() has not been implemented');
   }
 
