@@ -10,7 +10,6 @@ import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:axeptio_sdk/axeptio_sdk_platform_interface.dart';
 import 'package:axeptio_sdk/model/axeptio_service.dart';
 
 void main() {
