@@ -4,6 +4,7 @@ package io.axept.axeptio_sdk
 import android.app.Activity
 import android.net.Uri
 import io.axept.android.library.AxeptioSDK
+import io.axept.android.library.AxeptioService
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -60,8 +61,14 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val clientId = arguments.get("clientId") as String
                 val cookiesVersion = arguments.get("cookiesVersion") as String
                 val token = arguments.get("token") as? String?
+                val targetService = arguments.get("targetService") as String
+                val axeptioService = when (targetService) {
+                    "brands" -> AxeptioService.BRANDS
+                    "publishers" -> AxeptioService.PUBLISHERS_TCF
+                    else -> AxeptioService.PUBLISHERS_TCF
+                }
 
-                AxeptioSDK.instance().initialize(activity!!, clientId, cookiesVersion, token)
+                AxeptioSDK.instance().initialize(activity!!, axeptioService, clientId, cookiesVersion, token)
 
                 result.success(null)
             }
