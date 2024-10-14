@@ -1,18 +1,18 @@
 PODS:
   - app_tracking_transparency (0.0.1):
     - Flutter
-  - axeptio_sdk (1.0.0):
-    - AxeptioTCFSDK (= 1.2.1)
+  - axeptio_sdk (2.0.0):
+    - AxeptioIOSSDK (= 2.0.0)
     - Flutter
-  - AxeptioTCFSDK (1.2.1)
+  - AxeptioIOSSDK (2.0.0)
   - Flutter (1.0.0)
-  - Google-Mobile-Ads-SDK (11.2.0):
+  - Google-Mobile-Ads-SDK (11.10.0):
     - GoogleUserMessagingPlatform (>= 1.1)
-  - google_mobile_ads (1.0.0):
+  - google_mobile_ads (5.2.0):
     - Flutter
-    - Google-Mobile-Ads-SDK (~> 11.2.0)
+    - Google-Mobile-Ads-SDK (~> 11.10.0)
     - webview_flutter_wkwebview
-  - GoogleUserMessagingPlatform (2.4.0)
+  - GoogleUserMessagingPlatform (2.6.0)
   - integration_test (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -20,6 +20,7 @@ PODS:
     - FlutterMacOS
   - webview_flutter_wkwebview (0.0.1):
     - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - app_tracking_transparency (from `.symlinks/plugins/app_tracking_transparency/ios`)
@@ -28,11 +29,11 @@ DEPENDENCIES:
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
+  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 SPEC REPOS:
   trunk:
-    - AxeptioTCFSDK
+    - AxeptioIOSSDK
     - Google-Mobile-Ads-SDK
     - GoogleUserMessagingPlatform
 
@@ -50,19 +51,19 @@ EXTERNAL SOURCES:
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   webview_flutter_wkwebview:
-    :path: ".symlinks/plugins/webview_flutter_wkwebview/ios"
+    :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
   app_tracking_transparency: e169b653478da7bb15a6c61209015378ca73e375
-  axeptio_sdk: 1f43c0521758d694b71881efe3752a9dba69cdf5
-  AxeptioTCFSDK: 555d357c74973917a929b5f941517a575d1ef4bc
+  axeptio_sdk: 4b58c99f300416c55a8c31dc77334720dc27b1b0
+  AxeptioIOSSDK: bd90bad4320ea91b5a21a823e99004212a3d1d0b
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  Google-Mobile-Ads-SDK: 5a6d005a6cb5b5e8f4c7b69ca05cdea79c181139
-  google_mobile_ads: 5698dd1cd5a3cfc6688abec7db5428f237d6b1ac
-  GoogleUserMessagingPlatform: f131fa7978d2ba88d7426702b057c2cc318e6595
-  integration_test: 13825b8a9334a850581300559b8839134b124670
-  shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
-  webview_flutter_wkwebview: be0f0d33777f1bfd0c9fdcb594786704dbf65f36
+  Google-Mobile-Ads-SDK: 13e6e98edfd78ad8d8a791edb927658cc260a56f
+  google_mobile_ads: 2a538d8e42b1813809782792e48f8cf4374c2180
+  GoogleUserMessagingPlatform: 0c3a08353e53ce8c2feab7addd0b652cde522450
+  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
+  webview_flutter_wkwebview: 0982481e3d9c78fd5c6f62a002fcd24fc791f1e4
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 

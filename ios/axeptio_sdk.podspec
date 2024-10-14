@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'axeptio_sdk'
-  s.version          = '1.2.1'
+  s.version          = '2.0.0'
   s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
   s.homepage         = 'https://github.com/axeptio/flutter-sdk'
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => "https://github.com/axeptio/flutter-sdk.git" }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency "AxeptioTCFSDK", "1.3.1"
+  s.dependency "AxeptioIOSSDK", "2.0.0"
   s.platform = :ios, '15.0'
 
   # Flutter.framework does not contain a i386 slice.

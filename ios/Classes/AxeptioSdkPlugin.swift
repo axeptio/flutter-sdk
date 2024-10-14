@@ -81,12 +81,19 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
       return
     }
 
+    guard let targetService = args["targetService"] as? String else {
+      result(FlutterError.init(code: "invalid_args", message: "initialize: Missing argument targetService", details: nil))
+      return
+    }
+
+      let axeptioService = targetService == "brands" ? AxeptioService.brands : AxeptioService.publisherTcf
+
     let token = args["token"] as? String
 
     if let token = args["token"] as? String {
-      Axeptio.shared.initialize(clientId: clientId, cookiesVersion: cookiesVersion, token: token)
+      Axeptio.shared.initialize(targetService: axeptioService, clientId: clientId, cookiesVersion: cookiesVersion, token: token)
     } else {
-      Axeptio.shared.initialize(clientId: clientId, cookiesVersion: cookiesVersion)
+      Axeptio.shared.initialize(targetService: axeptioService, clientId: clientId, cookiesVersion: cookiesVersion)
     }
 
     result(nil)
