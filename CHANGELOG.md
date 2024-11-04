@@ -1,3 +1,8 @@
+## 2.0.0
+
+Updated to Axeptio SDK 2.0.0
+Manage brands and publishers configuration
+
 ## 1.3.1
 
 Fix CMP first show on iOS SDK
