@@ -1,3 +1,8 @@
+## 2.0.1
+
+Update to Axeptio SDK 2.0.1
+Clearing consent and partial consent bug fix.
+
 ## 2.0.0
 
 Updated to Axeptio SDK 2.0.0
