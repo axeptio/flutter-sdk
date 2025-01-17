@@ -118,6 +118,10 @@ The SDK does not automatically handle ATT permissions - this must be explicitly 
 
 You can retrieve the consents that are stored by the SDK in UserDefaults/SharedPreferences.
 
+To access UserDefaults/SharedPreferences, you can use the [shared_preferences](https://pub.dev/packages/shared_preferences) library.
+
+For detailed information about stored values and cookies, please refer to the [Axeptio documentation](https://support.axeptio.eu/hc/en-gb/articles/8558526367249-Does-Axeptio-deposit-cookies).
+
 ### Show consent popup on demand
 
 Additionally, you can request the consent popup to open on demand.
@@ -159,8 +163,9 @@ listener.onPopupClosedEvent = () {
   // Do something
 };
 listener.onConsentChanged = () {
-  // The consent of the user changed
-  // Do something
+  // Retrieve consents from UserDefaults
+  // Check user preferences
+  // Run external process/services according user consents
 };
 listener.onGoogleConsentModeUpdate = (consents) {
   // The Google Consent V2 status
