@@ -1,3 +1,8 @@
+## 2.0.2
+
+Update to iOSAxeptio SDK 2.0.2
+ATT consent bug fix.
+
 ## 2.0.1
 
 Update to Axeptio SDK 2.0.1
