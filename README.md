@@ -159,14 +159,11 @@ We provide an `AxeptioEventListener` class that can be use to catch events. Don'
 ```dart
 var listener = AxeptioEventListener();
 listener.onPopupClosedEvent = () {
-  // The CMP notice is being hidden
-  // Do something
-};
-listener.onConsentChanged = () {
-  // Retrieve consents from UserDefaults
+  // Retrieve consents from UserDefaults/SharedPreference
   // Check user preferences
   // Run external process/services according user consents
 };
+
 listener.onGoogleConsentModeUpdate = (consents) {
   // The Google Consent V2 status
   // Do something
