@@ -1,3 +1,8 @@
+## 2.0.3
+
+Update to iOSAxeptio SDK 2.0.3 and Android SDK 2.0.2
+Brands events fix.
+
 ## 2.0.2
 
 Update to iOSAxeptio SDK 2.0.2

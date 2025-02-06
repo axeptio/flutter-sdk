@@ -1,10 +1,10 @@
 PODS:
   - app_tracking_transparency (0.0.1):
     - Flutter
-  - axeptio_sdk (2.0.0):
-    - AxeptioIOSSDK (= 2.0.0)
+  - axeptio_sdk (2.0.3):
+    - AxeptioIOSSDK (= 2.0.3)
     - Flutter
-  - AxeptioIOSSDK (2.0.0)
+  - AxeptioIOSSDK (2.0.3)
   - Flutter (1.0.0)
   - Google-Mobile-Ads-SDK (11.10.0):
     - GoogleUserMessagingPlatform (>= 1.1)
@@ -12,7 +12,7 @@ PODS:
     - Flutter
     - Google-Mobile-Ads-SDK (~> 11.10.0)
     - webview_flutter_wkwebview
-  - GoogleUserMessagingPlatform (2.6.0)
+  - GoogleUserMessagingPlatform (2.7.0)
   - integration_test (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -55,16 +55,16 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_tracking_transparency: e169b653478da7bb15a6c61209015378ca73e375
-  axeptio_sdk: 4b58c99f300416c55a8c31dc77334720dc27b1b0
-  AxeptioIOSSDK: bd90bad4320ea91b5a21a823e99004212a3d1d0b
+  axeptio_sdk: 7ab69a413dd66e108f3b98a2cd7ccc5ed2c90493
+  AxeptioIOSSDK: bb9d4410d4a54873f822dd8746db600a1b940b2e
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   Google-Mobile-Ads-SDK: 13e6e98edfd78ad8d8a791edb927658cc260a56f
   google_mobile_ads: 2a538d8e42b1813809782792e48f8cf4374c2180
-  GoogleUserMessagingPlatform: 0c3a08353e53ce8c2feab7addd0b652cde522450
+  GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   webview_flutter_wkwebview: 0982481e3d9c78fd5c6f62a002fcd24fc791f1e4
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
