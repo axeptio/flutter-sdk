@@ -169,6 +169,11 @@ listener.onGoogleConsentModeUpdate = (consents) {
   // Do something
 };
 
+listener.onConsentCleared = () {
+  // The consent of the user has been cleared
+  // Do something
+};
+
 // Add and remove listener as with the available methods
 var axeptioSdk = AxeptioSdk()
 axeptioSdkPlugin.addEventListerner(listener);
