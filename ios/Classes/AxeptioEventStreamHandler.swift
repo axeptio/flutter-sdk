@@ -13,9 +13,9 @@ class AxeptioEventStreamHandler: NSObject, FlutterStreamHandler {
            self.sendEvent(event: "onPopupClosedEvent")
         }
 
-        axeptioEventListener.onConsentChanged = { [weak self] in
+        axeptioEventListener.onConsentCleared = { [weak self] in
             guard let self else { return }
-            self.sendEvent(event: "onConsentChanged")
+            self.sendEvent(event: "onConsentCleared")
         }
 
         axeptioEventListener.onGoogleConsentModeUpdate = { [weak self] consents in
