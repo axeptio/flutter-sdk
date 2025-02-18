@@ -31,6 +31,11 @@ object AxeptioEventStreamHandler : EventChannel.StreamHandler {
                 )
                 events?.success(event)
             }
+
+            override fun onConsentCleared() {
+                super.onConsentCleared()
+                events?.success(hashMapOf("type" to "onConsentCleared"))
+            }
         }
         axeptioEventListener?.let { AxeptioSDK.instance().setEventListener(it) }
     }
