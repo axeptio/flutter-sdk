@@ -87,9 +87,10 @@ class _MyAppState extends State<MyApp> {
         // The CMP notice is being hidden
         loadAd();
       };
-      listener.onConsentChanged = () {
+      listener.onConsentCleared = () {
         // The consent of the user changed
         // Do something
+        print('Consent cleared');
       };
       listener.onGoogleConsentModeUpdate = (consents) {
         // The Google Consent V2 status

@@ -1,6 +1,6 @@
 enum AxeptioService {
   brands('brands'),
-  publishers('publishers');
+  publishers('publisher');
 
   final String value;
   

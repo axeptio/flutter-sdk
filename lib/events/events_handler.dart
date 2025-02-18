@@ -26,9 +26,9 @@ class EventsHandler {
         }
         break;
 
-      case 'onConsentChanged':
+      case 'onConsentCleared':
         for (var listener in listeners) {
-          listener.onConsentChanged();
+          listener.onConsentCleared();
         }
         break;
 
