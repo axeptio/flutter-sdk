@@ -3,6 +3,7 @@ name: Publish to pub.dev
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -13,7 +14,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.19.6
+          channel: master
+          flutter-version: 3.24.0
           cache: true
       - name: Install dependencies
         run: flutter pub get
