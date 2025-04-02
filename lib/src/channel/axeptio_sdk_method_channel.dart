@@ -1,12 +1,11 @@
-import 'package:axeptio_sdk/events/event_listener.dart';
-import 'package:axeptio_sdk/events/events_handler.dart';
+import 'package:axeptio_sdk/src/events/events.dart';
+import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'axeptio_sdk_platform_interface.dart';
-import 'package:axeptio_sdk/model/axeptio_service.dart';
 
 /// An implementation of [AxeptioSdkPlatform] that uses method channels.
-class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
+class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('axeptio_sdk');
@@ -26,9 +25,8 @@ class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
   }
 
   @override
-  Future<void> initialize(
-      AxeptioService targetService,
-      String clientId, String cookiesVersion, String? token) async {
+  Future<void> initialize(AxeptioService targetService, String clientId,
+      String cookiesVersion, String? token) async {
     await methodChannel.invokeMethod('initialize', {
       "clientId": clientId,
       "cookiesVersion": cookiesVersion,

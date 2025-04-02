@@ -1,10 +1,9 @@
-import 'package:axeptio_sdk/events/event_listener.dart';
+import 'package:axeptio_sdk/src/events/events.dart';
+import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:axeptio_sdk/model/axeptio_service.dart';
 import 'axeptio_sdk_method_channel.dart';
 
-
-abstract class AxeptioSdkPlatform extends PlatformInterface {
+abstract interface class AxeptioSdkPlatform extends PlatformInterface {
   /// Constructs a AxeptioSdkPlatform.
   AxeptioSdkPlatform() : super(token: _token);
 
@@ -33,8 +32,8 @@ abstract class AxeptioSdkPlatform extends PlatformInterface {
     throw UnimplementedError('axeptioToken() has not been implemented.');
   }
 
-  Future<void> initialize(
-      AxeptioService targetService, String clientId, String cookiesVersion, String? token) {
+  Future<void> initialize(AxeptioService targetService, String clientId,
+      String cookiesVersion, String? token) {
     throw UnimplementedError('initialize() has not been implemented');
   }
 

@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 
-import 'package:axeptio_sdk/model/consents_v2.dart';
+import 'package:axeptio_sdk/src/model/consents_v2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
