@@ -2,7 +2,6 @@ import 'package:axeptio_sdk/events/event_listener.dart';
 import 'package:axeptio_sdk/model/axeptio_service.dart';
 import 'axeptio_sdk_platform_interface.dart';
 
-
 class AxeptioSdk {
   Future<String?> getPlatformVersion() {
     return AxeptioSdkPlatform.instance.getPlatformVersion();
@@ -12,8 +11,8 @@ class AxeptioSdk {
     return AxeptioSdkPlatform.instance.axeptioToken;
   }
 
-  Future<void> initialize(
-      AxeptioService targetService, String clientId, String cookiesVersion, String? token) {
+  Future<void> initialize(AxeptioService targetService, String clientId,
+      String cookiesVersion, String? token) {
     return AxeptioSdkPlatform.instance
         .initialize(targetService, clientId, cookiesVersion, token);
   }
@@ -38,6 +37,10 @@ class AxeptioSdk {
     return AxeptioSdkPlatform.instance.clearConsent();
   }
 
+  Future<dynamic> getDefaultPreference(String key) {
+    return AxeptioSdkPlatform.instance.getDefaultPreference(key);
+  }
+
   addEventListerner(AxeptioEventListener listener) {
     AxeptioSdkPlatform.instance.addEventListener(listener);
   }
@@ -45,5 +48,4 @@ class AxeptioSdk {
   removeEventListener(AxeptioEventListener listener) {
     AxeptioSdkPlatform.instance.removeEventListener(listener);
   }
-
 }

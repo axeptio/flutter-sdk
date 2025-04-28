@@ -26,9 +26,8 @@ class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
   }
 
   @override
-  Future<void> initialize(
-      AxeptioService targetService,
-      String clientId, String cookiesVersion, String? token) async {
+  Future<void> initialize(AxeptioService targetService, String clientId,
+      String cookiesVersion, String? token) async {
     await methodChannel.invokeMethod('initialize', {
       "clientId": clientId,
       "cookiesVersion": cookiesVersion,
@@ -62,6 +61,13 @@ class MethodChannelAxeptioSdk extends AxeptioSdkPlatform {
   @override
   Future<void> clearConsent() async {
     await methodChannel.invokeMethod('clearConsent');
+  }
+
+  @override
+  Future<dynamic> getDefaultPreference(String key) async {
+    return methodChannel.invokeMethod('getDefaultPreference', {
+      'key': key,
+    });
   }
 
   @override

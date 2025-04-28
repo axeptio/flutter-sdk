@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
 import 'package:axeptio_sdk/events/event_listener.dart';
+import 'package:axeptio_sdk_example/shared_preferences_dialog.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,36 +35,38 @@ class _MyAppState extends State<MyApp> {
 
   final _axeptioSdkPlugin = AxeptioSdk();
 
-  final adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/1033173712'
-      : 'ca-app-pub-3940256099942544/4411468910';
+  final adUnitId =
+      Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/1033173712'
+          : 'ca-app-pub-3940256099942544/4411468910';
 
   /// Loads an interstitial ad.
   void loadAd() {
     InterstitialAd.load(
-        adUnitId: adUnitId,
-        request: const AdRequest(),
-        adLoadCallback: InterstitialAdLoadCallback(
-          // Called when an ad is successfully received.
-          onAdLoaded: (ad) {
-            print('$ad loaded.');
-            // Keep a reference to the ad so you can show it later.
-            setState(() {
-              _interstitialAd = ad;
-              _onAdBtnPressed = () {
-                _interstitialAd?.show();
-                loadAd();
-              };
-            });
-          },
-          // Called when an ad request failed.
-          onAdFailedToLoad: (LoadAdError error) {
-            print('InterstitialAd failed to load: $error');
-            setState(() {
-              _onAdBtnPressed = null;
-            });
-          },
-        ));
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        // Called when an ad is successfully received.
+        onAdLoaded: (ad) {
+          print('$ad loaded.');
+          // Keep a reference to the ad so you can show it later.
+          setState(() {
+            _interstitialAd = ad;
+            _onAdBtnPressed = () {
+              _interstitialAd?.show();
+              loadAd();
+            };
+          });
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (LoadAdError error) {
+          print('InterstitialAd failed to load: $error');
+          setState(() {
+            _onAdBtnPressed = null;
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -128,7 +131,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion = await _axeptioSdkPlugin.getPlatformVersion() ??
+      platformVersion =
+          await _axeptioSdkPlugin.getPlatformVersion() ??
           'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
@@ -147,21 +151,24 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: HomePage(
-            axeptioSdk: _axeptioSdkPlugin,
-            onAdBtnPressed: _onAdBtnPressed,
-            onClearPressed: () {
-              loadAd();
-            }));
+      home: HomePage(
+        axeptioSdk: _axeptioSdkPlugin,
+        onAdBtnPressed: _onAdBtnPressed,
+        onClearPressed: () {
+          loadAd();
+        },
+      ),
+    );
   }
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage(
-      {super.key,
-      required this.axeptioSdk,
-      required this.onAdBtnPressed,
-      required this.onClearPressed});
+  const HomePage({
+    super.key,
+    required this.axeptioSdk,
+    required this.onAdBtnPressed,
+    required this.onClearPressed,
+  });
 
   final AxeptioSdk axeptioSdk;
   final Function()? onAdBtnPressed;
@@ -198,18 +205,12 @@ class HomePage extends StatelessWidget {
               onPressed: () {
                 axeptioSdk.showConsentScreen();
               },
-              child: const Text(
-                'Consent popup',
-                style: textStyle,
-              ),
+              child: const Text('Consent popup', style: textStyle),
             ),
             ElevatedButton(
               style: style,
               onPressed: onAdBtnPressed,
-              child: const Text(
-                'Google ad',
-                style: textStyle,
-              ),
+              child: const Text('Google ad', style: textStyle),
             ),
             ElevatedButton(
               style: clearConsentStyle,
@@ -217,24 +218,26 @@ class HomePage extends StatelessWidget {
                 axeptioSdk.clearConsent();
                 onClearPressed();
               },
-              child: const Text(
-                'Clear consent',
-                style: textStyle,
-              ),
+              child: const Text('Clear consent', style: textStyle),
             ),
             ElevatedButton(
               style: style,
               onPressed: () {
                 showDialog(
-                    context: context,
-                    builder: (BuildContext context) => TokenAppendDialog(
-                          axeptioSdk: axeptioSdk,
-                        ));
+                  context: context,
+                  builder:
+                      (BuildContext context) =>
+                          TokenAppendDialog(axeptioSdk: axeptioSdk),
+                );
               },
-              child: const Text(
-                'Show webview with token',
-                style: textStyle,
-              ),
+              child: const Text('Show webview with token', style: textStyle),
+            ),
+            ElevatedButton(
+              style: style,
+              onPressed: () async {
+                fetchAndShowSharedPreferences(context);
+              },
+              child: const Text('Shared preferences keys', style: textStyle),
             ),
           ],
         ),

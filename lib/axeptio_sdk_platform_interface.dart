@@ -3,7 +3,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:axeptio_sdk/model/axeptio_service.dart';
 import 'axeptio_sdk_method_channel.dart';
 
-
 abstract class AxeptioSdkPlatform extends PlatformInterface {
   /// Constructs a AxeptioSdkPlatform.
   AxeptioSdkPlatform() : super(token: _token);
@@ -33,8 +32,8 @@ abstract class AxeptioSdkPlatform extends PlatformInterface {
     throw UnimplementedError('axeptioToken() has not been implemented.');
   }
 
-  Future<void> initialize(
-      AxeptioService targetService, String clientId, String cookiesVersion, String? token) {
+  Future<void> initialize(AxeptioService targetService, String clientId,
+      String cookiesVersion, String? token) {
     throw UnimplementedError('initialize() has not been implemented');
   }
 
@@ -58,6 +57,10 @@ abstract class AxeptioSdkPlatform extends PlatformInterface {
 
   Future<void> clearConsent() {
     throw UnimplementedError('clearConsent() has not been implemented');
+  }
+
+  Future<dynamic> getDefaultPreference(String key) {
+    throw UnimplementedError('getDefaultPreference() has not been implemented');
   }
 
   addEventListener(AxeptioEventListener listener) {

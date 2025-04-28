@@ -7,7 +7,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-
 class MockAxeptioSdkPlatform
     with MockPlatformInterfaceMixin
     implements AxeptioSdkPlatform {
@@ -33,8 +32,8 @@ class MockAxeptioSdkPlatform
   }
 
   @override
-  Future<void> initialize(
-      AxeptioService service, String clientId, String cookiesVersion, String? token) {
+  Future<void> initialize(AxeptioService service, String clientId,
+      String cookiesVersion, String? token) {
     // TODO: implement initialize
     throw UnimplementedError();
   }
@@ -54,6 +53,12 @@ class MockAxeptioSdkPlatform
   @override
   Future<void> showConsentScreen() {
     // TODO: implement showConsentScreen
+    throw UnimplementedError();
+  }
+
+  @override
+  Future getDefaultPreference(String key) {
+    // TODO: implement getDefaultPreference
     throw UnimplementedError();
   }
 
