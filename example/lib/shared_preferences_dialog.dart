@@ -36,6 +36,13 @@ Future<void> fetchAndShowSharedPreferences(BuildContext context) async {
     'IABTCF_PublisherCustomPurposesLegitimateInterests',
     'IABTCF_AddtlConsent',
     'IABTCF_EnableAdvertiserConsentMode',
+
+    "AX_CLIENT_TOKEN",
+    "AX_POPUP_ON_GOING",
+
+    "axeptio_cookies",
+    "axeptio_all_vendors",
+    "axeptio_authorized_vendors",
   ];
 
   Map<String, dynamic> data = {};
@@ -81,7 +88,7 @@ Future<void> fetchAndShowSharedPreferences(BuildContext context) async {
                       const SizedBox(width: 8),
                       Expanded(
                         flex: 3,
-                        child: Text(
+                        child: SelectableText(
                           '${entry.value}',
                           style: const TextStyle(color: Colors.black87),
                         ),
