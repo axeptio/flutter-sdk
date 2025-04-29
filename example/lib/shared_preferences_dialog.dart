@@ -4,8 +4,11 @@ import 'package:axeptio_sdk/axeptio_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<void> fetchAndShowSharedPreferences(BuildContext context) async {
-  final keys = [
+Future<void> fetchAndShowSharedPreferences({
+  required BuildContext context,
+  required AxeptioService? targetService,
+}) async {
+  final tcfKeys = [
     'IABTCF_CmpSdkID',
     'IABTCF_CmpSdkVersion',
     'IABTCF_PolicyVersion',
@@ -39,11 +42,15 @@ Future<void> fetchAndShowSharedPreferences(BuildContext context) async {
 
     "AX_CLIENT_TOKEN",
     "AX_POPUP_ON_GOING",
+  ];
 
+  final brandKeys = [
     "axeptio_cookies",
     "axeptio_all_vendors",
     "axeptio_authorized_vendors",
   ];
+
+  final keys = (targetService == AxeptioService.brands) ? brandKeys : tcfKeys;
 
   Map<String, dynamic> data = {};
 

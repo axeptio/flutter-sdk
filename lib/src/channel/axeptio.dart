@@ -3,6 +3,11 @@ import 'package:axeptio_sdk/src/model/model.dart';
 import 'axeptio_sdk_platform_interface.dart';
 
 class AxeptioSdk {
+
+  AxeptioService? _targetService;
+
+  AxeptioService? get targetService => _targetService;
+
   Future<String?> getPlatformVersion() {
     return AxeptioSdkPlatform.instance.getPlatformVersion();
   }
@@ -13,6 +18,7 @@ class AxeptioSdk {
 
   Future<void> initialize(AxeptioService targetService, String clientId,
       String cookiesVersion, String? token) {
+        _targetService = targetService;
     return AxeptioSdkPlatform.instance
         .initialize(targetService, clientId, cookiesVersion, token);
   }

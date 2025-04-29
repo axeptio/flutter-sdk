@@ -233,7 +233,10 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               style: style,
               onPressed: () async {
-                fetchAndShowSharedPreferences(context);
+                fetchAndShowSharedPreferences(
+                  context: context,
+                  targetService: axeptioSdk.targetService,
+                );
               },
               child: const Text('Shared preferences keys', style: textStyle),
             ),
