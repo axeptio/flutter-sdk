@@ -1,12 +1,7 @@
 import 'package:axeptio_sdk/axeptio_sdk.dart';
-import 'package:axeptio_sdk/axeptio_sdk_method_channel.dart';
-import 'package:axeptio_sdk/axeptio_sdk_platform_interface.dart';
-import 'package:axeptio_sdk/events/event_listener.dart';
-import 'package:axeptio_sdk/model/axeptio_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
 
 class MockAxeptioSdkPlatform
     with MockPlatformInterfaceMixin
@@ -33,8 +28,8 @@ class MockAxeptioSdkPlatform
   }
 
   @override
-  Future<void> initialize(
-      AxeptioService service, String clientId, String cookiesVersion, String? token) {
+  Future<void> initialize(AxeptioService service, String clientId,
+      String cookiesVersion, String? token) {
     // TODO: implement initialize
     throw UnimplementedError();
   }
@@ -58,6 +53,12 @@ class MockAxeptioSdkPlatform
   }
 
   @override
+  Future getDefaultPreference(String key) {
+    // TODO: implement getDefaultPreference
+    throw UnimplementedError();
+  }
+
+  @override
   addEventListener(AxeptioEventListener listener) {
     // TODO: implement addEventListener
     throw UnimplementedError();
@@ -68,6 +69,7 @@ class MockAxeptioSdkPlatform
     // TODO: implement removeEventListener
     throw UnimplementedError();
   }
+  
 }
 
 void main() {

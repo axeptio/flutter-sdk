@@ -2,10 +2,10 @@ name: axeptio_sdk_example
 description: "Demonstrates how to use the axeptio_sdk plugin."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: '>=3.3.1 <4.0.0'
+  sdk: ">=3.7.2 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -29,7 +29,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   webview_flutter: ^4.7.0
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.3.0
   google_mobile_ads: ^5.0.0
   app_tracking_transparency: ^2.0.5
 
@@ -51,7 +51,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
