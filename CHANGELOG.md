@@ -1,3 +1,6 @@
+## 2.0.6
+
+Update to iOSAxeptio SDK 2.0.7 and Android SDK 2.0.6
 
 ## 2.0.5
 
