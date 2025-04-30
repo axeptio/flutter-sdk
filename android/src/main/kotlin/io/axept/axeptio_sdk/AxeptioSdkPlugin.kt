@@ -3,6 +3,7 @@ package io.axept.axeptio_sdk
 
 import android.app.Activity
 import android.net.Uri
+import androidx.preference.PreferenceManager
 import io.axept.android.library.AxeptioSDK
 import io.axept.android.library.AxeptioService
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -99,6 +100,19 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "clearConsent" -> {
                 AxeptioSDK.instance().clearConsents()
                 result.success(null)
+            }
+
+            // Android specific
+            "getDefaultPreference" -> {
+                val key = call.argument<String>("key")
+                if (key == null) {
+                    result.error("invalid_args", "Key is required", null)
+                    return
+                }
+
+                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity!!)
+                val value = sharedPreferences.all[key]
+                result.success(value)
             }
 
             // iOS specific

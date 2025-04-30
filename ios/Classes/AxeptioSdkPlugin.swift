@@ -20,7 +20,7 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
      eventChannel.setStreamHandler(eventStreamHandler)
   }
 
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "getPlatformVersion":
         print("getPlatformVersion called")
@@ -37,7 +37,12 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
         result(nil)
 
     case "setUserDeniedTracking":
-        Axeptio.shared.setUserDeniedTracking()
+        guard let args = call.arguments as? [String: Any],
+              let denied = args["denied"] as? Bool else {
+            result(FlutterError.init(code: "invalid_args", message: "setUserDeniedTracking: Missing argument 'denied'", details: nil))
+            return
+        }
+        Axeptio.shared.setUserDeniedTracking(denied: denied)
         result(nil)
 
     case "showConsentScreen":
@@ -50,9 +55,9 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
 
     case "appendAxeptioTokenURL":
         guard let arguments = call.arguments as? [String: String],
-            let urlArg = arguments["url"],
-            let url = URL(string: urlArg),
-            let token = arguments["token"] else {
+              let urlArg = arguments["url"],
+              let url = URL(string: urlArg),
+              let token = arguments["token"] else {
             result(nil)
             return
         }
@@ -61,9 +66,9 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
         result(axeptioUrl.absoluteString)
 
     default:
-      result(FlutterMethodNotImplemented)
+        result(FlutterMethodNotImplemented)
     }
-  }
+}
 
   func initialize(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let args = call.arguments as? Dictionary<String, Any> else {
