@@ -66,6 +66,8 @@ Future<void> fetchAndShowSharedPreferences({
     data = await sharedPreferences.getAll();
   }
 
+  if (!context.mounted) return;
+
   showDialog(
     context: context,
     builder: (context) {
