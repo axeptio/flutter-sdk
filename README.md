@@ -27,6 +27,7 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 7. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
 8. [Clearing User Consent](#clearing-user-consent)
 9. [Event Handling and Customization](#event-handling-and-customization)
+10. [Local Test](#local-test)
 <br><br><br>
 ## 🚀Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -249,6 +250,79 @@ axeptioSdkPlugin.addEventListener(listener);
 axeptioSdkPlugin.removeEventListener(listener);
 ```
 <br><br><br>
+
+## Local Test
+
+### To test a bug fix
+1. Clone the `flutter-sdk` repository.
+2. Switch to the branch you want to test.
+3. Configure the widget in the sample app for either **iOS** or **Android**.
+
+### To test the version in production
+- Checkout the master branch.
+
+### Change native SDK version
+#### Android 
+In `android/build.gradle`, update the dependencies:
+```gradle
+dependencies {
+    implementation("io.axept.android:android-sdk:2.0.4")
+}
+```
+#### iOS
+In `ios/axeptio_sdk.podspec`, update the version:
+```ruby
+Pod::Spec.new do |s|
+  s.name             = 'axeptio_sdk'
+  s.version          = '2.0.7'
+  s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
+  s.homepage         = '<https://github.com/axeptio/flutter-sdk>'
+  s.license          = { :type => 'MIT', :file => '../LICENSE' }
+  s.author           = { 'Axeptio' => 'support@axeptio.eu' }
+  s.source           = { :git => "<https://github.com/axeptio/flutter-sdk.git>" }
+  s.source_files = 'Classes/**/*'
+  s.dependency 'Flutter'
+  s.dependency "AxeptioIOSSDK", "2.0.7"
+  s.platform = :ios, '15.0'
+```
+
+### ⚙️Configure widget in sample app 
+To configure the widget, add the project ID and version name in `example/lib/main.dart`:
+```dart
+  Future<void> initSDK() async {
+    try {
+      await _axeptioSdkPlugin.initialize(
+        AxeptioService.publishers,
+        '67b63ac7d81d22bf09c09e52',
+        'tcf-consent-mode',
+        null,
+      );
+```
+#### Android
+In the Android sample app, add your GitHub credentials in example/android/build.gradle:
+```gradle
+maven {
+      url = uri("<https://maven.pkg.github.com/axeptio/axeptio-android-sdk>")
+      credentials {
+          username = "USER" // TODO: GITHUB USERNAME
+          password = "TOKEN" // TODO: GITHUB TOKEN
+      }
+```
+In build variants select `Brands` or `Publisher` depending on which service you want to use.
+
+In `settings.gradle.kts` add your GitHub user and token.
+```gradle
+  maven {
+      url = uri("<https://maven.pkg.github.com/axeptio/tcf-android-sdk>")
+      credentials {
+          username = "USER" // TODO: GITHUB USERNAME
+          password = "TOKEN" // TODO: GITHUB TOKEN
+      }
+  }
+```
+
+<br><br><br>
+
 By following this guide, you'll be able to integrate the Axeptio Flutter SDK effectively into your app, providing comprehensive consent management and ensuring compliance with privacy regulations.
 
 For advanced configurations and further documentation, please refer to the official [Axeptio documentation](https://support.axeptio.eu/hc/en-gb).
