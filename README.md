@@ -184,7 +184,7 @@ The Axeptio SDK and your mobile application each have distinct responsibilities 
 <br><br><br>
 ## Retrieving and Managing Stored Consents
 
-To retrieve stored consent choices, use **UserDefaults** (iOS) or **SharedPreferences** (Android) with the `shared_preferences` package.
+To retrieve stored consent choices, use **UserDefaults** (iOS) with the `shared_preferences` package.
 
 ##### Dart Example
 
@@ -195,6 +195,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 SharedPreferences prefs = await SharedPreferences.getInstance();
 String userConsent = prefs.getString('axeptio_consent');
 ```
+To retrieve stored consent choices, you can access the native preferences directly through the SDK using the following method:
+
+```dart
+import 'package:axeptio_sdk_example/shared_preferences_dialog.dart';
+
+final result = await NativeDefaultPreferences.getDefaultPreference(
+  "axeptio_cookies",
+);
+print(result);
+```
+You can use any of the following keys depending on your needs:
+```dart
+final brandKeys = [
+  "axeptio_cookies",
+  "axeptio_all_vendors",
+  "axeptio_authorized_vendors",
+];
+```
+> ⚠️ **Note for Android:** On Android, the SDK stores consent data in native preferences. 
+> Using `SharedPreferences.getInstance()` may return `null` if the consent popup was not accepted or if the storage is not shared with Flutter.
+> For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
+
 <br><br><br>
 ## Displaying the Consent Popup on Demand
 If needed, you can display the consent popup manually by calling the following method:
