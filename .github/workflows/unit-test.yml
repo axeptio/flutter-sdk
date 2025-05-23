@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - "*"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,13 +12,20 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
+      
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.29.3
+          flutter-version: '3.29.3'
+          channel: 'stable'
+          architecture: 'x64'  # Force x64 architecture
+          cache: false  # Disable cache for act compatibility
+      
       - name: Install dependencies
         run: flutter pub get
+        
       - name: Analyze
         run: flutter analyze
+        
       - name: Run tests
         run: flutter test
