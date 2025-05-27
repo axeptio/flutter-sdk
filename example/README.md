@@ -31,7 +31,7 @@ flutter build apk \
 Or just use flavor with defaults
 ```bash
 flutter build apk --dart-define=FLAVOR=tcf
-flutter build apk --dart-define=FLAVOR=brand
+flutter build apk --dart-define=FLAVOR=brands
 ```
 ## Run
 
@@ -44,10 +44,10 @@ Launch an iOS Simulator: `open -a Simulator`
 For development
 ```bash
 flutter run --dart-define=FLAVOR=tcf
-flutter run --dart-define=FLAVOR=brand
+flutter run --dart-define=FLAVOR=brands
 ```
 
-Finally, run the projet by running : 
+Finally, run the projet by running, default flavor is brands
 ```shell
 flutter run -d "iPhone 16"
 ```
