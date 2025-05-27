@@ -18,6 +18,30 @@ void main() {
   runApp(const MyApp());
 }
 
+class SDKConfig {
+  static const String _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'brands');
+  
+  static dynamic get axeptioService {
+    switch (_flavor) {
+      case 'tcf':
+        return AxeptioService.publishers;
+      case 'brands':
+      default:
+        return AxeptioService.brands;
+    }
+  }
+  
+  static String get projectId {
+        return const String.fromEnvironment('PROJECT_ID', defaultValue: '5fbfa806a0787d3985c6ee5f');
+  }
+  
+  static String get version {
+         return const String.fromEnvironment('TCF_VERSION', defaultValue: 'google cmp partner program sandbox-en-EU');
+    }
+  
+  static bool get isTcf => _flavor == 'tcf';
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -74,12 +98,14 @@ class _MyAppState extends State<MyApp> {
     loadAd();
   }
 
+  // flutter build apk --dart-define=FLAVOR=tcf
+  // flutter run --dart-define=FLAVOR=tcf
   Future<void> initSDK() async {
     try {
       await _axeptioSdkPlugin.initialize(
-        AxeptioService.brands,
-        '5fbfa806a0787d3985c6ee5f',
-        'google cmp partner program sandbox-en-EU',
+        SDKConfig.axeptioService,
+        SDKConfig.projectId,
+        SDKConfig.version,
         null,
       );
 
