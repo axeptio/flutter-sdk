@@ -16,16 +16,16 @@ TCF version with custom values
 ```bash
 flutter build apk \
   --dart-define=FLAVOR=tcf \
-  --dart-define=TCF_PROJECT_ID=your-tcf-project-id \
-  --dart-define=TCF_VERSION="google cmp partner program sandbox-en-EU"
+  --dart-define=PROJECT_ID=your-tcf-project-id \
+  --dart-define=VERSION="google cmp partner program sandbox-en-EU"
 ```
 
 Non-TCF version with custom values
 ```bash
 flutter build apk \
   --dart-define=FLAVOR=brand \
-  --dart-define=NON_TCF_PROJECT_ID=your-non-tcf-project-id \
-  --dart-define=NON_TCF_VERSION="your-non-tcf-version"
+  --dart-define=PROJECT_ID=your-non-tcf-project-id \
+  --dart-define=VERSION="your-non-tcf-version"
 ```
 
 Or just use flavor with defaults
@@ -41,7 +41,7 @@ List devices: `flutter devices`
 List emulators: `flutter emulators`
 List Android: `emulator -list-avds`
 Launch an iOS Simulator: `open -a Simulator` or `flutter emulators --launch ios`
-Launch an Android Simulator: `emulator -avd Pixel_4_API_35` or `flutter emulators --launch android`
+Launch an Android Simulator: `flutter emulators --launch Pixel_9` or `flutter emulators --launch android`
 
 For development
 ```bash
