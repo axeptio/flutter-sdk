@@ -38,8 +38,10 @@ flutter build apk --dart-define=FLAVOR=brands
 ### Launch a simulator
 
 List devices: `flutter devices`
-Launch an iOS Simulator: `open -a Simulator`
-
+List emulators: `flutter emulators`
+List Android: `emulator -list-avds`
+Launch an iOS Simulator: `open -a Simulator` or `flutter emulators --launch ios`
+Launch an Android Simulator: `emulator -avd Pixel_4_API_35` or `flutter emulators --launch android`
 
 For development
 ```bash
