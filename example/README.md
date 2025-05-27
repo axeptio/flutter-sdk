@@ -10,10 +10,48 @@ Then, install dependencies by running :
 ```shell
 flutter pub get
 ```
+## Build
 
-Finally, run the projet by running : 
+TCF version with custom values
+```bash
+flutter build apk \
+  --dart-define=FLAVOR=tcf \
+  --dart-define=PROJECT_ID=your-tcf-project-id \
+  --dart-define=VERSION="google cmp partner program sandbox-en-EU"
+```
+
+Non-TCF version with custom values
+```bash
+flutter build apk \
+  --dart-define=FLAVOR=brand \
+  --dart-define=PROJECT_ID=your-non-tcf-project-id \
+  --dart-define=VERSION="your-non-tcf-version"
+```
+
+Or just use flavor with defaults
+```bash
+flutter build apk --dart-define=FLAVOR=tcf
+flutter build apk --dart-define=FLAVOR=brands
+```
+## Run
+
+### Launch a simulator
+
+List devices: `flutter devices`
+List emulators: `flutter emulators`
+List Android: `emulator -list-avds`
+Launch an iOS Simulator: `open -a Simulator` or `flutter emulators --launch ios`
+Launch an Android Simulator: `flutter emulators --launch Pixel_9` or `flutter emulators --launch android`
+
+For development
+```bash
+flutter run --dart-define=FLAVOR=tcf
+flutter run --dart-define=FLAVOR=brands
+```
+
+Finally, run the projet by running, default flavor is brands
 ```shell
-flutter run
+flutter run -d "iPhone 16"
 ```
 
 If you have any trouble or want more information, check the [online documentation](https://docs.flutter.dev/)
