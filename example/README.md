@@ -43,15 +43,23 @@ List Android: `emulator -list-avds`
 Launch an iOS Simulator: `open -a Simulator` or `flutter emulators --launch ios`
 Launch an Android Simulator: `flutter emulators --launch Pixel_9` or `flutter emulators --launch android`
 
+### Launch the app
+
 For development
 ```bash
-flutter run --dart-define=FLAVOR=tcf
+flutter run --dart-define=FLAVOR=publishers
 flutter run --dart-define=FLAVOR=brands
 ```
 
 Finally, run the projet by running, default flavor is brands
 ```shell
 flutter run -d "iPhone 16"
+```
+
+### Uninstall the app
+
+```shell
+flutter install --uninstall-only
 ```
 
 If you have any trouble or want more information, check the [online documentation](https://docs.flutter.dev/)

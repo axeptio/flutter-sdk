@@ -23,7 +23,7 @@ class SDKConfig {
   
   static dynamic get axeptioService {
     switch (_flavor) {
-      case 'tcf':
+      case 'publishers':
         return AxeptioService.publishers;
       case 'brands':
       default:
@@ -36,7 +36,7 @@ class SDKConfig {
   }
   
   static String get version {
-         return const String.fromEnvironment('TCF_VERSION', defaultValue: 'google cmp partner program sandbox-en-EU');
+         return const String.fromEnvironment('VERSION', defaultValue: 'google cmp partner program sandbox-en-EU');
     }
   
   static bool get isTcf => _flavor == 'tcf';
@@ -101,6 +101,14 @@ class _MyAppState extends State<MyApp> {
   // flutter build apk --dart-define=FLAVOR=tcf
   // flutter run --dart-define=FLAVOR=tcf
   Future<void> initSDK() async {
+   	 // Log SDK configuration
+      print('=== Axeptio SDK Configuration ===');
+      print('Service Mode: ${SDKConfig.axeptioService}');
+      print('Project ID: ${SDKConfig.projectId}');
+      print('Version: ${SDKConfig.version}');
+      print('================================');
+
+
     try {
       await _axeptioSdkPlugin.initialize(
         SDKConfig.axeptioService,
