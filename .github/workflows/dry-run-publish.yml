@@ -1,16 +1,16 @@
-name: Publish to pub.dev
-
+name: Dry-run Publish to pub.dev
 on:
-  release:
-    types: [published]
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
   workflow_dispatch:
       
 jobs:
-  publish:
+  dry-run-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -26,11 +26,9 @@ jobs:
         run: flutter analyze
       - name: Run tests
         run: flutter test
-      - name: Check Publish Warnings
+      - name: Check Publish Warnings (Dry Run)
         run: dart pub publish --dry-run
-      - name: Publish
-        uses: k-paxian/dart-package-publisher@v1.6
-        with:
-          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-          flutter: true
-          skipTests: true
+      - name: Package validation
+        run: |
+          echo "✅ Package validation completed successfully"
+          echo "This workflow validates that the package is ready for publishing without actually publishing it"
