@@ -1,4 +1,4 @@
-# axeptio_sdk_example
+# Axeptio Flutter SDK Example App
 
 This project demonstrates the basic usage of the axeptio_sdk plugin.
 
@@ -30,18 +30,18 @@ flutter build apk \
 
 Or just use flavor with defaults
 ```bash
-flutter build apk --dart-define=FLAVOR=tcf
+flutter build apk --dart-define=FLAVOR=publishers
 flutter build apk --dart-define=FLAVOR=brands
 ```
 ## Run
 
 ### Launch a simulator
 
-List devices: `flutter devices`
-List emulators: `flutter emulators`
-List Android: `emulator -list-avds`
-Launch an iOS Simulator: `open -a Simulator` or `flutter emulators --launch ios`
-Launch an Android Simulator: `flutter emulators --launch Pixel_9` or `flutter emulators --launch android`
+- List devices: `flutter devices`<br>
+- List emulators: `flutter emulators`<br>
+- List Android: `emulator -list-avds`<br>
+- Launch an iOS Simulator: `open -a Simulator` or `flutter emulators --launch ios`<br>
+- Launch an Android Simulator: `flutter emulators --launch Pixel_9` or `flutter emulators --launch android`<br>
 
 ### Launch the app
 
