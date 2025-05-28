@@ -104,6 +104,9 @@ This ensures that your app targets devices running iOS 15 or later.
 <br><br><br>
 ## 🔧SDK Initialization
 To initialize the Axeptio SDK on app startup, select either **brands** or **publishers** depending on your use case. The SDK is `initialized` through the AxeptioService enum and requires your `client_id`, `cookies_version`, and optionally a `consent_token`.
+
+### Brands
+
 ```dart
 final axeptioSdkPlugin = AxeptioSdk();
 await axeptioSdkPlugin.initialize(
@@ -114,6 +117,20 @@ await axeptioSdkPlugin.initialize(
 );
 await axeptioSdkPlugin.setupUI();  // Setup the UI for consent management
 ```
+
+### Publisher (TCF)
+
+```dart
+final axeptioSdkPlugin = AxeptioSdk();
+await axeptioSdkPlugin.initialize(
+    AxeptioService.publishers, // Choose either brands or publishers
+    "your_client_id",  // Your client ID
+    "your_cookies_version",  // Version of your cookies policy
+    "optional_consent_token",  // Optionally pass a consent token for existing user consent
+);
+await axeptioSdkPlugin.setupUI();  // Setup the UI for consent management
+```
+
 The **setupUI()** function will display the consent management UI once initialized.
 <br><br><br>
 ## App Tracking Transparency (ATT) Integration
