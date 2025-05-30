@@ -229,6 +229,42 @@ final brandKeys = [
   "axeptio_all_vendors",
   "axeptio_authorized_vendors",
 ];
+
+final tcfKeys = [
+  'IABTCF_CmpSdkID',
+  'IABTCF_CmpSdkVersion',
+  'IABTCF_PolicyVersion',
+  'IABTCF_gdprApplies',
+  'IABTCF_PublisherCC',
+  'IABTCF_PurposeOneTreatment',
+  'IABTCF_UseNonStandardTexts',
+  'IABTCF_TCString',
+  'IABTCF_VendorConsents',
+  'IABTCF_VendorLegitimateInterests',
+  'IABTCF_PurposeConsents',
+  'IABTCF_PurposeLegitimateInterests',
+  'IABTCF_SpecialFeaturesOptIns',
+  'IABTCF_PublisherRestrictions1',
+  'IABTCF_PublisherRestrictions2',
+  'IABTCF_PublisherRestrictions3',
+  'IABTCF_PublisherRestrictions4',
+  'IABTCF_PublisherRestrictions5',
+  'IABTCF_PublisherRestrictions6',
+  'IABTCF_PublisherRestrictions7',
+  'IABTCF_PublisherRestrictions8',
+  'IABTCF_PublisherRestrictions9',
+  'IABTCF_PublisherRestrictions10',
+  'IABTCF_PublisherRestrictions11',
+  'IABTCF_PublisherConsent',
+  'IABTCF_PublisherLegitimateInterests',
+  'IABTCF_PublisherCustomPurposesConsents',
+  'IABTCF_PublisherCustomPurposesLegitimateInterests',
+  'IABTCF_AddtlConsent',
+  'IABTCF_EnableAdvertiserConsentMode',
+
+  "AX_CLIENT_TOKEN",
+  "AX_POPUP_ON_GOING",
+];
 ```
 > ⚠️ **Note for Android:** On Android, the SDK stores consent data in native preferences. 
 > Using `SharedPreferences.getInstance()` may return `null` if the consent popup was not accepted or if the storage is not shared with Flutter.
