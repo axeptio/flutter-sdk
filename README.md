@@ -27,7 +27,8 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 7. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
 8. [Clearing User Consent](#clearing-user-consent)
 9. [Event Handling and Customization](#event-handling-and-customization)
-10. [Local Test](#local-test)
+10. [Event Source Identification](#event-source-for-kpi-tracking)
+11. [Local Test](#local-test)
 <br><br><br>
 ## 🚀Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -324,6 +325,20 @@ var axeptioSdk = AxeptioSdk();
 axeptioSdkPlugin.addEventListener(listener);
 axeptioSdkPlugin.removeEventListener(listener);
 ```
+<br><br><br>
+
+### Event Source Identification
+
+Events sent from the SDK (including those triggered via the internal WebView) include an `event_source` value to distinguish between App and Web contexts. This ensures analytics and KPIs are correctly attributed in the Axeptio back office.
+
+The following values are used:
+
+- `sdk-app-tcf`: TCF popup inside mobile apps.
+- `sdk-web-tcf`: TCF popup in web browsers.
+- `sdk-app-brands`: Brands widget loaded in apps.
+- `sdk-web`: Brands widget on websites.
+
+This tagging is handled automatically by the native SDK components used under the hood in the Flutter module.
 <br><br><br>
 
 ## Local Test
