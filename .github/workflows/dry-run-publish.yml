@@ -1,9 +1,5 @@
 name: Dry-run Publish to pub.dev
 on:
-  pull_request:
-    branches: [main, master]
-  push:
-    branches: [main, master]
   workflow_dispatch:
       
 jobs:
@@ -28,6 +24,14 @@ jobs:
         run: flutter test
       - name: Check Publish Warnings (Dry Run)
         run: dart pub publish --dry-run
+      - name: Publish
+        uses: k-paxian/dart-package-publisher@v1.6.2
+        with:
+          accessToken: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
+          flutter: true
+          skipTests: true
+          dryRunOnly: true
       - name: Package validation
         run: |
           echo "✅ Package validation completed successfully"
