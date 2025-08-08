@@ -53,12 +53,6 @@ class MockAxeptioSdkPlatform
   }
 
   @override
-  Future getDefaultPreference(String key) {
-    // TODO: implement getDefaultPreference
-    throw UnimplementedError();
-  }
-
-  @override
   addEventListener(AxeptioEventListener listener) {
     // TODO: implement addEventListener
     throw UnimplementedError();
