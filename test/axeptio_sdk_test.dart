@@ -53,12 +53,6 @@ class MockAxeptioSdkPlatform
   }
 
   @override
-  Future getDefaultPreference(String key) {
-    // TODO: implement getDefaultPreference
-    throw UnimplementedError();
-  }
-
-  @override
   addEventListener(AxeptioEventListener listener) {
     // TODO: implement addEventListener
     throw UnimplementedError();
@@ -69,7 +63,12 @@ class MockAxeptioSdkPlatform
     // TODO: implement removeEventListener
     throw UnimplementedError();
   }
-  
+
+  @override
+  Future<Map<String, dynamic>?> getConsentSavedData({String? preferenceKey}) {
+    // TODO: implement getConsentSavedData
+    throw UnimplementedError();
+  }
 }
 
 void main() {

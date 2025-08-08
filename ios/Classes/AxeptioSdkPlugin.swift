@@ -65,6 +65,14 @@ public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let axeptioUrl = Axeptio.shared.appendAxeptioTokenToURL(url, token: token)
         result(axeptioUrl.absoluteString)
 
+    case "getConsentSavedData":
+        let arguments = call.arguments as? [String: Any]
+        let preferenceKey = arguments?["preferenceKey"] as? String
+
+        let response = Axeptio.shared.getConsentDebugInfo(preferenceKey: preferenceKey)
+        
+        result(response)
+
     default:
         result(FlutterMethodNotImplemented)
     }
