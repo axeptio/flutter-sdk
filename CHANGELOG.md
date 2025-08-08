@@ -1,3 +1,8 @@
+## 2.0.9
+
+- Update iOS Axeptio SDK to 2.0.13 and Android SDK to 2.0.7.
+- Expose method to fetch vendor consent debug info.
+
 ## 2.0.8
 
 Docs and sample apps improvements.
