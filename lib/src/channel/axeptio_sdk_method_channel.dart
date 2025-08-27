@@ -66,11 +66,24 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   @override
   Future<Map<String, dynamic>?> getConsentSavedData(
       {String? preferenceKey}) async {
-    final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
-      'getConsentSavedData',
-      {"preferenceKey": preferenceKey},
-    );
-    return result?.map((key, value) => MapEntry(key.toString(), value));
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getConsentSavedData',
+        {"preferenceKey": preferenceKey},
+      );
+      return result?.map((key, value) => MapEntry(key.toString(), value));
+    } on PlatformException catch (e) {
+      // Handle iOS NSDate serialization error (MSK-81)
+      if (e.message?.contains('NSTaggedDate') == true || 
+          e.message?.contains('Unsupported value') == true) {
+        // Return empty map to prevent crash while maintaining app functionality
+        if (kDebugMode) {
+          print('AxeptioSDK: iOS date serialization error handled - ${e.message}');
+        }
+        return <String, dynamic>{};
+      }
+      rethrow;
+    }
   }
 
   @override
