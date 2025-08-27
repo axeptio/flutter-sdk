@@ -75,7 +75,7 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
     } on PlatformException catch (e) {
       // Handle iOS NSDate serialization error (MSK-81)
       if (e.message?.contains('NSTaggedDate') == true || 
-          e.message?.contains('Unsupported value') == true) {
+          (defaultTargetPlatform == TargetPlatform.iOS && e.message?.contains('Unsupported value') == true)) {
         // Return empty map to prevent crash while maintaining app functionality
         if (kDebugMode) {
           print('AxeptioSDK: iOS date serialization error handled - ${e.message}');
