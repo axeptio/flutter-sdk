@@ -216,7 +216,7 @@ String userConsent = prefs.getString('axeptio_consent');
 To retrieve stored consent choices, you can access the native preferences directly through the SDK using the following method:
 
 ```dart
-import 'package:axeptio_sdk_example/shared_preferences_dialog.dart';
+import 'package:axeptio_sdk/axeptio_sdk.dart';
 
 final result = await NativeDefaultPreferences.getDefaultPreference(
   "axeptio_cookies",
@@ -224,48 +224,43 @@ final result = await NativeDefaultPreferences.getDefaultPreference(
 print(result);
 ```
 You can use any of the following keys depending on your needs:
+
+##### Brand Keys
 ```dart
-final brandKeys = [
-  "axeptio_cookies",
-  "axeptio_all_vendors",
-  "axeptio_authorized_vendors",
-];
+// Access brand-specific consent data
+final cookies = await NativeDefaultPreferences.getDefaultPreference('axeptio_cookies');
+final allVendors = await NativeDefaultPreferences.getDefaultPreference('axeptio_all_vendors');
+final authorizedVendors = await NativeDefaultPreferences.getDefaultPreference('axeptio_authorized_vendors');
+```
 
-final tcfKeys = [
-  'IABTCF_CmpSdkID',
-  'IABTCF_CmpSdkVersion',
-  'IABTCF_PolicyVersion',
-  'IABTCF_gdprApplies',
-  'IABTCF_PublisherCC',
-  'IABTCF_PurposeOneTreatment',
-  'IABTCF_UseNonStandardTexts',
+##### TCF Keys  
+```dart
+// Access TCF (Transparency & Consent Framework) data
+final tcString = await NativeDefaultPreferences.getDefaultPreference('IABTCF_TCString');
+final vendorConsents = await NativeDefaultPreferences.getDefaultPreference('IABTCF_VendorConsents');
+final gdprApplies = await NativeDefaultPreferences.getDefaultPreference('IABTCF_gdprApplies');
+```
+
+##### Bulk Operations
+```dart
+// Get multiple preferences at once
+final preferences = await NativeDefaultPreferences.getDefaultPreferences([
   'IABTCF_TCString',
-  'IABTCF_VendorConsents',
-  'IABTCF_VendorLegitimateInterests',
-  'IABTCF_PurposeConsents',
-  'IABTCF_PurposeLegitimateInterests',
-  'IABTCF_SpecialFeaturesOptIns',
-  'IABTCF_PublisherRestrictions1',
-  'IABTCF_PublisherRestrictions2',
-  'IABTCF_PublisherRestrictions3',
-  'IABTCF_PublisherRestrictions4',
-  'IABTCF_PublisherRestrictions5',
-  'IABTCF_PublisherRestrictions6',
-  'IABTCF_PublisherRestrictions7',
-  'IABTCF_PublisherRestrictions8',
-  'IABTCF_PublisherRestrictions9',
-  'IABTCF_PublisherRestrictions10',
-  'IABTCF_PublisherRestrictions11',
-  'IABTCF_PublisherConsent',
-  'IABTCF_PublisherLegitimateInterests',
-  'IABTCF_PublisherCustomPurposesConsents',
-  'IABTCF_PublisherCustomPurposesLegitimateInterests',
-  'IABTCF_AddtlConsent',
-  'IABTCF_EnableAdvertiserConsentMode',
+  'axeptio_cookies',
+  'IABTCF_gdprApplies'
+]);
 
-  "AX_CLIENT_TOKEN",
-  "AX_POPUP_ON_GOING",
-];
+// Get all available preferences
+final allPrefs = await NativeDefaultPreferences.getAllDefaultPreferences();
+```
+
+##### Available Keys
+All supported preference keys are available as static lists:
+```dart
+// Access predefined key lists
+print('Brand keys: ${NativeDefaultPreferences.brandKeys}');
+print('TCF keys: ${NativeDefaultPreferences.tcfKeys}');
+print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 ```
 > ⚠️ **Note for Android:** On Android, the SDK stores consent data in native preferences. 
 > Using `SharedPreferences.getInstance()` may return `null` if the consent popup was not accepted or if the storage is not shared with Flutter.

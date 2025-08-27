@@ -8,3 +8,4 @@ export 'events/events_handler.dart';
 export 'model/axeptio_service.dart';
 export 'model/consents_v2.dart';
 export 'model/model.dart';
+export 'preferences/native_default_preferences.dart';
