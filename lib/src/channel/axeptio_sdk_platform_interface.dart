@@ -1,6 +1,7 @@
 import 'package:axeptio_sdk/src/events/events.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
 import 'axeptio_sdk_method_channel.dart';
 
 abstract interface class AxeptioSdkPlatform extends PlatformInterface {
@@ -59,8 +60,8 @@ abstract interface class AxeptioSdkPlatform extends PlatformInterface {
     throw UnimplementedError('clearConsent() has not been implemented');
   }
 
-  Future<dynamic> getDefaultPreference(String key) {
-    throw UnimplementedError('getDefaultPreference() has not been implemented');
+  Future<Map<String, dynamic>?> getConsentSavedData({String? preferenceKey}) {
+    throw UnimplementedError('getConsentSavedData() has not been implemented');
   }
 
   addEventListener(AxeptioEventListener listener) {

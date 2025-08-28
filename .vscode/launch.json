@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "flutter-sdk brands",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=FLAVOR=brands"
+            ]
+        },
+        {
+            "name": "flutter-sdk publishers",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=FLAVOR=publishers"
+            ]
+        },
+        {
             "name": "flutter-sdk",
             "request": "launch",
             "type": "dart"
