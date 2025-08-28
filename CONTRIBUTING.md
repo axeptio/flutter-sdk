@@ -9,7 +9,7 @@ Thank you for your interest in contributing to the Axeptio Flutter SDK! This doc
 - Flutter SDK 3.3.0 or later
 - Dart SDK 3.3.1 or later
 - Python 3.x (for pre-commit hooks)
-- Node.js 18+ (for semantic release)
+- Node.js 22+ (for semantic release)
 
 ### Initial Setup
 
