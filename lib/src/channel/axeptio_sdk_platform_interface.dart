@@ -64,6 +64,10 @@ abstract interface class AxeptioSdkPlatform extends PlatformInterface {
     throw UnimplementedError('getConsentSavedData() has not been implemented');
   }
 
+  Future<Map<String, dynamic>?> getConsentDebugInfo({String? preferenceKey}) {
+    throw UnimplementedError('getConsentDebugInfo() has not been implemented');
+  }
+
   addEventListener(AxeptioEventListener listener) {
     throw UnimplementedError('addEventListener() has not been implemented');
   }
