@@ -120,7 +120,6 @@ The following checks run automatically on each commit:
 - **Flutter Analyze**: Checks for code issues
 - **Flutter Format**: Ensures consistent formatting
 - **Flutter Test**: Runs all unit tests
-- **GitHub Actions Lint**: Validates workflow files
 - **Conventional Commit**: Validates commit message format
 
 ### Manual Quality Checks

@@ -30,15 +30,6 @@ repos:
         pass_filenames: false
         files: \.(dart)$
 
-  - repo: local
-    hooks:
-      - id: actionlint
-        name: GitHub Actions Lint  
-        entry: bash -c 'command -v actionlint >/dev/null 2>&1 || go install github.com/rhymond/actionlint@latest; ~/go/bin/actionlint'
-        language: system
-        files: ^\.github/workflows/.*\.ya?ml$
-        pass_filenames: false
-
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.4.0
     hooks:

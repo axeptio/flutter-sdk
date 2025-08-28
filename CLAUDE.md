@@ -28,7 +28,6 @@ pre-commit install
 The hooks will automatically:
 - Run `flutter analyze` for Dart analysis
 - Run `dart format --set-exit-if-changed` for code formatting
-- Validate GitHub Actions workflows with actionlint
 - Validate conventional commit messages
 
 ### Conventional Commits
