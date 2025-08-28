@@ -218,7 +218,7 @@ Beta releases allow customers to test upcoming features before stable release:
 1. **From develop branch**: Ensure your changes are committed to `develop`
 2. **Trigger workflow**: Use "Beta Release" workflow dispatch from GitHub Actions
 3. **Version format**: Next version with beta suffix (e.g., 2.1.0-beta.1)
-4. **Publishing**: Automatically published to pub.dev with `beta` tag
+4. **Publishing**: Automatically published to pub.dev as a pre-release version (e.g., 2.1.0-beta.1)
 
 #### Beta Version Examples
 
