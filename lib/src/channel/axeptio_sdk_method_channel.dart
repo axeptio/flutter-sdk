@@ -64,13 +64,23 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @override
-  Future<Map<String, dynamic>?> getConsentSavedData(
-      {String? preferenceKey}) async {
-    final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
-      'getConsentSavedData',
-      {"preferenceKey": preferenceKey},
-    );
-    return result?.map((key, value) => MapEntry(key.toString(), value));
+  Future<Map<String, dynamic>?> getConsentSavedData({
+    String? preferenceKey,
+  }) async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getConsentSavedData',
+        {"preferenceKey": preferenceKey},
+      );
+      return result?.map((k, v) => MapEntry(k.toString(), v));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getConsentSavedData - ${e.message}',
+        );
+      }
+      return <String, dynamic>{};
+    }
   }
 
   @override

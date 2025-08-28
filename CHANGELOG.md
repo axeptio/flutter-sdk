@@ -1,3 +1,8 @@
+## 2.0.10
+
+- Fix iOS crash when calling getConsentSavedData due to NSDate serialization error (MSK-81).
+- Add error handling to gracefully handle iOS date serialization issues.
+
 ## 2.0.9
 
 - Update iOS Axeptio SDK to 2.0.13 and Android SDK to 2.0.7.

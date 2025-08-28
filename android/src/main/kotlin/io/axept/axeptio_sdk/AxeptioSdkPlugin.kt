@@ -110,7 +110,8 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "getConsentSavedData" -> {
                 val preferenceKey = call.argument<String>("preferenceKey")
                 val response = AxeptioSDK.instance().getConsentDebugInfo(preferenceKey)
-                result.success(response)
+                val safeResponse = sanitizeForFlutter(response)
+                result.success(safeResponse)
             }
 
             // iOS specific
@@ -121,6 +122,27 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    fun sanitizeForFlutter(value: Any?): Any? {
+        return when (value) {
+            null, is Boolean, is Int, is Long, is Double, is String, is ByteArray -> value
+            is java.util.Date ->
+                    java.time.format.DateTimeFormatter.ISO_INSTANT.format(
+                            value.toInstant()
+                    ) // convert Date to ISO string
+            is android.net.Uri -> value.toString() // convert Uri to string
+            is List<*> -> value.mapNotNull { sanitizeForFlutter(it) }
+            is Map<*, *> -> {
+                val safeMap = mutableMapOf<String, Any?>()
+                value.forEach { (k, v) ->
+                    val key = k?.toString() ?: "null"
+                    safeMap[key] = sanitizeForFlutter(v)
+                }
+                safeMap
+            }
+            else -> value.toString() // fallback for any unsupported type
         }
     }
 
