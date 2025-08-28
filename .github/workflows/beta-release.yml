@@ -89,7 +89,7 @@ jobs:
             IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
             MAJOR="${VERSION_PARTS[0]}"
             MINOR="${VERSION_PARTS[1]}"
-            PATCH="${VERSION_PARTS[2]}"
+            PATCH=$(echo "${VERSION_PARTS[2]}" | cut -d'+' -f1)
             NEXT_PATCH=$((PATCH + 1))
             NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH-beta.1"
           fi
