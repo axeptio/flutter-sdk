@@ -10,9 +10,19 @@ Future<void> showPreferences({
       return AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Preferences',
-          style: Theme.of(context).textTheme.titleLarge,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Preferences',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close),
+              tooltip: 'Close',
+            ),
+          ],
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -47,7 +57,7 @@ Future<void> showPreferences({
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: const Text('Close'),
           ),
         ],
       );
