@@ -1,10 +1,10 @@
 PODS:
   - app_tracking_transparency (0.0.1):
     - Flutter
-  - axeptio_sdk (2.0.13):
-    - AxeptioIOSSDK (= 2.0.13)
+  - axeptio_sdk (2.0.15):
+    - AxeptioIOSSDK (= 2.0.15)
     - Flutter
-  - AxeptioIOSSDK (2.0.13)
+  - AxeptioIOSSDK (2.0.15)
   - Flutter (1.0.0)
   - Google-Mobile-Ads-SDK (11.13.0):
     - GoogleUserMessagingPlatform (>= 1.1)
@@ -55,9 +55,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_tracking_transparency: 3d84f147f67ca82d3c15355c36b1fa6b66ca7c92
-  axeptio_sdk: 9c60ce11d5ee47993772c8df69559006f8e79d70
-  AxeptioIOSSDK: 549e71bf758a35c13cddf688ebcbf312e282fe32
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  axeptio_sdk: 95a588cf05b9c21b513937c204514f835a4a2d3c
+  AxeptioIOSSDK: 1ad235e891b6ce15bc8b9b24b8a76da9548b5201
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   Google-Mobile-Ads-SDK: 14f57f2dc33532a24db288897e26494640810407
   google_mobile_ads: 16ad301354fa6a7ea55770c6254bd4339bf8558b
   GoogleUserMessagingPlatform: f8d0cdad3ca835406755d0a69aa634f00e76d576

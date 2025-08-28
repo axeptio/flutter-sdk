@@ -1,3 +1,7 @@
+## 2.0.12
+
+- Update iOS Axeptio SDK to 2.0.15.
+
 ## 2.0.11
 
 - Add NativeDefaultPreferences class for cross-platform access to native consent preferences (MSK-76).
