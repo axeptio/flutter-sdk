@@ -1,0 +1,40 @@
+# <type>(<scope>): <short summary>
+#
+# <Detailed description of the change>
+#
+# Breaking Change: <describe breaking change if applicable>
+
+# === Commit Message Format ===
+# <type>(<scope>): <short summary>
+#   │       │           │
+#   │       │           └─⫸ Summary in present tense. Not capitalized. No period.
+#   │       │
+#   │       └─⫸ Commit Scope: android|ios|core|example|docs|ci
+#   │
+#   └─⫸ Commit Type: feat|fix|docs|style|refactor|test|chore|ci|build|perf
+
+# === Type Examples ===
+# feat:     A new feature
+# fix:      A bug fix
+# docs:     Documentation only changes
+# style:    Changes that do not affect the meaning of the code
+# refactor: A code change that neither fixes a bug nor adds a feature
+# test:     Adding missing tests or correcting existing tests
+# chore:    Other changes that don't modify src or test files
+# ci:       Changes to CI configuration files and scripts
+# build:    Changes that affect the build system or external dependencies
+# perf:     A code change that improves performance
+
+# === Scope Examples ===
+# android:  Changes specific to Android implementation
+# ios:      Changes specific to iOS implementation
+# core:     Changes to the core Flutter/Dart code
+# example:  Changes to the example app
+# docs:     Changes to documentation
+# ci:       Changes to CI/CD configuration
+
+# === Examples ===
+# feat(core): add native preferences access for consent data
+# fix(android): resolve gradle build configuration issue
+# docs(readme): update installation instructions
+# ci(workflow): add GitHub Actions linting validation
