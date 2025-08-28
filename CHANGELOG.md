@@ -1,6 +1,8 @@
 ## 2.0.12
 
 - Update iOS Axeptio SDK to 2.0.15.
+- Update Android Axeptio SDK to 2.0.8.
+- Fix GitHub Package Registry credentials configuration in example project.
 
 ## 2.0.11
 
