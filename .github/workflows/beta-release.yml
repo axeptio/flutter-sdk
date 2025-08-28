@@ -1,0 +1,221 @@
+name: Beta Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      beta_increment:
+        description: 'Beta increment (leave empty for auto-increment)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  beta-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+          channel: 'stable'
+          architecture: 'x64'
+          cache: false
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install semantic-release dependencies
+        run: |
+          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec conventional-changelog-conventionalcommits
+
+      - name: Calculate next version
+        id: next-version
+        run: |
+          # Get current version from pubspec.yaml
+          CURRENT_VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //')
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Get latest stable tag
+          LATEST_TAG=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null || echo "v$CURRENT_VERSION")
+          echo "Latest stable tag: $LATEST_TAG"
+          
+          # Calculate next version based on conventional commits
+          cat > .releaserc-beta.json << 'EOF'
+          {
+            "branches": [
+              {"name": "develop", "prerelease": "beta"}
+            ],
+            "plugins": [
+              ["@semantic-release/commit-analyzer", {
+                "preset": "conventionalcommits"
+              }],
+              ["@semantic-release/release-notes-generator", {
+                "preset": "conventionalcommits"
+              }]
+            ],
+            "dryRun": true
+          }
+          EOF
+          
+          # Run semantic-release in dry-run to get next version
+          NEXT_VERSION_OUTPUT=$(npx semantic-release --extends ./.releaserc-beta.json --dry-run 2>&1 || true)
+          echo "Semantic release output: $NEXT_VERSION_OUTPUT"
+          
+          # Extract next version from output or calculate manually
+          if echo "$NEXT_VERSION_OUTPUT" | grep -q "The next release version is"; then
+            NEXT_VERSION=$(echo "$NEXT_VERSION_OUTPUT" | grep "The next release version is" | sed 's/.*The next release version is //' | head -1)
+          else
+            # Fallback: increment patch version and add beta
+            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+            MAJOR="${VERSION_PARTS[0]}"
+            MINOR="${VERSION_PARTS[1]}"
+            PATCH=$(echo "${VERSION_PARTS[2]}" | cut -d'+' -f1)
+            NEXT_PATCH=$((PATCH + 1))
+            NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH-beta.1"
+          fi
+          
+          # Handle custom beta increment
+          if [ -n "${{ github.event.inputs.beta_increment }}" ]; then
+            BASE_VERSION=$(echo "$NEXT_VERSION" | sed 's/-beta\..*//')
+            NEXT_VERSION="$BASE_VERSION-beta.${{ github.event.inputs.beta_increment }}"
+          fi
+          
+          echo "Next beta version: $NEXT_VERSION"
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if beta version exists
+        id: check-version
+        run: |
+          BETA_VERSION="${{ steps.next-version.outputs.version }}"
+          
+          # Check if this beta version already exists as a tag
+          if git tag -l | grep -q "^v$BETA_VERSION$"; then
+            echo "❌ Beta version v$BETA_VERSION already exists!"
+            echo "Available options:"
+            echo "1. Increment beta number manually"
+            echo "2. Make additional commits to develop"
+            exit 1
+          fi
+          
+          echo "✅ Beta version v$BETA_VERSION is available"
+          echo "beta_version=$BETA_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version in pubspec.yaml
+        run: |
+          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          sed -i "s/version: .*/version: $BETA_VERSION/" pubspec.yaml
+          echo "Updated pubspec.yaml to version: $BETA_VERSION"
+
+      - name: Generate beta changelog
+        run: |
+          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          
+          # Get commits since last stable release
+          LATEST_STABLE_TAG=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*$" --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)
+          
+          echo "## $BETA_VERSION (Beta)" > BETA_CHANGELOG.md
+          echo "" >> BETA_CHANGELOG.md
+          echo "⚠️ **This is a beta release for testing purposes. Use with caution in production.**" >> BETA_CHANGELOG.md
+          echo "" >> BETA_CHANGELOG.md
+          
+          # Generate changelog from commits
+          if [ "$LATEST_STABLE_TAG" != "$(git rev-list --max-parents=0 HEAD)" ]; then
+            echo "### Changes since last stable release:" >> BETA_CHANGELOG.md
+            git log $LATEST_STABLE_TAG..HEAD --pretty=format:"- %s" --no-merges >> BETA_CHANGELOG.md
+          else
+            echo "### Changes in this beta:" >> BETA_CHANGELOG.md
+            git log --pretty=format:"- %s" --no-merges -10 >> BETA_CHANGELOG.md
+          fi
+          
+          echo "" >> BETA_CHANGELOG.md
+          echo "" >> BETA_CHANGELOG.md
+          echo "### Installation" >> BETA_CHANGELOG.md
+          echo '```yaml' >> BETA_CHANGELOG.md
+          echo "dependencies:" >> BETA_CHANGELOG.md
+          echo "  axeptio_sdk: $BETA_VERSION" >> BETA_CHANGELOG.md
+          echo '```' >> BETA_CHANGELOG.md
+
+      - name: Commit beta version
+        run: |
+          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          git add pubspec.yaml
+          git commit -m "chore: bump version to $BETA_VERSION [skip ci]" || echo "No changes to commit"
+
+      - name: Create and push beta tag
+        run: |
+          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          
+          git tag -a "v$BETA_VERSION" -m "Beta release v$BETA_VERSION"
+          git push origin "v$BETA_VERSION"
+
+      - name: Verify package
+        run: dart pub publish --dry-run
+
+      - name: Create GitHub pre-release
+        run: |
+          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          
+          gh release create "v$BETA_VERSION" \
+            --title "🧪 Beta Release v$BETA_VERSION" \
+            --notes-file BETA_CHANGELOG.md \
+            --prerelease \
+            --target develop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish beta to pub.dev
+        uses: k-paxian/dart-package-publisher@v1.6
+        with:
+          accessToken: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
+          flutter: true
+          skipTests: true
+          tagName: beta
+
+      - name: Reset version in pubspec.yaml
+        run: |
+          # Reset to original version to avoid conflicts
+          git checkout HEAD~1 -- pubspec.yaml || echo "Could not reset pubspec.yaml"
+
+      - name: Summary
+        run: |
+          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          echo "## 🧪 Beta Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Beta version **v$BETA_VERSION** released successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### For Customers" >> $GITHUB_STEP_SUMMARY
+          echo '```yaml' >> $GITHUB_STEP_SUMMARY
+          echo "dependencies:" >> $GITHUB_STEP_SUMMARY
+          echo "  axeptio_sdk: $BETA_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. 📋 Share beta version with testing customers" >> $GITHUB_STEP_SUMMARY
+          echo "2. 🔍 Monitor feedback and bug reports" >> $GITHUB_STEP_SUMMARY
+          echo "3. 🛠️ Apply fixes to develop branch" >> $GITHUB_STEP_SUMMARY
+          echo "4. 🔄 Create additional betas as needed" >> $GITHUB_STEP_SUMMARY
+          echo "5. 🚀 Promote to stable when ready" >> $GITHUB_STEP_SUMMARY

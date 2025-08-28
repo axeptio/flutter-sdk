@@ -196,17 +196,59 @@ flutter test test/specific_test.dart
 
 ## Release Process
 
-Releases are managed through semantic versioning with GitHub Actions:
+### Stable Releases
+
+Stable releases are managed through semantic versioning with GitHub Actions from the `master` branch:
 
 1. **Automatic Versioning**: Based on conventional commits
-2. **Manual Trigger**: Use workflow dispatch for controlled releases
+2. **Manual Trigger**: Use "Semantic Version Release" workflow dispatch
 3. **Changelog**: Generated automatically from commit messages
 
-### Version Bumping
+**Version Bumping Rules:**
+- `feat`: Minor version bump (2.0.11 → 2.1.0)
+- `fix`: Patch version bump (2.0.11 → 2.0.12)
+- `BREAKING CHANGE`: Major version bump (2.0.11 → 3.0.0)
 
-- `feat`: Minor version bump
-- `fix`: Patch version bump
-- `BREAKING CHANGE`: Major version bump
+### Beta Releases
+
+Beta releases allow customers to test upcoming features before stable release:
+
+#### Creating Beta Releases
+
+1. **From develop branch**: Ensure your changes are committed to `develop`
+2. **Trigger workflow**: Use "Beta Release" workflow dispatch from GitHub Actions
+3. **Version format**: Next version with beta suffix (e.g., 2.1.0-beta.1)
+4. **Publishing**: Automatically published to pub.dev as a pre-release version (e.g., 2.1.0-beta.1)
+
+#### Beta Version Examples
+
+If current stable is `2.0.11`:
+- First beta of next minor: `2.1.0-beta.1`
+- Additional betas: `2.1.0-beta.2`, `2.1.0-beta.3`
+- Next patch beta: `2.0.12-beta.1`
+
+#### Customer Beta Testing
+
+**Installation:**
+```yaml
+dependencies:
+  axeptio_sdk: 2.1.0-beta.1  # Specific beta version
+```
+
+**Beta Process:**
+1. **Development** → Commit features to `develop`
+2. **Beta Release** → Create beta from develop branch
+3. **Customer Testing** → Share beta version with testers
+4. **Feedback & Fixes** → Apply fixes to develop, create new beta
+5. **Stable Release** → When ready, merge to master and release stable
+
+#### Beta Guidelines
+
+- **Use for testing**: Betas are for testing new features before stable release
+- **Not for production**: Avoid using betas in production unless necessary
+- **Feedback welcome**: Report issues and feedback for beta versions
+- **Multiple betas**: Can create multiple beta increments (beta.1, beta.2, etc.)
+- **Version progression**: Beta versions lead to the stable version (2.1.0-beta.1 → 2.1.0)
 
 ## SDK Version Management
 
