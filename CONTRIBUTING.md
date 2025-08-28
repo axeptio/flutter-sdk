@@ -232,6 +232,3 @@ s.dependency "AxeptioIOSSDK", "x.x.x"
 - Ask questions in pull request discussions
 - Follow the existing code patterns and conventions
 
-## License
-
-By contributing, you agree that your contributions will be licensed under the same license as the project (Apache 2.0).
