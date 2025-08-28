@@ -20,8 +20,10 @@ jobs:
 
       - name: Install actionlint
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhymond/actionlint/main/scripts/download-actionlint.bash)
-          sudo mv ./actionlint /usr/local/bin/
+          curl -o actionlint.tar.gz -L "https://github.com/rhymond/actionlint/releases/latest/download/actionlint_1.7.3_linux_amd64.tar.gz"
+          tar -xzf actionlint.tar.gz actionlint
+          sudo mv actionlint /usr/local/bin/actionlint
+          actionlint -version
           
       - name: Run actionlint
         run: actionlint

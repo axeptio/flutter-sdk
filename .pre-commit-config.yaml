@@ -33,8 +33,8 @@ repos:
   - repo: local
     hooks:
       - id: actionlint
-        name: GitHub Actions Lint
-        entry: bash -c 'command -v actionlint >/dev/null 2>&1 || { curl -s https://raw.githubusercontent.com/rhymond/actionlint/main/scripts/download-actionlint.bash | bash && sudo mv ./actionlint /usr/local/bin/; } && actionlint'
+        name: GitHub Actions Lint  
+        entry: bash -c 'command -v actionlint >/dev/null 2>&1 || { curl -o actionlint.tar.gz -L "https://github.com/rhymond/actionlint/releases/latest/download/actionlint_1.7.3_linux_amd64.tar.gz" && tar -xzf actionlint.tar.gz actionlint && sudo mv actionlint /usr/local/bin/actionlint && rm actionlint.tar.gz; } && actionlint'
         language: system
         files: ^\.github/workflows/.*\.ya?ml$
         pass_filenames: false
