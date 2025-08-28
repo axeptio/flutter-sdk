@@ -3,6 +3,6 @@ enum AxeptioService {
   publishers('publisher');
 
   final String value;
-  
+
   const AxeptioService(this.value);
 }
