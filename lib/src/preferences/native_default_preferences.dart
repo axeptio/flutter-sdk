@@ -2,7 +2,7 @@ import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 
 /// Provides access to native platform preferences for consent data.
-/// 
+///
 /// This class bridges the gap between Flutter and native preferences storage,
 /// allowing access to TCF consent data, brand preferences, and other SDK-stored values.
 class NativeDefaultPreferences {
@@ -63,13 +63,13 @@ class NativeDefaultPreferences {
       ];
 
   /// Retrieves a specific preference value by key.
-  /// 
+  ///
   /// This method provides cross-platform access to native preferences
   /// where consent data is stored. It uses the SDK's internal method
   /// to fetch data from the appropriate native storage.
-  /// 
+  ///
   /// Returns the preference value as a String, or null if not found.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final tcString = await NativeDefaultPreferences.getDefaultPreference('IABTCF_TCString');
@@ -80,7 +80,7 @@ class NativeDefaultPreferences {
       final data = await AxeptioSdkPlatform.instance.getConsentSavedData(
         preferenceKey: key,
       );
-      
+
       if (data == null || data.isEmpty) {
         return null;
       }
@@ -106,10 +106,10 @@ class NativeDefaultPreferences {
   }
 
   /// Retrieves multiple preference values by their keys.
-  /// 
+  ///
   /// This method efficiently fetches multiple preferences in a single operation.
   /// Returns a Map with the requested keys and their values, or null if no data found.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final prefs = await NativeDefaultPreferences.getDefaultPreferences([
@@ -122,7 +122,7 @@ class NativeDefaultPreferences {
       List<String> keys) async {
     try {
       final data = await AxeptioSdkPlatform.instance.getConsentSavedData();
-      
+
       if (data == null || data.isEmpty) {
         return null;
       }
@@ -145,12 +145,12 @@ class NativeDefaultPreferences {
   }
 
   /// Retrieves all available preference values.
-  /// 
+  ///
   /// This method fetches all consent-related preferences that are currently
   /// stored in native storage. Useful for debugging or comprehensive data access.
-  /// 
+  ///
   /// Returns a Map containing all available preferences, or null if no data found.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final allPrefs = await NativeDefaultPreferences.getAllDefaultPreferences();
@@ -170,7 +170,7 @@ class NativeDefaultPreferences {
   }
 
   /// Converts a value to String representation.
-  /// 
+  ///
   /// Handles various data types that might be stored in native preferences.
   static String _convertToString(dynamic value) {
     if (value == null) return '';

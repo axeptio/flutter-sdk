@@ -18,7 +18,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install actionlint
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhymond/actionlint/main/scripts/download-actionlint.bash)
+          sudo mv ./actionlint /usr/local/bin/
+          
       - name: Run actionlint
-        uses: rhymond/actionlint-action@v1
-        with:
-          fail_on_error: true
+        run: actionlint
