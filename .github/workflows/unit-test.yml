@@ -4,15 +4,18 @@ on:
   pull_request:
     branches:
       - "*"
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Clone repository
+      - name: Checkout repository
         uses: actions/checkout@v4
       
       - name: Set up Flutter
@@ -20,14 +23,32 @@ jobs:
         with:
           flutter-version: '3.29.3'
           channel: 'stable'
-          architecture: 'x64'  # Force x64 architecture
-          cache: false  # Disable cache for act compatibility
+          architecture: 'x64'
+          cache: false
       
       - name: Install dependencies
         run: flutter pub get
+      
+      - name: Verify dependencies
+        run: flutter pub deps
         
-      - name: Analyze
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+        
+      - name: Analyze code
         run: flutter analyze
         
       - name: Run tests
-        run: flutter test
+        run: flutter test --coverage
+        
+      - name: Check publish warnings
+        run: dart pub publish --dry-run
+        
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: github.event_name == 'pull_request'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+

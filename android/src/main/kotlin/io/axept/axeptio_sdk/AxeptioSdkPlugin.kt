@@ -1,9 +1,7 @@
 package io.axept.axeptio_sdk
 
-
 import android.app.Activity
 import android.net.Uri
-import androidx.preference.PreferenceManager
 import io.axept.android.library.AxeptioSDK
 import io.axept.android.library.AxeptioService
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -14,7 +12,6 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-
 
 /** AxeptioSdkPlugin */
 class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -52,42 +49,52 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "getPlatformVersion" -> {
                 result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
-
             "initialize" -> {
-                val arguments = call.arguments?.let { it as? HashMap<String, Any> } ?: run {
-                    result.error("invalid_args", "Wrong arguments for initialize", null)
-                    return
-                }
+                val arguments =
+                        call.arguments?.let { it as? HashMap<String, Any> }
+                                ?: run {
+                                    result.error(
+                                            "invalid_args",
+                                            "Wrong arguments for initialize",
+                                            null
+                                    )
+                                    return
+                                }
 
                 val clientId = arguments.get("clientId") as String
                 val cookiesVersion = arguments.get("cookiesVersion") as String
                 val token = arguments.get("token") as? String?
                 val targetService = arguments.get("targetService") as String
-                val axeptioService = when (targetService) {
-                    "brands" -> AxeptioService.BRANDS
-                    "publishers" -> AxeptioService.PUBLISHERS_TCF
-                    else -> AxeptioService.PUBLISHERS_TCF
-                }
+                val axeptioService =
+                        when (targetService) {
+                            "brands" -> AxeptioService.BRANDS
+                            "publishers" -> AxeptioService.PUBLISHERS_TCF
+                            else -> AxeptioService.PUBLISHERS_TCF
+                        }
 
-                AxeptioSDK.instance().initialize(activity!!, axeptioService, clientId, cookiesVersion, token)
+                AxeptioSDK.instance()
+                        .initialize(activity!!, axeptioService, clientId, cookiesVersion, token)
 
                 result.success(null)
             }
-
             "showConsentScreen" -> {
                 AxeptioSDK.instance().showConsentScreen(activity!!, true)
                 result.success(null)
             }
-
             "axeptioToken" -> {
                 result.success(AxeptioSDK.instance().token)
             }
-
             "appendAxeptioTokenURL" -> {
-                val arguments = call.arguments?.let { it as? HashMap<String, Any> } ?: run {
-                    result.error("invalid_args", "Wrong arguments for appendAxeptioTokenURL", null)
-                    return
-                }
+                val arguments =
+                        call.arguments?.let { it as? HashMap<String, Any> }
+                                ?: run {
+                                    result.error(
+                                            "invalid_args",
+                                            "Wrong arguments for appendAxeptioTokenURL",
+                                            null
+                                    )
+                                    return
+                                }
 
                 val urlStr = arguments.get("url") as String
                 val uri = Uri.parse(urlStr)
@@ -96,33 +103,46 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val response = AxeptioSDK.instance().appendAxeptioToken(uri = uri, token = token)
                 result.success(response.toString())
             }
-
             "clearConsent" -> {
                 AxeptioSDK.instance().clearConsents()
                 result.success(null)
             }
-
-            // Android specific
-            "getDefaultPreference" -> {
-                val key = call.argument<String>("key")
-                if (key == null) {
-                    result.error("invalid_args", "Key is required", null)
-                    return
-                }
-
-                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity!!)
-                val value = sharedPreferences.all[key]
-                result.success(value)
+            "getConsentSavedData" -> {
+                val preferenceKey = call.argument<String>("preferenceKey")
+                val response = AxeptioSDK.instance().getConsentDebugInfo(preferenceKey)
+                val safeResponse = sanitizeForFlutter(response)
+                result.success(safeResponse)
             }
 
             // iOS specific
-            "setupUI", "setUserDeniedTracking" -> {
+            "setupUI",
+            "setUserDeniedTracking" -> {
                 result.success(null)
             }
-
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    fun sanitizeForFlutter(value: Any?): Any? {
+        return when (value) {
+            null, is Boolean, is Int, is Long, is Double, is String, is ByteArray -> value
+            is java.util.Date ->
+                    java.time.format.DateTimeFormatter.ISO_INSTANT.format(
+                            value.toInstant()
+                    ) // convert Date to ISO string
+            is android.net.Uri -> value.toString() // convert Uri to string
+            is List<*> -> value.mapNotNull { sanitizeForFlutter(it) }
+            is Map<*, *> -> {
+                val safeMap = mutableMapOf<String, Any?>()
+                value.forEach { (k, v) ->
+                    val key = k?.toString() ?: "null"
+                    safeMap[key] = sanitizeForFlutter(v)
+                }
+                safeMap
+            }
+            else -> value.toString() // fallback for any unsupported type
         }
     }
 

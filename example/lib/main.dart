@@ -5,7 +5,7 @@ import 'dart:io';
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
-import 'package:axeptio_sdk_example/shared_preferences_dialog.dart';
+import 'package:axeptio_sdk_example/preferences_dialog.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,8 +19,11 @@ void main() {
 }
 
 class SDKConfig {
-  static const String _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'brands');
-  
+  static const String _flavor = String.fromEnvironment(
+    'FLAVOR',
+    defaultValue: 'brands',
+  );
+
   static dynamic get axeptioService {
     switch (_flavor) {
       case 'publishers':
@@ -30,16 +33,20 @@ class SDKConfig {
         return AxeptioService.brands;
     }
   }
-  
+
   static String get projectId {
-        return const String.fromEnvironment('PROJECT_ID', defaultValue: '5fbfa806a0787d3985c6ee5f');
+    return const String.fromEnvironment(
+      'PROJECT_ID',
+      defaultValue: '5fbfa806a0787d3985c6ee5f',
+    );
   }
-  
+
   static String get version {
-         return const String.fromEnvironment('VERSION', defaultValue: 'google cmp partner program sandbox-en-EU');
-    }
-  
-  static bool get isTcf => _flavor == 'tcf';
+    return const String.fromEnvironment(
+      'VERSION',
+      defaultValue: 'google cmp partner program sandbox-en-EU',
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -98,16 +105,15 @@ class _MyAppState extends State<MyApp> {
     loadAd();
   }
 
-  // flutter build apk --dart-define=FLAVOR=tcf
-  // flutter run --dart-define=FLAVOR=tcf
+  // flutter build apk --dart-define=FLAVOR=publishers
+  // flutter run --dart-define=FLAVOR=publishers
   Future<void> initSDK() async {
-   	 // Log SDK configuration
-      print('=== Axeptio SDK Configuration ===');
-      print('Service Mode: ${SDKConfig.axeptioService}');
-      print('Project ID: ${SDKConfig.projectId}');
-      print('Version: ${SDKConfig.version}');
-      print('================================');
-
+    // Log SDK configuration
+    print('=== Axeptio SDK Configuration ===');
+    print('Service Mode: ${SDKConfig.axeptioService}');
+    print('Project ID: ${SDKConfig.projectId}');
+    print('Version: ${SDKConfig.version}');
+    print('================================');
 
     try {
       await _axeptioSdkPlugin.initialize(
@@ -267,12 +273,15 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               style: style,
               onPressed: () async {
-                fetchAndShowSharedPreferences(
-                  context: context,
-                  targetService: axeptioSdk.targetService,
-                );
+                final data = await axeptioSdk.getConsentSavedData();
+                if (!context.mounted) return;
+                if (data != null) {
+                  showPreferences(context: context, data: data);
+                } else {
+                  print("Could not read event.");
+                }
               },
-              child: const Text('Shared preferences keys', style: textStyle),
+              child: const Text('Consent values', style: textStyle),
             ),
           ],
         ),

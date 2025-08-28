@@ -34,9 +34,7 @@ class TokenAppendDialog extends StatelessWidget {
       ),
       actions: <Widget>[
         TextButton(
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.black,
-          ),
+          style: TextButton.styleFrom(foregroundColor: Colors.black),
           child: const Text('Open on browser'),
           onPressed: () async {
             Navigator.of(context).pop();
@@ -67,9 +65,7 @@ class TokenAppendDialog extends StatelessWidget {
                 barrierDismissible: true,
                 // isScrollControlled: false,
                 builder: (BuildContext context) {
-                  return WebViewPage(
-                    url: url!,
-                  );
+                  return WebViewPage(url: url!);
                 },
               );
             }

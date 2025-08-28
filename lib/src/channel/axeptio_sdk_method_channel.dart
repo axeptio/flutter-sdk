@@ -2,6 +2,7 @@ import 'package:axeptio_sdk/src/events/events.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import 'axeptio_sdk_platform_interface.dart';
 
 /// An implementation of [AxeptioSdkPlatform] that uses method channels.
@@ -63,10 +64,23 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @override
-  Future<dynamic> getDefaultPreference(String key) async {
-    return methodChannel.invokeMethod('getDefaultPreference', {
-      'key': key,
-    });
+  Future<Map<String, dynamic>?> getConsentSavedData({
+    String? preferenceKey,
+  }) async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getConsentSavedData',
+        {"preferenceKey": preferenceKey},
+      );
+      return result?.map((k, v) => MapEntry(k.toString(), v));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getConsentSavedData - ${e.message}',
+        );
+      }
+      return <String, dynamic>{};
+    }
   }
 
   @override
