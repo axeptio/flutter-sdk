@@ -272,7 +272,7 @@ print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 
 The Axeptio SDK provides comprehensive **TCF (Transparency & Consent Framework)** vendor consent management APIs, allowing you to programmatically access and analyze user consent decisions for individual vendors.
 
-> 📱 **Platform Support**: Currently available on **iOS only**. Android support coming soon.
+> 📱 **Platform Support**: Available on **both iOS and Android** platforms.
 
 ### Available APIs
 
@@ -437,13 +437,12 @@ Future<void> safeVendorConsentCheck() async {
 
 | Method | iOS | Android |
 |--------|-----|---------|
-| `getVendorConsents()` | ✅ Available | 🚧 Coming Soon |
-| `getConsentedVendors()` | ✅ Available | 🚧 Coming Soon |  
-| `getRefusedVendors()` | ✅ Available | 🚧 Coming Soon |
-| `isVendorConsented()` | ✅ Available | 🚧 Coming Soon |
+| `getVendorConsents()` | ✅ Available | ✅ Available |
+| `getConsentedVendors()` | ✅ Available | ✅ Available |  
+| `getRefusedVendors()` | ✅ Available | ✅ Available |
+| `isVendorConsented()` | ✅ Available | ✅ Available |
 
-> 📝 **Note**: Android vendor consent APIs are in development and will be available in a future release. 
-> Currently, these methods will return empty results on Android devices.
+> 📝 **Note**: All vendor consent APIs are fully supported on both iOS and Android platforms.
 
 <br><br><br>
 ## Displaying the Consent Popup on Demand

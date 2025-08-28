@@ -2,7 +2,7 @@
 
 - Update iOS Axeptio SDK to 2.0.15.
 - Update Android Axeptio SDK to 2.0.8.
-- Add comprehensive TCF vendor consent management APIs (iOS only).
+- Add comprehensive TCF vendor consent management APIs (iOS & Android).
   - `getVendorConsents()`: Get all vendor consents as Map<int, bool>
   - `getConsentedVendors()`: Get list of consented vendor IDs
   - `getRefusedVendors()`: Get list of refused vendor IDs  
