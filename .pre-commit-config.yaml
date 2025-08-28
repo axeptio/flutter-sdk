@@ -34,7 +34,7 @@ repos:
     hooks:
       - id: actionlint
         name: GitHub Actions Lint  
-        entry: bash -c 'command -v actionlint >/dev/null 2>&1 || { go install github.com/rhymond/actionlint/cmd/actionlint@latest && export PATH="$HOME/go/bin:$PATH"; } && actionlint'
+        entry: bash -c 'command -v actionlint >/dev/null 2>&1 || go install github.com/rhymond/actionlint@latest; ~/go/bin/actionlint'
         language: system
         files: ^\.github/workflows/.*\.ya?ml$
         pass_filenames: false

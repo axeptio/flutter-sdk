@@ -20,8 +20,7 @@ jobs:
 
       - name: Setup actionlint
         run: |
-          go install github.com/rhymond/actionlint/cmd/actionlint@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
+          go install github.com/rhymond/actionlint@latest
           
       - name: Run actionlint
-        run: actionlint
+        run: ~/go/bin/actionlint
