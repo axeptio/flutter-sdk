@@ -84,6 +84,26 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @override
+  Future<Map<String, dynamic>?> getConsentDebugInfo({
+    String? preferenceKey,
+  }) async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getConsentDebugInfo',
+        {"preferenceKey": preferenceKey},
+      );
+      return result?.map((k, v) => MapEntry(k.toString(), v));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getConsentDebugInfo - ${e.message}',
+        );
+      }
+      return <String, dynamic>{};
+    }
+  }
+
+  @override
   addEventListener(AxeptioEventListener listener) {
     _eventsHandler.addEventListener(listener);
   }

@@ -49,6 +49,12 @@ class AxeptioSdk {
     );
   }
 
+  Future<Map<String, dynamic>?> getConsentDebugInfo({String? preferenceKey}) {
+    return AxeptioSdkPlatform.instance.getConsentDebugInfo(
+      preferenceKey: preferenceKey,
+    );
+  }
+
   addEventListerner(AxeptioEventListener listener) {
     AxeptioSdkPlatform.instance.addEventListener(listener);
   }

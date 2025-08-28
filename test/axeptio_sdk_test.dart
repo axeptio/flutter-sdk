@@ -69,6 +69,12 @@ class MockAxeptioSdkPlatform
     // TODO: implement getConsentSavedData
     throw UnimplementedError();
   }
+
+  @override
+  Future<Map<String, dynamic>?> getConsentDebugInfo({String? preferenceKey}) {
+    // TODO: implement getConsentDebugInfo
+    throw UnimplementedError();
+  }
 }
 
 void main() {

@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
+import 'package:axeptio_sdk_example/debug_info_dialog.dart';
 import 'package:axeptio_sdk_example/preferences_dialog.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:flutter/material.dart';
@@ -282,6 +283,19 @@ class HomePage extends StatelessWidget {
                 }
               },
               child: const Text('Consent values', style: textStyle),
+            ),
+            ElevatedButton(
+              style: style,
+              onPressed: () async {
+                final data = await axeptioSdk.getConsentDebugInfo();
+                if (!context.mounted) return;
+                if (data != null) {
+                  showDebugInfo(context: context, data: data);
+                } else {
+                  print("Could not read debug info.");
+                }
+              },
+              child: const Text('Consent Debug Info', style: textStyle),
             ),
           ],
         ),
