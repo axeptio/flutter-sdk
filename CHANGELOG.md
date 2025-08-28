@@ -1,7 +1,15 @@
+## 2.0.11
+
+- Add NativeDefaultPreferences class for cross-platform access to native consent preferences (MSK-76).
+- Provide unified API to access TCF data, brand preferences, and custom vendor information.
+- Support bulk operations and comprehensive preference key access.
+- Update documentation with correct import paths and usage examples.
+
 ## 2.0.10
 
 - Fix iOS crash when calling getConsentSavedData due to NSDate serialization error (MSK-81).
 - Add error handling to gracefully handle iOS date serialization issues.
+
 
 ## 2.0.9
 
