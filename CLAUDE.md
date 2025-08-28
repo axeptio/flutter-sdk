@@ -49,10 +49,18 @@ Examples:
 - `docs(readme): update installation instructions`
 
 ### Release Process
-1. Releases are managed through semantic versioning
+
+#### Stable Releases
+1. Releases are managed through semantic versioning from `master` branch
 2. Version bumps are automated based on conventional commits
 3. Use GitHub workflow dispatch to trigger releases manually
 4. Never manually edit version numbers - use the semver workflow
+
+#### Beta Releases
+1. Beta releases are created from `develop` branch for next version testing
+2. Use "Beta Release" workflow to create beta versions (e.g., 2.1.0-beta.1)
+3. Betas are published to pub.dev with beta tag for customer testing
+4. Multiple beta increments can be released before stable version
 
 ### Code Quality
 - Run `flutter analyze` before committing
