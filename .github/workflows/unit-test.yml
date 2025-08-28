@@ -49,6 +49,6 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage/lcov.info
+          files: ./coverage/lcov.info
           fail_ci_if_error: false
 
