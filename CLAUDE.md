@@ -59,7 +59,7 @@ Examples:
 #### Beta Releases
 1. Beta releases are created from `develop` branch for next version testing
 2. Use "Beta Release" workflow to create beta versions (e.g., 2.1.0-beta.1)
-3. Betas are published to pub.dev with beta tag for customer testing
+3. Betas are published to pub.dev as pre-release versions for customer testing
 4. Multiple beta increments can be released before stable version
 
 ### Code Quality
