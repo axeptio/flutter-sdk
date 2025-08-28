@@ -18,12 +18,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install actionlint
+      - name: Setup actionlint
         run: |
-          curl -o actionlint.tar.gz -L "https://github.com/rhymond/actionlint/releases/latest/download/actionlint_1.7.3_linux_amd64.tar.gz"
-          tar -xzf actionlint.tar.gz actionlint
-          sudo mv actionlint /usr/local/bin/actionlint
-          actionlint -version
+          go install github.com/rhymond/actionlint/cmd/actionlint@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
           
       - name: Run actionlint
         run: actionlint
