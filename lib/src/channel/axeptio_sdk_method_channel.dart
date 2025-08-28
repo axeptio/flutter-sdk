@@ -104,6 +104,78 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @override
+  Future<Map<int, bool>> getVendorConsents() async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getVendorConsents',
+      );
+      if (result == null) return <int, bool>{};
+      return result.map((k, v) => MapEntry(int.parse(k.toString()), v as bool));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getVendorConsents - ${e.message}',
+        );
+      }
+      return <int, bool>{};
+    }
+  }
+
+  @override
+  Future<List<int>> getConsentedVendors() async {
+    try {
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'getConsentedVendors',
+      );
+      if (result == null) return <int>[];
+      return result.map((e) => e as int).toList();
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getConsentedVendors - ${e.message}',
+        );
+      }
+      return <int>[];
+    }
+  }
+
+  @override
+  Future<List<int>> getRefusedVendors() async {
+    try {
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'getRefusedVendors',
+      );
+      if (result == null) return <int>[];
+      return result.map((e) => e as int).toList();
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getRefusedVendors - ${e.message}',
+        );
+      }
+      return <int>[];
+    }
+  }
+
+  @override
+  Future<bool> isVendorConsented(int vendorId) async {
+    try {
+      final result = await methodChannel.invokeMethod<bool>(
+        'isVendorConsented',
+        {'vendorId': vendorId},
+      );
+      return result ?? false;
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in isVendorConsented - ${e.message}',
+        );
+      }
+      return false;
+    }
+  }
+
+  @override
   addEventListener(AxeptioEventListener listener) {
     _eventsHandler.addEventListener(listener);
   }

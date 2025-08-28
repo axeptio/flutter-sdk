@@ -75,6 +75,30 @@ class MockAxeptioSdkPlatform
     // TODO: implement getConsentDebugInfo
     throw UnimplementedError();
   }
+
+  @override
+  Future<Map<int, bool>> getVendorConsents() {
+    // TODO: implement getVendorConsents
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<int>> getConsentedVendors() {
+    // TODO: implement getConsentedVendors
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<int>> getRefusedVendors() {
+    // TODO: implement getRefusedVendors
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> isVendorConsented(int vendorId) {
+    // TODO: implement isVendorConsented
+    throw UnimplementedError();
+  }
 }
 
 void main() {
