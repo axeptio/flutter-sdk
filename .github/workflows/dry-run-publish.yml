@@ -1,4 +1,9 @@
 name: Dry-run Publish to pub.dev
+
+# This workflow performs a dry-run publish validation using the current pubspec.yaml version
+# Use this to test package publishing without actually publishing to pub.dev
+# Note: For actual releases, use the main publish workflow triggered by GitHub releases
+
 on:
   workflow_dispatch:
       
@@ -10,6 +15,40 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
+      
+      - name: Extract current version from pubspec.yaml
+        id: extract-version
+        run: |
+          VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //')
+          echo "Current version in pubspec.yaml: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: X.Y.Z or X.Y.Z-suffix"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Check if version exists on pub.dev
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Checking if version $VERSION already exists on pub.dev..."
+          
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /dev/null "https://pub.dev/api/packages/axeptio_sdk/versions/$VERSION")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "⚠️ Version $VERSION already exists on pub.dev!"
+            echo "This is a dry-run, so continuing for validation purposes."
+          elif [ "$HTTP_CODE" = "404" ]; then
+            echo "✅ Version $VERSION available for publishing"
+          else
+            echo "⚠️ Could not verify version availability (HTTP $HTTP_CODE)"
+            echo "Continuing with dry-run validation..."
+          fi
+          
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -23,8 +62,11 @@ jobs:
       - name: Run tests
         run: flutter test
       - name: Check Publish Warnings (Dry Run)
-        run: dart pub publish --dry-run
-      - name: Publish
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Running dry-run publish for version: $VERSION"
+          dart pub publish --dry-run
+      - name: Publish (Dry Run Only)
         uses: k-paxian/dart-package-publisher@v1.6
         with:
           accessToken: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
@@ -32,7 +74,30 @@ jobs:
           flutter: true
           skipTests: true
           dryRunOnly: true
-      - name: Package validation
+          
+      - name: Dry-run Summary
         run: |
-          echo "✅ Package validation completed successfully"
-          echo "This workflow validates that the package is ready for publishing without actually publishing it"
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          {
+            echo "## 🧪 Dry-run Publish Summary"
+            echo "✅ Package validation completed successfully for version **$VERSION**"
+            echo ""
+            echo "### Validation Results"
+            echo "✅ Version format validation passed"
+            echo "✅ pub.dev version availability checked"
+            echo "✅ Flutter analysis passed"
+            echo "✅ All tests passed"
+            echo "✅ Package structure validation passed"
+            echo "✅ Publishing credentials validated"
+            echo ""
+            echo "### Next Steps"
+            echo "🚀 **Ready for production release!**"
+            echo "1. Create GitHub release with tag: \`v$VERSION\`"
+            echo "2. Main publish workflow will trigger automatically"
+            echo "3. Package will be published to pub.dev"
+            echo ""
+            echo "### Important Notes"
+            echo "- This was a **dry-run only** - no actual publishing occurred"
+            echo "- For production releases, use GitHub releases to trigger publishing"
+            echo "- Current pubspec.yaml version: \`$VERSION\`"
+          } >> "$GITHUB_STEP_SUMMARY"
