@@ -28,7 +28,7 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 8. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
 9. [Clearing User Consent](#clearing-user-consent)
 10. [Event Handling and Customization](#event-handling-and-customization)
-11. [Event Source Identification](#event-source-for-kpi-tracking)
+11. [Event Source Identification](#event-source-identification)
 12. [Local Test](#local-test)
 <br><br><br>
 ## 🚀Setup and Installation   

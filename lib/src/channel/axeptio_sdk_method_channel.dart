@@ -110,7 +110,18 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
         'getVendorConsents',
       );
       if (result == null) return <int, bool>{};
-      return result.map((k, v) => MapEntry(int.parse(k.toString()), v as bool));
+      return result
+          .map((k, v) {
+            final key = k is num ? k.toInt() : int.tryParse(k.toString());
+            final value =
+                v is bool ? v : (v.toString().toLowerCase() == 'true');
+            return key != null ? MapEntry(key, value) : null;
+          })
+          .whereType<MapEntry<int, bool>>()
+          .fold<Map<int, bool>>({}, (map, entry) {
+            map[entry.key] = entry.value;
+            return map;
+          });
     } catch (e) {
       if (kDebugMode) {
         print(
@@ -128,7 +139,10 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
         'getConsentedVendors',
       );
       if (result == null) return <int>[];
-      return result.map((e) => e as int).toList();
+      return result
+          .map((e) => e is num ? e.toInt() : int.tryParse(e.toString()))
+          .whereType<int>()
+          .toList();
     } catch (e) {
       if (kDebugMode) {
         print(
@@ -146,7 +160,10 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
         'getRefusedVendors',
       );
       if (result == null) return <int>[];
-      return result.map((e) => e as int).toList();
+      return result
+          .map((e) => e is num ? e.toInt() : int.tryParse(e.toString()))
+          .whereType<int>()
+          .toList();
     } catch (e) {
       if (kDebugMode) {
         print(

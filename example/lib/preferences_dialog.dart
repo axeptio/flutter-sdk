@@ -13,7 +13,12 @@ Future<void> showPreferences({
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Preferences', style: Theme.of(context).textTheme.titleLarge),
+            Flexible(
+              child: Text(
+                'Preferences',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
             IconButton(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.close),

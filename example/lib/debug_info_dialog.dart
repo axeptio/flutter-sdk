@@ -4,7 +4,7 @@ Future<void> showDebugInfo({
   required BuildContext context,
   required Map<String, dynamic> data,
 }) async {
-  showDialog(
+  return await showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
