@@ -9,9 +9,10 @@ The release process is now **tag-driven** and ensures proper synchronization bet
 ## Key Improvements
 
 ✅ **GitHub Release Tag = Source of Truth**  
+✅ **Manual Workflow Control**  
 ✅ **Dynamic pubspec.yaml Update**  
 ✅ **pub.dev Version Conflict Prevention**  
-✅ **Automated Validation**  
+✅ **Pre-publish Validation**  
 
 ## Release Steps
 
@@ -34,15 +35,28 @@ flutter analyze
 5. Add release notes describing changes
 6. Click "Publish release"
 
-### 3. Automatic Publishing
-The workflow will automatically:
-- ✅ Extract version from tag (`v2.0.16` → `2.0.16`)
-- ✅ Validate version format
-- ✅ Check if version already exists on pub.dev
-- ✅ Update `pubspec.yaml` with tag version
-- ✅ Run tests and analysis
-- ✅ Publish to pub.dev
-- ✅ Provide summary in workflow output
+### 3. Validate Release (Optional)
+Before publishing, validate the release:
+1. Go to [GitHub Actions](https://github.com/axeptio/flutter-sdk/actions)
+2. Select "Dry-run Publish to pub.dev" workflow
+3. Click "Run workflow"
+4. Enter the release tag: `v2.0.16`
+5. Review validation results
+
+### 4. Manual Publishing
+Publish to pub.dev manually:
+1. Go to [GitHub Actions](https://github.com/axeptio/flutter-sdk/actions)
+2. Select "Publish to pub.dev" workflow
+3. Click "Run workflow"
+4. Enter the release tag: `v2.0.16`
+5. The workflow will:
+   - ✅ Extract version from tag (`v2.0.16` → `2.0.16`)
+   - ✅ Validate version format
+   - ✅ Check if version already exists on pub.dev
+   - ✅ Update `pubspec.yaml` with tag version
+   - ✅ Run tests and analysis
+   - ✅ Publish to pub.dev
+   - ✅ Provide summary in workflow output
 
 ## Version Format
 
@@ -70,12 +84,13 @@ The workflow validates:
 
 ## Migration from Old Process
 
-**Before:** Manual pubspec.yaml updates, version mismatches possible  
-**After:** Tag-driven, automatically synchronized, validated
+**Before:** Manual pubspec.yaml updates, automatic publishing, version mismatches possible  
+**After:** Tag-driven, manual workflow control, pre-publish validation, synchronized
 
 **Previous issues resolved:**
 - ❌ Publishing version 2.0.15 when expecting 2.0.10
 - ❌ pubspec.yaml and pub.dev version mismatches
+- ❌ Automatic publishing without validation
 - ❌ Manual version management errors
 
 ## Beta Releases (Future)

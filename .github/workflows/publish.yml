@@ -14,8 +14,12 @@ name: Publish to pub.dev
 # 4. Validates and publishes to pub.dev
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., v2.0.16)'
+        required: true
+        type: string
       
 jobs:
   publish:
@@ -27,7 +31,7 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ inputs.release_tag }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Flutter
@@ -36,10 +40,10 @@ jobs:
           channel: master
           flutter-version: 3.29.3
           cache: false 
-      - name: Extract version from GitHub release
+      - name: Extract version from release tag
         id: extract-version
         run: |
-          TAG_VERSION="${{ github.event.release.tag_name }}"
+          TAG_VERSION="${{ inputs.release_tag }}"
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -115,9 +119,9 @@ jobs:
             echo "✅ Version **v$VERSION** published successfully to pub.dev!"
             echo ""
             echo "### Release Information"
-            echo "- **Tag**: ${{ github.event.release.tag_name }}"
+            echo "- **Tag**: ${{ inputs.release_tag }}"
             echo "- **Version**: $VERSION"
-            echo "- **Triggered by**: GitHub Release"
+            echo "- **Triggered by**: Manual Workflow Dispatch"
             echo ""
             echo "### For Users"
             echo '```yaml'
