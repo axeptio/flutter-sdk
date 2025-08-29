@@ -23,12 +23,13 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 3. [App Tracking Transparency (ATT) Integration](#app-tracking-transparency-att-integration)
 4. [SDK and Mobile App Responsibilities](#sdk-and-mobile-app-responsibilities)
 5. [Retrieving and Managing Stored Consents](#retrieving-and-managing-stored-consents)
-6. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
-7. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
-8. [Clearing User Consent](#clearing-user-consent)
-9. [Event Handling and Customization](#event-handling-and-customization)
-10. [Event Source Identification](#event-source-for-kpi-tracking)
-11. [Local Test](#local-test)
+6. [TCF Vendor Consent Management](#tcf-vendor-consent-management)
+7. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
+8. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
+9. [Clearing User Consent](#clearing-user-consent)
+10. [Event Handling and Customization](#event-handling-and-customization)
+11. [Event Source Identification](#event-source-for-kpi-tracking)
+12. [Local Test](#local-test)
 <br><br><br>
 ## 🚀Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -265,6 +266,183 @@ print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 > ⚠️ **Note for Android:** On Android, the SDK stores consent data in native preferences. 
 > Using `SharedPreferences.getInstance()` may return `null` if the consent popup was not accepted or if the storage is not shared with Flutter.
 > For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
+
+<br><br><br>
+## TCF Vendor Consent Management
+
+The Axeptio SDK provides comprehensive **TCF (Transparency & Consent Framework)** vendor consent management APIs, allowing you to programmatically access and analyze user consent decisions for individual vendors.
+
+> 📱 **Platform Support**: Available on **both iOS and Android** platforms.
+
+### Available APIs
+
+#### Get All Vendor Consents
+Returns a complete mapping of vendor IDs to their consent status:
+
+```dart
+import 'package:axeptio_sdk/axeptio_sdk.dart';
+
+// Get all vendor consents as a map
+Map<int, bool> vendorConsents = await axeptioSdk.getVendorConsents();
+
+// Example output: {1: true, 2: false, 50: true, 755: false}
+print('Total vendors: ${vendorConsents.length}');
+
+// Iterate through all vendor consents
+vendorConsents.forEach((vendorId, isConsented) {
+  print('Vendor $vendorId: ${isConsented ? "Consented" : "Refused"}');
+});
+```
+
+#### Get Consented Vendors
+Returns a list of vendor IDs that have been granted consent:
+
+```dart
+// Get list of consented vendor IDs
+List<int> consentedVendors = await axeptioSdk.getConsentedVendors();
+
+print('Consented vendors: $consentedVendors');
+print('Number of consented vendors: ${consentedVendors.length}');
+
+// Check if specific vendors are in the consented list
+if (consentedVendors.contains(1)) {
+  print('Google (Vendor ID 1) has consent');
+}
+```
+
+#### Get Refused Vendors
+Returns a list of vendor IDs that have been refused consent:
+
+```dart
+// Get list of refused vendor IDs
+List<int> refusedVendors = await axeptioSdk.getRefusedVendors();
+
+print('Refused vendors: $refusedVendors');
+print('Number of refused vendors: ${refusedVendors.length}');
+```
+
+#### Check Individual Vendor Consent
+Check the consent status of a specific vendor:
+
+```dart
+// Check consent for specific vendor IDs
+bool googleConsent = await axeptioSdk.isVendorConsented(1);    // Google
+bool facebookConsent = await axeptioSdk.isVendorConsented(2);  // Facebook
+bool appleConsent = await axeptioSdk.isVendorConsented(755);   // Apple
+
+print('Google consent: ${googleConsent ? "✅ Granted" : "❌ Refused"}');
+print('Facebook consent: ${facebookConsent ? "✅ Granted" : "❌ Refused"}');
+print('Apple consent: ${appleConsent ? "✅ Granted" : "❌ Refused"}');
+```
+
+### Practical Usage Examples
+
+#### Conditional Feature Loading
+```dart
+Future<void> loadFeatureBasedOnConsent() async {
+  // Check if advertising vendor has consent
+  bool adConsentGranted = await axeptioSdk.isVendorConsented(50);
+  
+  if (adConsentGranted) {
+    // Load advertising SDK
+    await initializeAdvertisingSDK();
+  } else {
+    print('Advertising consent not granted - skipping ad initialization');
+  }
+}
+```
+
+#### Vendor Consent Analytics
+```dart
+Future<void> analyzeVendorConsents() async {
+  // Get comprehensive vendor consent data
+  Map<int, bool> allConsents = await axeptioSdk.getVendorConsents();
+  List<int> consented = await axeptioSdk.getConsentedVendors();
+  List<int> refused = await axeptioSdk.getRefusedVendors();
+  
+  // Calculate consent statistics
+  double consentRate = consented.length / allConsents.length;
+  
+  print('📊 Consent Analytics:');
+  print('Total vendors: ${allConsents.length}');
+  print('Consented: ${consented.length}');
+  print('Refused: ${refused.length}');
+  print('Consent rate: ${(consentRate * 100).toStringAsFixed(1)}%');
+  
+  // Log specific vendor categories
+  List<int> adTechVendors = [1, 2, 50, 100]; // Example ad tech vendor IDs
+  List<int> consentedAdTech = adTechVendors.where(
+    (id) => consented.contains(id)
+  ).toList();
+  
+  print('Ad Tech vendors consented: $consentedAdTech');
+}
+```
+
+#### Integration with Privacy Settings UI
+```dart
+Widget buildVendorConsentList() {
+  return FutureBuilder<Map<int, bool>>(
+    future: axeptioSdk.getVendorConsents(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) return CircularProgressIndicator();
+      
+      final vendorConsents = snapshot.data!;
+      
+      return ListView.builder(
+        itemCount: vendorConsents.length,
+        itemBuilder: (context, index) {
+          final vendorId = vendorConsents.keys.elementAt(index);
+          final isConsented = vendorConsents[vendorId]!;
+          
+          return ListTile(
+            title: Text('Vendor $vendorId'),
+            trailing: Icon(
+              isConsented ? Icons.check_circle : Icons.cancel,
+              color: isConsented ? Colors.green : Colors.red,
+            ),
+            subtitle: Text(isConsented ? 'Consented' : 'Refused'),
+          );
+        },
+      );
+    },
+  );
+}
+```
+
+### Error Handling
+
+The vendor consent APIs include built-in error handling:
+
+```dart
+Future<void> safeVendorConsentCheck() async {
+  try {
+    // APIs return empty collections on error (never null)
+    Map<int, bool> consents = await axeptioSdk.getVendorConsents();
+    
+    if (consents.isEmpty) {
+      print('No vendor consent data available');
+      // Handle case where no consent data exists
+    } else {
+      print('Successfully retrieved ${consents.length} vendor consents');
+    }
+  } catch (e) {
+    print('Error retrieving vendor consents: $e');
+    // Handle any unexpected errors
+  }
+}
+```
+
+### Platform Compatibility
+
+| Method | iOS | Android |
+|--------|-----|---------|
+| `getVendorConsents()` | ✅ Available | ✅ Available |
+| `getConsentedVendors()` | ✅ Available | ✅ Available |  
+| `getRefusedVendors()` | ✅ Available | ✅ Available |
+| `isVendorConsented()` | ✅ Available | ✅ Available |
+
+> 📝 **Note**: All vendor consent APIs are fully supported on both iOS and Android platforms.
 
 <br><br><br>
 ## Displaying the Consent Popup on Demand

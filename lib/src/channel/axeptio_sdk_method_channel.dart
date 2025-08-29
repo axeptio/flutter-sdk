@@ -104,6 +104,78 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @override
+  Future<Map<int, bool>> getVendorConsents() async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getVendorConsents',
+      );
+      if (result == null) return <int, bool>{};
+      return result.map((k, v) => MapEntry(int.parse(k.toString()), v as bool));
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in getVendorConsents - $e',
+        );
+      }
+      return <int, bool>{};
+    }
+  }
+
+  @override
+  Future<List<int>> getConsentedVendors() async {
+    try {
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'getConsentedVendors',
+      );
+      if (result == null) return <int>[];
+      return result.map((e) => e as int).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in getConsentedVendors - $e',
+        );
+      }
+      return <int>[];
+    }
+  }
+
+  @override
+  Future<List<int>> getRefusedVendors() async {
+    try {
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'getRefusedVendors',
+      );
+      if (result == null) return <int>[];
+      return result.map((e) => e as int).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in getRefusedVendors - $e',
+        );
+      }
+      return <int>[];
+    }
+  }
+
+  @override
+  Future<bool> isVendorConsented(int vendorId) async {
+    try {
+      final result = await methodChannel.invokeMethod<bool>(
+        'isVendorConsented',
+        {'vendorId': vendorId},
+      );
+      return result ?? false;
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in isVendorConsented - $e',
+        );
+      }
+      return false;
+    }
+  }
+
+  @override
   addEventListener(AxeptioEventListener listener) {
     _eventsHandler.addEventListener(listener);
   }
