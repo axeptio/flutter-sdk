@@ -9,16 +9,53 @@
 - ASK FOR CLARIFICATION if you are uncertain of anything within the document.
 - DO NOT modify other repositories
 - ALWAYS use gh command for github operations
-- Test coverate MUST ALWAYS BE 95%
-- ALL test MUST ALWAYS pass
+- Test coverage MUST ALWAYS BE 95%
+- ALL tests MUST ALWAYS pass
 - DO NOT DO quick fixes
-- DO NOT bypass test
+- DO NOT bypass tests
+- ALWAYS check test coverage before committing
+- ALWAYS add tests for new functionality
 
 ## SDK Version Management
 - ALWAYS check that this repo is using the latest iOS APP SDK (axeptio/axeptio-ios-sdk-sources and axeptio/axeptio-ios-sdk)
 - ALWAYS check that this repos is using the latest Android APP SDK (axeptio/axeptio-android-sdk-sources, axeptio/axeptio-android-sdk)
 - ALWAYS ensure that the README.md is up to date as it's documentation for app developper to integrate the SDK
 - ALWAYS ensure the example/ app is up to date in accordance with latest changes
+
+## Testing Requirements and Workflow
+
+### Critical Testing Standards
+- **Coverage Requirement**: 95% minimum test coverage (current: 58.9% - needs improvement)
+- **Test Status**: All 85+ tests must pass before any commit
+- **New Code**: All new functionality must include comprehensive tests
+- **Coverage Verification**: Always run `flutter test --coverage` before committing
+
+### Testing Commands for Development
+```bash
+# Check current test status
+flutter test
+
+# Generate coverage report
+flutter test --coverage
+
+# Verify coverage percentage
+flutter test --coverage && awk 'BEGIN { total = 0; hit = 0 } /^LF:/ { total += substr($0, 4) } /^LH:/ { hit += substr($0, 4) } END { printf "Coverage: %.1f%%\n", (total > 0) ? (hit * 100.0 / total) : 0 }' coverage/lcov.info
+```
+
+### Testing Workflow for Future Development
+1. **Before Starting**: Check current coverage with `flutter test --coverage`
+2. **During Development**: Add tests alongside code changes
+3. **Before Committing**: Verify coverage meets or exceeds 95%
+4. **If Coverage Below 95%**: Focus on priority areas listed in TESTING.md
+
+### Coverage Improvement Priority (to reach 95%)
+1. **Critical (0-34%)**: `events/event_listener.dart`, `channel/axeptio_sdk_platform_interface.dart`, `events/events_handler.dart`
+2. **Important (69-74%)**: `channel/axeptio_sdk_method_channel.dart`, `channel/axeptio.dart`
+
+### Testing Documentation Reference
+- **Comprehensive Guide**: [TESTING.md](TESTING.md) - Complete testing documentation
+- **Quick Reference**: [CONTRIBUTING.md](CONTRIBUTING.md) - Testing requirements for contributors
+- **User Info**: [README.md](README.md) - Testing section for developers using the SDK
 
 ## Development Workflow
 

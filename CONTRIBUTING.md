@@ -142,6 +142,15 @@ dart pub publish --dry-run
 
 ## Testing
 
+### Testing Requirements
+
+**Critical**: This project requires **95% test coverage** as specified in [CLAUDE.md](CLAUDE.md).
+
+- **Current Coverage**: 58.9% (needs improvement to reach 95% target)
+- **All Tests Must Pass**: PRs with failing tests will not be accepted
+- **New Features**: Must include comprehensive tests with mock platform integration
+- **Bug Fixes**: Must include regression tests
+
 ### Running Tests
 
 ```bash
@@ -153,14 +162,89 @@ flutter test --coverage
 
 # Run specific test file
 flutter test test/specific_test.dart
+
+# Run specific test group
+flutter test --name "SDK Initialization"
+
+# Verbose test output
+flutter test --reporter expanded
+```
+
+### Coverage Requirements for PRs
+
+Before submitting a PR, ensure:
+
+```bash
+# 1. All tests pass
+flutter test
+
+# 2. Coverage meets requirements
+flutter test --coverage
+# Check that overall coverage is maintained or improved
+
+# 3. No analysis issues
+flutter analyze
+
+# 4. Code is properly formatted
+dart format .
 ```
 
 ### Writing Tests
 
-- Write unit tests for new functionality
-- Follow existing test patterns
-- Aim for meaningful test coverage
-- Mock external dependencies
+**Follow Established Patterns**: 
+- Use `MockAxeptioSdkPlatform` for platform integration tests
+- Organize tests by component (core, events, models, preferences)
+- Follow the test structure documented in [TESTING.md](TESTING.md)
+
+**Required Test Categories**:
+- Unit tests for all public methods
+- Error handling tests (exceptions, null inputs)
+- Edge case testing (empty strings, special characters)
+- Mock platform integration tests
+- Async operation testing (if applicable)
+- State management testing (if applicable)
+
+**Test Organization Pattern**:
+```dart
+group('Component Name', () {
+  late ComponentClass component;
+  late MockPlatform mockPlatform;
+
+  setUp(() {
+    component = ComponentClass();
+    mockPlatform = MockPlatform();
+    mockPlatform.reset();
+  });
+
+  group('Feature Category', () {
+    test('specific behavior description', () async {
+      // Arrange
+      mockPlatform.setExpectedData(data);
+      
+      // Act
+      final result = await component.method();
+      
+      // Assert
+      expect(result, expectedValue);
+    });
+  });
+});
+```
+
+### Coverage Improvement Guidelines
+
+**Priority Areas** (for reaching 95% coverage):
+1. **Critical (0-34% coverage)**: `events/event_listener.dart`, `channel/axeptio_sdk_platform_interface.dart`, `events/events_handler.dart`
+2. **Improvement (69-74% coverage)**: `channel/axeptio_sdk_method_channel.dart`, `channel/axeptio.dart`
+3. **Fine-tuning (90%+ coverage)**: `preferences/native_default_preferences.dart`
+
+**Testing Strategy**:
+- Add tests for uncovered lines identified in coverage reports
+- Focus on error handling and edge cases
+- Include platform-specific testing scenarios
+- Test both success and failure code paths
+
+For comprehensive testing guidance, patterns, and coverage strategies, see [TESTING.md](TESTING.md).
 
 ## Documentation
 
