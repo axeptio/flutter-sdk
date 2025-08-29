@@ -16,7 +16,8 @@ class _VendorScreenState extends State<VendorScreen> {
   final _vendorIdController = TextEditingController();
   String _vendorTestResult = 'Enter a vendor ID to test';
   bool _isTestingVendor = false;
-  String _tcfAnalysisResult = 'Tap "Analyze TCF Strings" to compare raw consent data';
+  String _tcfAnalysisResult =
+      'Tap "Analyze TCF Strings" to compare raw consent data';
 
   @override
   void initState() {
@@ -56,7 +57,8 @@ class _VendorScreenState extends State<VendorScreen> {
     try {
       final isConsented = await _dataService.testVendorConsent(vendorId);
       setState(() {
-        _vendorTestResult = 'Vendor $vendorId: ${isConsented ? "✅ CONSENTED" : "❌ REFUSED"}';
+        _vendorTestResult =
+            'Vendor $vendorId: ${isConsented ? "✅ CONSENTED" : "❌ REFUSED"}';
         _isTestingVendor = false;
       });
     } catch (e) {
@@ -105,24 +107,24 @@ class _VendorScreenState extends State<VendorScreen> {
           children: [
             // Summary Dashboard
             _buildSummaryDashboard(),
-            
+
             const SizedBox(height: 16),
-            
+
             // Individual Vendor Tester
             _buildVendorTester(),
-            
+
             const SizedBox(height: 16),
-            
+
             // TCF Analysis Section
             _buildTCFAnalysisSection(),
-            
+
             const SizedBox(height: 16),
-            
+
             // Vendor Data Sections
             _buildVendorDataSections(),
-            
+
             const SizedBox(height: 16),
-            
+
             // IABTCF and Axeptio Data
             _buildPreferenceDataSections(),
           ],
@@ -215,7 +217,10 @@ class _VendorScreenState extends State<VendorScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: analysis.consentRate > 50 ? Colors.green : Colors.orange,
+                      color:
+                          analysis.consentRate > 50
+                              ? Colors.green
+                              : Colors.orange,
                     ),
                     textAlign: TextAlign.center,
                   );
@@ -229,7 +234,12 @@ class _VendorScreenState extends State<VendorScreen> {
     );
   }
 
-  Widget _buildSummaryCard(String title, String value, Color color, IconData icon) {
+  Widget _buildSummaryCard(
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -291,7 +301,10 @@ class _VendorScreenState extends State<VendorScreen> {
                       labelText: 'Vendor ID',
                       hintText: 'e.g., 1, 50, 755',
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     keyboardType: TextInputType.number,
                     onSubmitted: (_) => _testVendor(),
@@ -302,15 +315,22 @@ class _VendorScreenState extends State<VendorScreen> {
                   onPressed: _isTestingVendor ? null : _testVendor,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(247, 209, 94, 1),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
-                  child: _isTestingVendor
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Test', style: TextStyle(color: Colors.black)),
+                  child:
+                      _isTestingVendor
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text(
+                            'Test',
+                            style: TextStyle(color: Colors.black),
+                          ),
                 ),
               ],
             ),
@@ -328,10 +348,11 @@ class _VendorScreenState extends State<VendorScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: _vendorTestResult.contains('✅') 
-                      ? Colors.green 
-                      : _vendorTestResult.contains('❌') 
-                          ? Colors.red 
+                  color:
+                      _vendorTestResult.contains('✅')
+                          ? Colors.green
+                          : _vendorTestResult.contains('❌')
+                          ? Colors.red
                           : Colors.grey.shade600,
                 ),
                 textAlign: TextAlign.center,
@@ -389,10 +410,7 @@ class _VendorScreenState extends State<VendorScreen> {
               child: SingleChildScrollView(
                 child: Text(
                   _tcfAnalysisResult,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                  ),
+                  style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
                 ),
               ),
             ),
@@ -416,7 +434,7 @@ class _VendorScreenState extends State<VendorScreen> {
         }
 
         final data = snapshot.data!;
-        
+
         return Column(
           children: [
             // Consented Vendors
@@ -426,9 +444,9 @@ class _VendorScreenState extends State<VendorScreen> {
               Colors.green,
               Icons.check_circle,
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Refused Vendors
             _buildDataSection(
               'Refused Vendors',
@@ -436,9 +454,9 @@ class _VendorScreenState extends State<VendorScreen> {
               Colors.red,
               Icons.cancel,
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // All Vendors Preview
             _buildDataSection(
               'All Vendor Consents (Preview)',
@@ -462,7 +480,7 @@ class _VendorScreenState extends State<VendorScreen> {
         }
 
         final data = snapshot.data!;
-        
+
         return Column(
           children: [
             // IABTCF Data
@@ -473,9 +491,9 @@ class _VendorScreenState extends State<VendorScreen> {
                 Colors.purple,
                 Icons.security,
               ),
-            
+
             if (data.iabtcfData.isNotEmpty) const SizedBox(height: 12),
-            
+
             // Axeptio Data
             if (data.axeptioData.isNotEmpty)
               _buildPreferenceSection(
@@ -531,10 +549,7 @@ class _VendorScreenState extends State<VendorScreen> {
               child: SingleChildScrollView(
                 child: Text(
                   content.isEmpty ? 'No data available' : content,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                  ),
+                  style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
                 ),
               ),
             ),
@@ -584,26 +599,34 @@ class _VendorScreenState extends State<VendorScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: data.entries.map((entry) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: RichText(
-                        text: TextSpan(
-                          style: const TextStyle(fontSize: 12, color: Colors.black),
-                          children: [
-                            TextSpan(
-                              text: '${entry.key}: ',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                  children:
+                      data.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: RichText(
+                            text: TextSpan(
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '${entry.key}: ',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: entry.value.toString(),
+                                  style: const TextStyle(
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ],
                             ),
-                            TextSpan(
-                              text: entry.value.toString(),
-                              style: const TextStyle(fontFamily: 'monospace'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          ),
+                        );
+                      }).toList(),
                 ),
               ),
             ),

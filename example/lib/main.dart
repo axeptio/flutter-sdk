@@ -26,7 +26,8 @@ void main() {
 class SDKConfig {
   // Default fallback values (used when SharedPreferences is empty)
   static const String _defaultClientId = '5fbfa806a0787d3985c6ee5f';
-  static const String _defaultVersion = 'google cmp partner program sandbox-en-EU';
+  static const String _defaultVersion =
+      'google cmp partner program sandbox-en-EU';
   static const AxeptioService _defaultService = AxeptioService.brands;
 
   // Current configuration (loaded from SharedPreferences)
@@ -38,29 +39,33 @@ class SDKConfig {
 
   static Future<void> loadConfiguration() async {
     if (_isConfigLoaded) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
-    
+
     _currentClientId = prefs.getString('axeptio_client_id') ?? _defaultClientId;
     _currentVersion = prefs.getString('axeptio_version') ?? _defaultVersion;
     _currentToken = prefs.getString('axeptio_token');
-    
+
     final serviceString = prefs.getString('axeptio_service') ?? 'brands';
-    _currentService = serviceString == 'publishers' 
-        ? AxeptioService.publishers 
-        : AxeptioService.brands;
-    
+    _currentService =
+        serviceString == 'publishers'
+            ? AxeptioService.publishers
+            : AxeptioService.brands;
+
     _isConfigLoaded = true;
-    
+
     print('=== Loaded SDK Configuration ===');
     print('Service: $_currentService');
     print('Client ID: $_currentClientId');
     print('Version: $_currentVersion');
-    print('Token: ${_currentToken?.isNotEmpty == true ? "Set (${_currentToken!.length} chars)" : "Not set"}');
+    print(
+      'Token: ${_currentToken?.isNotEmpty == true ? "Set (${_currentToken!.length} chars)" : "Not set"}',
+    );
     print('================================');
   }
 
-  static AxeptioService get axeptioService => _currentService ?? _defaultService;
+  static AxeptioService get axeptioService =>
+      _currentService ?? _defaultService;
   static String get projectId => _currentClientId ?? _defaultClientId;
   static String get version => _currentVersion ?? _defaultVersion;
   static String? get token => _currentToken;
@@ -240,10 +245,10 @@ class _HomePageState extends State<HomePage> {
     try {
       // Clear consent
       widget.axeptioSdk.clearConsent();
-      
+
       // Trigger immediate refresh of vendor data
       VendorDataService.triggerGlobalRefresh();
-      
+
       // Call the original callback
       widget.onClearPressed();
 
@@ -297,13 +302,14 @@ class _HomePageState extends State<HomePage> {
               child: const Text('Google ad', style: textStyle),
             ),
             ElevatedButton(
-              style: _isClearing 
-                ? ElevatedButton.styleFrom(
-                    textStyle: textStyle,
-                    elevation: 0,
-                    backgroundColor: Colors.green,
-                  )
-                : clearConsentStyle,
+              style:
+                  _isClearing
+                      ? ElevatedButton.styleFrom(
+                        textStyle: textStyle,
+                        elevation: 0,
+                        backgroundColor: Colors.green,
+                      )
+                      : clearConsentStyle,
               onPressed: _isClearing ? null : _clearConsentWithFeedback,
               child: Text(
                 _isClearing ? '✅ Cleared!' : 'Clear consent',
@@ -356,9 +362,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ConfigScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ConfigScreen()),
                 );
               },
               child: const Text('Configuration', style: textStyle),
@@ -369,7 +373,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => VendorScreen(axeptioSdk: widget.axeptioSdk),
+                    builder:
+                        (context) =>
+                            VendorScreen(axeptioSdk: widget.axeptioSdk),
                   ),
                 );
               },
@@ -380,5 +386,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }

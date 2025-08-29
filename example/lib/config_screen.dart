@@ -14,7 +14,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   final _clientIdController = TextEditingController();
   final _versionController = TextEditingController();
   final _tokenController = TextEditingController();
-  
+
   AxeptioService _selectedService = AxeptioService.brands;
   bool _hasUnsavedChanges = false;
   bool _isLoading = true;
@@ -35,17 +35,21 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   Future<void> _loadCurrentConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     setState(() {
-      _clientIdController.text = prefs.getString('axeptio_client_id') ?? '5fbfa806a0787d3985c6ee5f';
-      _versionController.text = prefs.getString('axeptio_version') ?? 'google cmp partner program sandbox-en-EU';
+      _clientIdController.text =
+          prefs.getString('axeptio_client_id') ?? '5fbfa806a0787d3985c6ee5f';
+      _versionController.text =
+          prefs.getString('axeptio_version') ??
+          'google cmp partner program sandbox-en-EU';
       _tokenController.text = prefs.getString('axeptio_token') ?? '';
-      
+
       final serviceString = prefs.getString('axeptio_service') ?? 'brands';
-      _selectedService = serviceString == 'publishers' 
-          ? AxeptioService.publishers 
-          : AxeptioService.brands;
-      
+      _selectedService =
+          serviceString == 'publishers'
+              ? AxeptioService.publishers
+              : AxeptioService.brands;
+
       _isLoading = false;
     });
   }
@@ -54,11 +58,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final prefs = await SharedPreferences.getInstance();
-    
+
     await prefs.setString('axeptio_client_id', _clientIdController.text.trim());
     await prefs.setString('axeptio_version', _versionController.text.trim());
     await prefs.setString('axeptio_token', _tokenController.text.trim());
-    await prefs.setString('axeptio_service', _selectedService == AxeptioService.publishers ? 'publishers' : 'brands');
+    await prefs.setString(
+      'axeptio_service',
+      _selectedService == AxeptioService.publishers ? 'publishers' : 'brands',
+    );
     await prefs.setBool('axeptio_config_changed', true);
 
     setState(() {
@@ -66,10 +73,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
     });
 
     if (!mounted) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Configuration saved! Please restart the app to apply changes.'),
+        content: Text(
+          'Configuration saved! Please restart the app to apply changes.',
+        ),
         duration: Duration(seconds: 3),
         backgroundColor: Colors.orange,
       ),
@@ -87,9 +96,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -129,7 +136,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       Expanded(
                         child: Text(
                           'Configuration changes require app restart to take effect.',
-                          style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -145,7 +155,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     children: [
                       const Text(
                         'Service Type',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       SegmentedButton<AxeptioService>(
@@ -185,7 +198,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     children: [
                       const Text(
                         'SDK Configuration',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -269,13 +285,24 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     children: [
                       const Text(
                         'Current Configuration',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      Text('Service: ${_selectedService == AxeptioService.publishers ? "Publishers (TCF)" : "Brands"}'),
-                      Text('Client ID: ${_clientIdController.text.isEmpty ? "Not set" : _clientIdController.text}'),
-                      Text('Version: ${_versionController.text.isEmpty ? "Not set" : _versionController.text}'),
-                      Text('Token: ${_tokenController.text.isEmpty ? "Not set" : "Set (${_tokenController.text.length} chars)"}'),
+                      Text(
+                        'Service: ${_selectedService == AxeptioService.publishers ? "Publishers (TCF)" : "Brands"}',
+                      ),
+                      Text(
+                        'Client ID: ${_clientIdController.text.isEmpty ? "Not set" : _clientIdController.text}',
+                      ),
+                      Text(
+                        'Version: ${_versionController.text.isEmpty ? "Not set" : _versionController.text}',
+                      ),
+                      Text(
+                        'Token: ${_tokenController.text.isEmpty ? "Not set" : "Set (${_tokenController.text.length} chars)"}',
+                      ),
                     ],
                   ),
                 ),

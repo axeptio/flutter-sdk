@@ -7,8 +7,8 @@ Future<void> showPreferences({
   // Filter to only show IABTCF_ and Axeptio-related values
   final filteredData = <String, dynamic>{};
   for (final entry in data.entries) {
-    if (entry.key.startsWith('IABTCF_') || 
-        entry.key.startsWith('axeptio_') || 
+    if (entry.key.startsWith('IABTCF_') ||
+        entry.key.startsWith('axeptio_') ||
         entry.key.startsWith('AX_')) {
       filteredData[entry.key] = entry.value;
     }
@@ -50,28 +50,32 @@ Future<void> showPreferences({
                   ),
                 )
               else
-                ...(filteredData.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entry.key,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SelectableText(
-                        '${entry.value}',
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          overflow: TextOverflow.ellipsis,
+                ...(filteredData.entries.toList()
+                      ..sort((a, b) => a.key.compareTo(b.key)))
+                    .map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.key,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SelectableText(
+                              '${entry.value}',
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Divider(),
+                          ],
                         ),
-                      ),
-                      const Divider(),
-                    ],
-                  ),
-                );
-              }),
+                      );
+                    }),
             ],
           ),
         ),

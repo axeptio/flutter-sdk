@@ -72,49 +72,53 @@ Future<void> showDebugInfo({
                         const SizedBox(height: 16),
 
                         // Debug data entries
-                        ...(data.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((entry) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Key
-                                Text(
-                                  entry.key,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Colors.black87,
+                        ...(data.entries.toList()
+                              ..sort((a, b) => a.key.compareTo(b.key)))
+                            .map((entry) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
                                   ),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(height: 8),
-
-                                // Value
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: SelectableText(
-                                    _formatValue(entry.value),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: 'monospace',
-                                      color: Colors.black87,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Key
+                                    Text(
+                                      entry.key,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 8),
+
+                                    // Value
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: SelectableText(
+                                        _formatValue(entry.value),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: 'monospace',
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        }),
+                              );
+                            }),
 
                         // Footer info
                         Container(
@@ -166,7 +170,9 @@ String _formatValue(dynamic value) {
     // Pretty print maps/objects
     final buffer = StringBuffer();
     buffer.writeln('{');
-    final sortedEntries = value.entries.toList()..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+    final sortedEntries =
+        value.entries.toList()
+          ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
     for (final entry in sortedEntries) {
       buffer.writeln('  ${entry.key}: ${_formatValue(entry.value)},');
     }

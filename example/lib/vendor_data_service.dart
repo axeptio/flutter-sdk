@@ -4,29 +4,34 @@ import 'package:axeptio_sdk/axeptio_sdk.dart';
 class VendorDataService {
   static const int maxDisplayVendors = 30;
   static const Duration refreshInterval = Duration(seconds: 3);
-  
+
   // Static callback for external refresh triggers (e.g., consent clearing)
   static VendorDataService? _activeInstance;
-  
+
   final AxeptioSdk _axeptioSdk;
   Timer? _refreshTimer;
   Timer? _processingDelayTimer;
   bool _isProcessing = false;
-  
+
   // Stream controllers for real-time updates
-  final StreamController<VendorSummaryData> _summaryController = StreamController.broadcast();
-  final StreamController<VendorDetailsData> _detailsController = StreamController.broadcast();
-  
+  final StreamController<VendorSummaryData> _summaryController =
+      StreamController.broadcast();
+  final StreamController<VendorDetailsData> _detailsController =
+      StreamController.broadcast();
+
   Stream<VendorSummaryData> get summaryStream => _summaryController.stream;
   Stream<VendorDetailsData> get detailsStream => _detailsController.stream;
-  
+
   VendorDataService(this._axeptioSdk) {
     _activeInstance = this;
   }
 
   void startAutoRefresh() {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(refreshInterval, (_) => _refreshDataWithDelay());
+    _refreshTimer = Timer.periodic(
+      refreshInterval,
+      (_) => _refreshDataWithDelay(),
+    );
     // Initial refresh
     _refreshDataWithDelay();
   }
@@ -41,7 +46,7 @@ class VendorDataService {
   void forceRefresh() {
     _processingDelayTimer?.cancel();
     _isProcessing = true;
-    
+
     // Immediate refresh without delay for external triggers
     Future.delayed(const Duration(milliseconds: 100), () {
       _isProcessing = false;
@@ -52,7 +57,7 @@ class VendorDataService {
   void _refreshDataWithDelay() {
     _processingDelayTimer?.cancel();
     _isProcessing = true;
-    
+
     // Add delay to allow consent processing to complete
     _processingDelayTimer = Timer(const Duration(milliseconds: 500), () {
       _isProcessing = false;
@@ -66,11 +71,11 @@ class VendorDataService {
       final vendorConsents = await _axeptioSdk.getVendorConsents();
       final consentedVendors = await _axeptioSdk.getConsentedVendors();
       final refusedVendors = await _axeptioSdk.getRefusedVendors();
-      
+
       // Get preference data
       final consentData = await _axeptioSdk.getConsentSavedData();
       final debugData = await _axeptioSdk.getConsentDebugInfo();
-      
+
       // Create summary data
       final summaryData = VendorSummaryData(
         consentedCount: consentedVendors.length,
@@ -78,25 +83,34 @@ class VendorDataService {
         totalCount: vendorConsents.length,
         isProcessing: _isProcessing,
       );
-      
+
       // Create detailed data with smart filtering
       final detailsData = VendorDetailsData(
-        consentedVendors: _formatVendorList(consentedVendors, consentedVendors.length),
-        refusedVendors: _formatVendorList(refusedVendors, refusedVendors.length),
+        consentedVendors: _formatVendorList(
+          consentedVendors,
+          consentedVendors.length,
+        ),
+        refusedVendors: _formatVendorList(
+          refusedVendors,
+          refusedVendors.length,
+        ),
         allVendorsPreview: _formatAllVendorsPreview(vendorConsents),
         iabtcfData: _extractIABTCFData(consentData ?? {}),
         axeptioData: _extractAxeptioData(consentData ?? {}),
         debugData: debugData ?? {},
-        vendorAnalysis: _analyzeVendorData(vendorConsents, consentedVendors, refusedVendors),
+        vendorAnalysis: _analyzeVendorData(
+          vendorConsents,
+          consentedVendors,
+          refusedVendors,
+        ),
       );
-      
+
       // Emit updates
       _summaryController.add(summaryData);
       _detailsController.add(detailsData);
-      
+
       // Debug logging (like iOS implementation)
       _logVendorAnalysis(vendorConsents, consentedVendors, refusedVendors);
-      
     } catch (e) {
       print('Error refreshing vendor data: $e');
     }
@@ -104,7 +118,7 @@ class VendorDataService {
 
   String _formatVendorList(List<int> vendors, int totalCount) {
     if (vendors.isEmpty) return 'None';
-    
+
     if (vendors.length <= maxDisplayVendors) {
       return vendors.map((v) => v.toString()).join(', ');
     } else {
@@ -116,20 +130,23 @@ class VendorDataService {
 
   String _formatAllVendorsPreview(Map<int, bool> vendorConsents) {
     if (vendorConsents.isEmpty) return 'No vendor consent data available';
-    
-    final sortedVendors = vendorConsents.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-    
-    final preview = sortedVendors.take(maxDisplayVendors).map((entry) {
-      final status = entry.value ? '✅' : '❌';
-      return '${entry.key}: $status';
-    }).join('\n');
-    
+
+    final sortedVendors =
+        vendorConsents.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+
+    final preview = sortedVendors
+        .take(maxDisplayVendors)
+        .map((entry) {
+          final status = entry.value ? '✅' : '❌';
+          return '${entry.key}: $status';
+        })
+        .join('\n');
+
     if (vendorConsents.length > maxDisplayVendors) {
       final remaining = vendorConsents.length - maxDisplayVendors;
       return '$preview\n... and $remaining more vendors';
     }
-    
+
     return preview;
   }
 
@@ -161,20 +178,21 @@ class VendorDataService {
     final allVendorIds = allVendors.keys.toSet();
     final consentedSet = consentedVendors.toSet();
     final refusedSet = refusedVendors.toSet();
-    
+
     // Find discrepancies
     final inAllButNotInLists = allVendorIds
         .difference(consentedSet)
         .difference(refusedSet);
-    
+
     final inConsentedButNotInAll = consentedSet.difference(allVendorIds);
     final inRefusedButNotInAll = refusedSet.difference(allVendorIds);
-    
+
     // Calculate consent rate
-    final consentRate = allVendors.isNotEmpty 
-        ? (consentedVendors.length / allVendors.length * 100)
-        : 0.0;
-    
+    final consentRate =
+        allVendors.isNotEmpty
+            ? (consentedVendors.length / allVendors.length * 100)
+            : 0.0;
+
     // Get vendor ID ranges
     VendorRangeData? rangeData;
     if (allVendorIds.isNotEmpty) {
@@ -186,7 +204,7 @@ class VendorDataService {
         actualCount: sortedIds.length,
       );
     }
-    
+
     return VendorAnalysisData(
       consentRate: consentRate,
       discrepancies: VendorDiscrepancies(
@@ -195,7 +213,8 @@ class VendorDataService {
         inRefusedButNotInAll: inRefusedButNotInAll.toList()..sort(),
       ),
       rangeData: rangeData,
-      hasDiscrepancies: inAllButNotInLists.isNotEmpty ||
+      hasDiscrepancies:
+          inAllButNotInLists.isNotEmpty ||
           inConsentedButNotInAll.isNotEmpty ||
           inRefusedButNotInAll.isNotEmpty,
     );
@@ -209,8 +228,10 @@ class VendorDataService {
     final timestamp = DateTime.now().toIso8601String().substring(0, 19);
     print('🔍 [VendorAnalysis] $timestamp');
     print('   Processing: ${_isProcessing ? "PROCESSING" : "STABLE"}');
-    print('   Total: ${allVendors.length}, Consented: ${consentedVendors.length}, Refused: ${refusedVendors.length}');
-    
+    print(
+      '   Total: ${allVendors.length}, Consented: ${consentedVendors.length}, Refused: ${refusedVendors.length}',
+    );
+
     // Check for the 25vs24 issue mentioned in iOS sample
     if (allVendors.length == 24 || consentedVendors.length == 24) {
       print('   🚨 POTENTIAL 25vs24 ISSUE DETECTED');
@@ -229,24 +250,27 @@ class VendorDataService {
   Future<String> analyzeTCFStrings() async {
     try {
       final consentData = await _axeptioSdk.getConsentSavedData() ?? {};
-      
+
       final tcfString = consentData['IABTCF_TCString'] ?? 'Not found';
-      final vendorConsents = consentData['IABTCF_VendorConsents'] ?? 'Not found';
+      final vendorConsents =
+          consentData['IABTCF_VendorConsents'] ?? 'Not found';
       final gdprApplies = consentData['IABTCF_gdprApplies'];
       final policyVersion = consentData['IABTCF_PolicyVersion'];
-      
+
       var analysis = '🔍 TCF String Analysis:\n\n';
       analysis += '📊 Basic Info:\n';
       analysis += '• GDPR Applies: ${gdprApplies ?? "Not set"}\n';
       analysis += '• Policy Version: ${policyVersion ?? "Not set"}\n';
-      analysis += '• TC String Length: ${tcfString.toString().length} chars\n\n';
-      
+      analysis +=
+          '• TC String Length: ${tcfString.toString().length} chars\n\n';
+
       analysis += '🏪 Vendor Consents String:\n';
       if (vendorConsents != 'Not found') {
         final vcString = vendorConsents.toString();
         analysis += '• Length: ${vcString.length} chars\n';
-        analysis += '• First 50 chars: ${vcString.length > 50 ? vcString.substring(0, 50) : vcString}...\n';
-        
+        analysis +=
+            '• First 50 chars: ${vcString.length > 50 ? vcString.substring(0, 50) : vcString}...\n';
+
         // Count set bits for binary strings
         if (vcString.contains('1') || vcString.contains('0')) {
           final setBits = vcString.split('').where((c) => c == '1').length;
@@ -255,19 +279,20 @@ class VendorDataService {
       } else {
         analysis += '• ⚠️ IABTCF_VendorConsents not found!\n';
       }
-      
+
       // Compare with API results
       final apiVendorConsents = await _axeptioSdk.getVendorConsents();
       final apiConsentedVendors = await _axeptioSdk.getConsentedVendors();
-      
+
       analysis += '\n🔗 API vs TCF Comparison:\n';
       analysis += '• API Total Vendors: ${apiVendorConsents.length}\n';
       analysis += '• API Consented Vendors: ${apiConsentedVendors.length}\n';
-      
+
       analysis += '\n🐛 Debug Info:\n';
       analysis += '• Timestamp: ${DateTime.now()}\n';
-      analysis += '• Auto-refresh: ${_refreshTimer?.isActive == true ? "Active" : "Inactive"}\n';
-      
+      analysis +=
+          '• Auto-refresh: ${_refreshTimer?.isActive == true ? "Active" : "Inactive"}\n';
+
       return analysis;
     } catch (e) {
       return 'Error analyzing TCF strings: $e';
@@ -278,13 +303,13 @@ class VendorDataService {
     stopAutoRefresh();
     _summaryController.close();
     _detailsController.close();
-    
+
     // Clear active instance if this is the current one
     if (_activeInstance == this) {
       _activeInstance = null;
     }
   }
-  
+
   /// Triggers immediate refresh on the currently active VendorDataService instance
   /// Used by external components (e.g., Clear Consent button) to force UI updates
   static void triggerGlobalRefresh() {
