@@ -1,3 +1,17 @@
+## 2.0.16
+
+- Implement manual workflow dispatch for publishing workflows.
+- Add comprehensive changelog validation to prevent publishing without documentation.
+- Align dry-run-publish.yml to use release tag logic instead of pubspec.yaml.
+- Update release process to require manual workflow execution for better control.
+
+## 2.0.15
+
+- Fix iOS bridge type casting issue for vendor consent APIs.
+- Resolve 'String' is not subtype of 'Map<dynamic, dynamic>' error in getVendorConsents.
+- Add proper handling for [Int: Bool] dictionary conversion in iOS sanitizeForFlutter.
+- Improve method channel bridge reliability for TCF vendor APIs.
+
 ## 2.0.12
 
 - Update iOS Axeptio SDK to 2.0.15.
