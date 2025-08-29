@@ -94,7 +94,10 @@ jobs:
         run: flutter test
       
       - name: Check Publish Warnings
-        run: dart pub publish --dry-run
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Running dry-run publish for version: $VERSION"
+          dart pub publish --dry-run
 
       - name: Publish to pub.dev
         uses: k-paxian/dart-package-publisher@v1.6
