@@ -312,44 +312,52 @@ class HomePage extends StatelessWidget {
 
   Future<void> _demonstrateVendorConsent() async {
     print('\n=== TCF Vendor Consent Demo ===');
-    
+
     try {
       // Get all vendor consents
       final vendorConsents = await axeptioSdk.getVendorConsents();
       print('📊 Total vendor consents: ${vendorConsents.length}');
-      
+
       if (vendorConsents.isEmpty) {
-        print('ℹ️ No vendor consent data available yet. Please accept/configure consents first.');
+        print(
+          'ℹ️ No vendor consent data available yet. Please accept/configure consents first.',
+        );
         return;
       }
-      
+
       // Get consented vendors
       final consentedVendors = await axeptioSdk.getConsentedVendors();
       print('✅ Consented vendors: ${consentedVendors.length}');
-      print('   Vendor IDs: ${consentedVendors.take(10).toList()}...'); // Show first 10
-      
-      // Get refused vendors  
+      print(
+        '   Vendor IDs: ${consentedVendors.take(10).toList()}...',
+      ); // Show first 10
+
+      // Get refused vendors
       final refusedVendors = await axeptioSdk.getRefusedVendors();
       print('❌ Refused vendors: ${refusedVendors.length}');
-      print('   Vendor IDs: ${refusedVendors.take(10).toList()}...'); // Show first 10
-      
+      print(
+        '   Vendor IDs: ${refusedVendors.take(10).toList()}...',
+      ); // Show first 10
+
       // Test specific vendor consents (common ad tech vendors)
       print('\n🧪 Testing specific vendors:');
       final testVendors = [1, 2, 50, 100, 755]; // Google, Facebook, etc.
-      
+
       for (final vendorId in testVendors) {
         final isConsented = await axeptioSdk.isVendorConsented(vendorId);
-        print('   Vendor $vendorId: ${isConsented ? "✅ Consented" : "❌ Refused"}');
+        print(
+          '   Vendor $vendorId: ${isConsented ? "✅ Consented" : "❌ Refused"}',
+        );
       }
-      
+
       // Calculate consent rate
       if (vendorConsents.isNotEmpty) {
-        final consentRate = (consentedVendors.length / vendorConsents.length * 100);
+        final consentRate =
+            (consentedVendors.length / vendorConsents.length * 100);
         print('\n📈 Consent Rate: ${consentRate.toStringAsFixed(1)}%');
       }
-      
+
       print('================================\n');
-      
     } catch (e) {
       print('❌ Error demonstrating vendor consent: $e');
     }

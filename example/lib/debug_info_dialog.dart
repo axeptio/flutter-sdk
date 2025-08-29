@@ -30,119 +30,123 @@ Future<void> showDebugInfo({
         content: SizedBox(
           width: double.maxFinite,
           height: 400,
-          child: data.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No debug info available',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
+          child:
+              data.isEmpty
+                  ? const Center(
+                    child: Text(
+                      'No debug info available',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Debug info header
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.bug_report, 
-                                 color: Colors.blue.shade700, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Debug Information',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Debug data entries
-                      ...data.entries.map((entry) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
+                  )
+                  : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Debug info header
+                        Container(
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: Colors.blue.shade50,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              // Key
+                              Icon(
+                                Icons.bug_report,
+                                color: Colors.blue.shade700,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
                               Text(
-                                entry.key,
-                                style: const TextStyle(
+                                'Debug Information',
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.black87,
+                                  color: Colors.blue.shade700,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              
-                              // Value
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: SelectableText(
-                                  _formatValue(entry.value),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Debug data entries
+                        ...data.entries.map((entry) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Key
+                                Text(
+                                  entry.key,
                                   style: const TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
                                     color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Value
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: SelectableText(
+                                    _formatValue(entry.value),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: 'monospace',
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+
+                        // Footer info
+                        Container(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.orange.shade700,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'This debug information is for development purposes only.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.orange.shade700,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      }),
-                      
-                      // Footer info
-                      Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, 
-                                 color: Colors.orange.shade700, size: 16),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'This debug information is for development purposes only.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.orange.shade700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
         ),
         actions: [
           TextButton(
