@@ -29,7 +29,8 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 9. [Clearing User Consent](#clearing-user-consent)
 10. [Event Handling and Customization](#event-handling-and-customization)
     - [Event Source Identification](#event-source-identification)
-11. [Local Test](#local-test)
+11. [Testing and Development](#testing-and-development)
+12. [Local Test](#local-test)
 <br><br><br>
 ## Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -546,6 +547,51 @@ The following values are used:
 - `sdk-web`: Brands widget on websites.
 
 This tagging is handled automatically by the native SDK components used under the hood in the Flutter module.
+<br><br><br>
+
+## Testing and Development
+
+The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions. 
+
+### Current Test Coverage
+- **Coverage**: 58.9% (122/207 lines covered)
+- **Target**: 95% coverage requirement 
+- **Tests**: 85 comprehensive tests
+- **Status**: ⚠️ Coverage below target - improvement in progress
+
+[![Test Coverage](https://img.shields.io/badge/coverage-58.9%25-orange)](TESTING.md)
+
+### Quick Testing Commands
+
+```bash
+# Run all tests
+flutter test
+
+# Run tests with coverage report
+flutter test --coverage
+
+# Run specific test category
+flutter test test/events/
+flutter test test/model/
+flutter test test/preferences/
+```
+
+### Test Structure
+Our test suite is organized into logical components:
+- **Core SDK Tests**: Initialization, UI management, consent handling
+- **Method Channel Tests**: Platform communication and vendor consent APIs  
+- **Event System Tests**: Event listeners and callback handling
+- **Model Tests**: Data validation and type conversion
+- **Native Preferences Tests**: Cross-platform preference access
+
+### For Contributors
+- **Required**: All new features must include comprehensive tests
+- **Coverage**: Maintain or improve overall test coverage
+- **Patterns**: Follow established mock platform and testing patterns
+- **Validation**: All tests must pass before PR acceptance
+
+For detailed testing information, patterns, and coverage improvement strategies, see [TESTING.md](TESTING.md).
+
 <br><br><br>
 
 ## Local Test
