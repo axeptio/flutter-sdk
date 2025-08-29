@@ -36,7 +36,8 @@ void main() {
             final separator = url.contains('?') ? '&' : '?';
             return '$url${separator}axeptio_token=$token';
           case 'getConsentSavedData':
-            final preferenceKey = methodCall.arguments?['preferenceKey'] as String?;
+            final preferenceKey =
+                methodCall.arguments?['preferenceKey'] as String?;
             final mockData = {
               'axeptio_cookies': '{"analytics": true, "ads": false}',
               'IABTCF_TCString': 'CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA',
@@ -114,7 +115,8 @@ void main() {
   group('Core SDK Methods', () {
     test('initialize completes successfully', () async {
       await expectLater(
-        platform.initialize(AxeptioService.brands, 'test-client', 'v1.0.0', null),
+        platform.initialize(
+            AxeptioService.brands, 'test-client', 'v1.0.0', null),
         completes,
       );
     });
@@ -144,14 +146,16 @@ void main() {
     });
 
     test('appendAxeptioTokenURL returns formatted URL', () async {
-      final result = await platform.appendAxeptioTokenURL('https://example.com', 'token123');
+      final result = await platform.appendAxeptioTokenURL(
+          'https://example.com', 'token123');
       expect(result, isA<String>());
       expect(result, equals('https://example.com?axeptio_token=token123'));
     });
   });
 
   group('Data Retrieval', () {
-    test('getConsentSavedData returns all data when no key specified', () async {
+    test('getConsentSavedData returns all data when no key specified',
+        () async {
       final result = await platform.getConsentSavedData();
       expect(result, isA<Map<String, dynamic>>());
       expect(result!.containsKey('axeptio_cookies'), isTrue);
@@ -159,15 +163,19 @@ void main() {
       expect(result.containsKey('IABTCF_gdprApplies'), isTrue);
     });
 
-    test('getConsentSavedData returns specific data when key specified', () async {
-      final result = await platform.getConsentSavedData(preferenceKey: 'axeptio_cookies');
+    test('getConsentSavedData returns specific data when key specified',
+        () async {
+      final result =
+          await platform.getConsentSavedData(preferenceKey: 'axeptio_cookies');
       expect(result, isA<Map<String, dynamic>>());
       expect(result!.length, equals(1));
-      expect(result['axeptio_cookies'], equals('{"analytics": true, "ads": false}'));
+      expect(result['axeptio_cookies'],
+          equals('{"analytics": true, "ads": false}'));
     });
 
     test('getConsentSavedData returns null for non-existent key', () async {
-      final result = await platform.getConsentSavedData(preferenceKey: 'non_existent_key');
+      final result =
+          await platform.getConsentSavedData(preferenceKey: 'non_existent_key');
       expect(result, isNull);
     });
 
@@ -205,10 +213,11 @@ void main() {
 
     test('appendAxeptioTokenURL handles special characters', () async {
       final result = await platform.appendAxeptioTokenURL(
-        'https://example.com/path?param=value', 
-        'token@123#'
-      );
-      expect(result, equals('https://example.com/path?param=value&axeptio_token=token@123#'));
+          'https://example.com/path?param=value', 'token@123#');
+      expect(
+          result,
+          equals(
+              'https://example.com/path?param=value&axeptio_token=token@123#'));
     });
   });
 }
