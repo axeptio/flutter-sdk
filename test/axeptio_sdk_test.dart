@@ -7,7 +7,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockAxeptioSdkPlatform
     with MockPlatformInterfaceMixin
     implements AxeptioSdkPlatform {
-  
   // Mock state
   bool _isInitialized = false;
   AxeptioService? _currentService;
@@ -15,7 +14,7 @@ class MockAxeptioSdkPlatform
   String? _currentToken;
   final List<AxeptioEventListener> _listeners = [];
   bool _userDeniedTracking = false;
-  
+
   // Mock data
   final Map<String, dynamic> _mockConsentData = {
     'axeptio_cookies': '{"analytics": true, "ads": false}',
@@ -24,7 +23,7 @@ class MockAxeptioSdkPlatform
     'IABTCF_CmpSdkID': '42',
     'AX_CLIENT_TOKEN': 'mock-client-token-123',
   };
-  
+
   final Map<String, dynamic> _mockDebugInfo = {
     'sdk_version': '2.0.16',
     'client_id': 'test-client-id',
@@ -38,7 +37,8 @@ class MockAxeptioSdkPlatform
   @override
   Future<String?> appendAxeptioTokenURL(String url, String token) async {
     if (!_isInitialized) {
-      throw PlatformException(code: 'NOT_INITIALIZED', message: 'SDK not initialized');
+      throw PlatformException(
+          code: 'NOT_INITIALIZED', message: 'SDK not initialized');
     }
     return '$url?axeptio_token=$token';
   }
@@ -46,7 +46,8 @@ class MockAxeptioSdkPlatform
   @override
   Future<void> clearConsent() async {
     if (!_isInitialized) {
-      throw PlatformException(code: 'NOT_INITIALIZED', message: 'SDK not initialized');
+      throw PlatformException(
+          code: 'NOT_INITIALIZED', message: 'SDK not initialized');
     }
     _mockConsentData.clear();
     // Trigger event listeners
@@ -65,16 +66,18 @@ class MockAxeptioSdkPlatform
   Future<void> initialize(AxeptioService service, String clientId,
       String cookiesVersion, String? token) async {
     if (clientId.isEmpty) {
-      throw PlatformException(code: 'INVALID_CLIENT_ID', message: 'Client ID cannot be empty');
+      throw PlatformException(
+          code: 'INVALID_CLIENT_ID', message: 'Client ID cannot be empty');
     }
     _isInitialized = true;
     _currentService = service;
     _currentClientId = clientId;
     _currentToken = token;
-    
+
     // Update mock debug info
     _mockDebugInfo['client_id'] = clientId;
-    _mockDebugInfo['service_type'] = service == AxeptioService.brands ? 'brands' : 'publishers';
+    _mockDebugInfo['service_type'] =
+        service == AxeptioService.brands ? 'brands' : 'publishers';
     if (token != null) {
       _mockConsentData['AX_CLIENT_TOKEN'] = token;
     }
@@ -83,7 +86,8 @@ class MockAxeptioSdkPlatform
   @override
   Future<void> setUserDeniedTracking() async {
     if (!_isInitialized) {
-      throw PlatformException(code: 'NOT_INITIALIZED', message: 'SDK not initialized');
+      throw PlatformException(
+          code: 'NOT_INITIALIZED', message: 'SDK not initialized');
     }
     _userDeniedTracking = true;
     _mockConsentData['user_denied_tracking'] = 'true';
@@ -92,7 +96,8 @@ class MockAxeptioSdkPlatform
   @override
   Future<void> setupUI() async {
     if (!_isInitialized) {
-      throw PlatformException(code: 'NOT_INITIALIZED', message: 'SDK not initialized');
+      throw PlatformException(
+          code: 'NOT_INITIALIZED', message: 'SDK not initialized');
     }
     if (_userDeniedTracking) return; // UI not shown if tracking denied
     // Simulate UI setup
@@ -101,7 +106,8 @@ class MockAxeptioSdkPlatform
   @override
   Future<void> showConsentScreen() async {
     if (!_isInitialized) {
-      throw PlatformException(code: 'NOT_INITIALIZED', message: 'SDK not initialized');
+      throw PlatformException(
+          code: 'NOT_INITIALIZED', message: 'SDK not initialized');
     }
     // Simulate showing consent screen and closing it
     await Future.delayed(const Duration(milliseconds: 100));
@@ -123,9 +129,10 @@ class MockAxeptioSdkPlatform
   }
 
   @override
-  Future<Map<String, dynamic>?> getConsentSavedData({String? preferenceKey}) async {
+  Future<Map<String, dynamic>?> getConsentSavedData(
+      {String? preferenceKey}) async {
     if (!_isInitialized) return null;
-    
+
     if (preferenceKey != null) {
       final value = _mockConsentData[preferenceKey];
       return value != null ? {preferenceKey: value} : null;
@@ -134,9 +141,10 @@ class MockAxeptioSdkPlatform
   }
 
   @override
-  Future<Map<String, dynamic>?> getConsentDebugInfo({String? preferenceKey}) async {
+  Future<Map<String, dynamic>?> getConsentDebugInfo(
+      {String? preferenceKey}) async {
     if (!_isInitialized) return null;
-    
+
     if (preferenceKey != null) {
       final value = _mockDebugInfo[preferenceKey];
       return value != null ? {preferenceKey: value} : null;
@@ -168,7 +176,7 @@ class MockAxeptioSdkPlatform
     final consents = await getVendorConsents();
     return consents[vendorId] ?? false;
   }
-  
+
   // Helper methods for testing
   void reset() {
     _isInitialized = false;
@@ -178,7 +186,7 @@ class MockAxeptioSdkPlatform
     _listeners.clear();
     _userDeniedTracking = false;
   }
-  
+
   bool get isInitialized => _isInitialized;
   AxeptioService? get currentService => _currentService;
   List<AxeptioEventListener> get listeners => List.unmodifiable(_listeners);
@@ -250,12 +258,12 @@ void main() {
         () => sdk.setupUI(),
         throwsA(isA<PlatformException>()),
       );
-      
+
       expect(
         () => sdk.showConsentScreen(),
         throwsA(isA<PlatformException>()),
       );
-      
+
       expect(
         () => sdk.clearConsent(),
         throwsA(isA<PlatformException>()),
@@ -272,9 +280,10 @@ void main() {
       mockPlatform = MockAxeptioSdkPlatform();
       AxeptioSdkPlatform.instance = mockPlatform;
       mockPlatform.reset();
-      
+
       // Initialize SDK for UI tests
-      await sdk.initialize(AxeptioService.brands, 'test-client', 'v1.0.0', null);
+      await sdk.initialize(
+          AxeptioService.brands, 'test-client', 'v1.0.0', null);
     });
 
     test('setupUI works after initialization', () async {
@@ -287,10 +296,10 @@ void main() {
       listener.onPopupClosedEvent = () {
         popupClosed = true;
       };
-      
+
       sdk.addEventListerner(listener);
       await sdk.showConsentScreen();
-      
+
       expect(popupClosed, isTrue);
     });
 
@@ -300,10 +309,10 @@ void main() {
       listener.onConsentCleared = () {
         consentCleared = true;
       };
-      
+
       sdk.addEventListerner(listener);
       await sdk.clearConsent();
-      
+
       expect(consentCleared, isTrue);
     });
 
@@ -321,8 +330,9 @@ void main() {
       mockPlatform = MockAxeptioSdkPlatform();
       AxeptioSdkPlatform.instance = mockPlatform;
       mockPlatform.reset();
-      
-      await sdk.initialize(AxeptioService.brands, 'test-client', 'v1.0.0', 'test-token');
+
+      await sdk.initialize(
+          AxeptioService.brands, 'test-client', 'v1.0.0', 'test-token');
     });
 
     test('axeptioToken returns token', () async {
@@ -331,7 +341,8 @@ void main() {
     });
 
     test('appendAxeptioTokenURL works', () async {
-      final url = await sdk.appendAxeptioTokenURL('https://example.com', 'token123');
+      final url =
+          await sdk.appendAxeptioTokenURL('https://example.com', 'token123');
       expect(url, equals('https://example.com?axeptio_token=token123'));
     });
 
@@ -353,21 +364,26 @@ void main() {
       mockPlatform = MockAxeptioSdkPlatform();
       AxeptioSdkPlatform.instance = mockPlatform;
       mockPlatform.reset();
-      
-      await sdk.initialize(AxeptioService.brands, 'test-client', 'v1.0.0', null);
+
+      await sdk.initialize(
+          AxeptioService.brands, 'test-client', 'v1.0.0', null);
     });
 
-    test('getConsentSavedData returns all data when no key specified', () async {
+    test('getConsentSavedData returns all data when no key specified',
+        () async {
       final data = await sdk.getConsentSavedData();
       expect(data, isNotNull);
       expect(data!.containsKey('axeptio_cookies'), isTrue);
       expect(data.containsKey('IABTCF_TCString'), isTrue);
     });
 
-    test('getConsentSavedData returns specific data when key specified', () async {
-      final data = await sdk.getConsentSavedData(preferenceKey: 'axeptio_cookies');
+    test('getConsentSavedData returns specific data when key specified',
+        () async {
+      final data =
+          await sdk.getConsentSavedData(preferenceKey: 'axeptio_cookies');
       expect(data, isNotNull);
-      expect(data!['axeptio_cookies'], equals('{"analytics": true, "ads": false}'));
+      expect(data!['axeptio_cookies'],
+          equals('{"analytics": true, "ads": false}'));
     });
 
     test('getConsentDebugInfo returns debug information', () async {
@@ -379,10 +395,10 @@ void main() {
 
     test('data methods return null when not initialized', () async {
       mockPlatform.reset();
-      
+
       final consentData = await sdk.getConsentSavedData();
       expect(consentData, isNull);
-      
+
       final debugData = await sdk.getConsentDebugInfo();
       expect(debugData, isNull);
     });
@@ -402,12 +418,12 @@ void main() {
     test('add and remove event listeners', () {
       final listener1 = AxeptioEventListener();
       final listener2 = AxeptioEventListener();
-      
+
       // Add listeners
       sdk.addEventListerner(listener1);
       sdk.addEventListerner(listener2);
       expect(mockPlatform.listeners.length, equals(2));
-      
+
       // Remove listener
       sdk.removeEventListener(listener1);
       expect(mockPlatform.listeners.length, equals(1));
@@ -416,10 +432,10 @@ void main() {
 
     test('adding same listener twice only adds once', () {
       final listener = AxeptioEventListener();
-      
+
       sdk.addEventListerner(listener);
       sdk.addEventListerner(listener);
-      
+
       expect(mockPlatform.listeners.length, equals(1));
     });
   });

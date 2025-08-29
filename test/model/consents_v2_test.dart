@@ -47,7 +47,8 @@ void main() {
         expect(consents.adPersonalization, isFalse);
       });
 
-      test('creates object from dictionary with different boolean combinations', () {
+      test('creates object from dictionary with different boolean combinations',
+          () {
         final dictionary = {
           'analyticsStorage': false,
           'adStorage': true,
@@ -84,34 +85,36 @@ void main() {
 
       test('handles case-sensitive keys correctly', () {
         final dictionary = {
-          'AnalyticsStorage': true,  // Wrong case
+          'AnalyticsStorage': true, // Wrong case
           'adStorage': false,
           'adUserData': true,
-          'AdPersonalization': false,  // Wrong case
+          'AdPersonalization': false, // Wrong case
         };
 
         // This will cause type errors since the model expects bool but gets null
         // We'll test what actually happens
-        expect(() => ConsentsV2.fromDictionary(dictionary), throwsA(isA<TypeError>()));
+        expect(() => ConsentsV2.fromDictionary(dictionary),
+            throwsA(isA<TypeError>()));
       });
     });
 
     group('Edge cases and error handling', () {
       test('fromDictionary with null dictionary throws NoSuchMethodError', () {
-        expect(() => ConsentsV2.fromDictionary(null), throwsA(isA<NoSuchMethodError>()));
+        expect(() => ConsentsV2.fromDictionary(null),
+            throwsA(isA<NoSuchMethodError>()));
       });
 
       test('properties can be modified after creation', () {
         final consents = ConsentsV2(true, false, true, false);
-        
+
         // Properties should be mutable
         consents.analyticsStorage = false;
         consents.adStorage = true;
-        
+
         expect(consents.analyticsStorage, isFalse);
         expect(consents.adStorage, isTrue);
-        expect(consents.adUserData, isTrue);  // Unchanged
-        expect(consents.adPersonalization, isFalse);  // Unchanged
+        expect(consents.adUserData, isTrue); // Unchanged
+        expect(consents.adPersonalization, isFalse); // Unchanged
       });
 
       test('objects created with different constructors are independent', () {

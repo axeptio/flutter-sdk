@@ -10,7 +10,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockNativePreferencesPlatform
     with MockPlatformInterfaceMixin
     implements AxeptioSdkPlatform {
-  
   Map<String, dynamic> _mockData = {};
   bool _shouldThrowError = false;
 
@@ -28,7 +27,8 @@ class MockNativePreferencesPlatform
   }
 
   @override
-  Future<Map<String, dynamic>?> getConsentSavedData({String? preferenceKey}) async {
+  Future<Map<String, dynamic>?> getConsentSavedData(
+      {String? preferenceKey}) async {
     if (_shouldThrowError) {
       throw PlatformException(code: 'TEST_ERROR', message: 'Test error');
     }
@@ -37,56 +37,58 @@ class MockNativePreferencesPlatform
       final value = _mockData[preferenceKey];
       return value != null ? {preferenceKey: value} : null;
     }
-    
+
     return _mockData.isEmpty ? null : Map<String, dynamic>.from(_mockData);
   }
 
   // Minimal implementations for other required methods
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
-  
+
   @override
-  Future<String?> appendAxeptioTokenURL(String url, String token) => 
+  Future<String?> appendAxeptioTokenURL(String url, String token) =>
       throw UnimplementedError();
-  
+
   @override
   Future<void> clearConsent() => throw UnimplementedError();
-  
+
   @override
   Future<String?> get axeptioToken => throw UnimplementedError();
-  
+
   @override
   Future<void> initialize(AxeptioService service, String clientId,
-      String cookiesVersion, String? token) => throw UnimplementedError();
-  
+          String cookiesVersion, String? token) =>
+      throw UnimplementedError();
+
   @override
   Future<void> setUserDeniedTracking() => throw UnimplementedError();
-  
+
   @override
   Future<void> setupUI() => throw UnimplementedError();
-  
+
   @override
   Future<void> showConsentScreen() => throw UnimplementedError();
-  
+
   @override
   addEventListener(AxeptioEventListener listener) => throw UnimplementedError();
-  
+
   @override
-  removeEventListener(AxeptioEventListener listener) => throw UnimplementedError();
-  
+  removeEventListener(AxeptioEventListener listener) =>
+      throw UnimplementedError();
+
   @override
   Future<Map<String, dynamic>?> getConsentDebugInfo({String? preferenceKey}) =>
       throw UnimplementedError();
-  
+
   @override
   Future<Map<int, bool>> getVendorConsents() => throw UnimplementedError();
-  
+
   @override
   Future<List<int>> getConsentedVendors() => throw UnimplementedError();
-  
+
   @override
   Future<List<int>> getRefusedVendors() => throw UnimplementedError();
-  
+
   @override
   Future<bool> isVendorConsented(int vendorId) => throw UnimplementedError();
 }
@@ -107,35 +109,46 @@ void main() {
       test('brandKeys contains expected values', () {
         expect(NativeDefaultPreferences.brandKeys, hasLength(3));
         expect(NativeDefaultPreferences.brandKeys, contains('axeptio_cookies'));
-        expect(NativeDefaultPreferences.brandKeys, contains('axeptio_all_vendors'));
-        expect(NativeDefaultPreferences.brandKeys, contains('axeptio_authorized_vendors'));
+        expect(NativeDefaultPreferences.brandKeys,
+            contains('axeptio_all_vendors'));
+        expect(NativeDefaultPreferences.brandKeys,
+            contains('axeptio_authorized_vendors'));
       });
 
       test('tcfKeys contains expected TCF standard keys', () {
         expect(NativeDefaultPreferences.tcfKeys.length, greaterThan(20));
         expect(NativeDefaultPreferences.tcfKeys, contains('IABTCF_CmpSdkID'));
         expect(NativeDefaultPreferences.tcfKeys, contains('IABTCF_TCString'));
-        expect(NativeDefaultPreferences.tcfKeys, contains('IABTCF_gdprApplies'));
-        expect(NativeDefaultPreferences.tcfKeys, contains('IABTCF_VendorConsents'));
-        expect(NativeDefaultPreferences.tcfKeys, contains('IABTCF_PublisherRestrictions1'));
-        expect(NativeDefaultPreferences.tcfKeys, contains('IABTCF_PublisherRestrictions10'));
+        expect(
+            NativeDefaultPreferences.tcfKeys, contains('IABTCF_gdprApplies'));
+        expect(NativeDefaultPreferences.tcfKeys,
+            contains('IABTCF_VendorConsents'));
+        expect(NativeDefaultPreferences.tcfKeys,
+            contains('IABTCF_PublisherRestrictions1'));
+        expect(NativeDefaultPreferences.tcfKeys,
+            contains('IABTCF_PublisherRestrictions10'));
       });
 
       test('additionalKeys contains Axeptio-specific keys', () {
         expect(NativeDefaultPreferences.additionalKeys, hasLength(2));
-        expect(NativeDefaultPreferences.additionalKeys, contains('AX_CLIENT_TOKEN'));
-        expect(NativeDefaultPreferences.additionalKeys, contains('AX_POPUP_ON_GOING'));
+        expect(NativeDefaultPreferences.additionalKeys,
+            contains('AX_CLIENT_TOKEN'));
+        expect(NativeDefaultPreferences.additionalKeys,
+            contains('AX_POPUP_ON_GOING'));
       });
 
       test('allKeys combines all key types', () {
         final expectedLength = NativeDefaultPreferences.brandKeys.length +
             NativeDefaultPreferences.tcfKeys.length +
             NativeDefaultPreferences.additionalKeys.length;
-        
+
         expect(NativeDefaultPreferences.allKeys.length, equals(expectedLength));
-        expect(NativeDefaultPreferences.allKeys, containsAll(NativeDefaultPreferences.brandKeys));
-        expect(NativeDefaultPreferences.allKeys, containsAll(NativeDefaultPreferences.tcfKeys));
-        expect(NativeDefaultPreferences.allKeys, containsAll(NativeDefaultPreferences.additionalKeys));
+        expect(NativeDefaultPreferences.allKeys,
+            containsAll(NativeDefaultPreferences.brandKeys));
+        expect(NativeDefaultPreferences.allKeys,
+            containsAll(NativeDefaultPreferences.tcfKeys));
+        expect(NativeDefaultPreferences.allKeys,
+            containsAll(NativeDefaultPreferences.additionalKeys));
       });
     });
 
@@ -143,24 +156,27 @@ void main() {
       test('returns value for existing key', () async {
         mockPlatform.setMockData({'test_key': 'test_value'});
 
-        final result = await NativeDefaultPreferences.getDefaultPreference('test_key');
-        
+        final result =
+            await NativeDefaultPreferences.getDefaultPreference('test_key');
+
         expect(result, equals('test_value'));
       });
 
       test('returns null for non-existing key', () async {
         mockPlatform.setMockData({'other_key': 'other_value'});
 
-        final result = await NativeDefaultPreferences.getDefaultPreference('test_key');
-        
+        final result =
+            await NativeDefaultPreferences.getDefaultPreference('test_key');
+
         expect(result, isNull);
       });
 
       test('returns null when no data available', () async {
         mockPlatform.setMockData({});
 
-        final result = await NativeDefaultPreferences.getDefaultPreference('test_key');
-        
+        final result =
+            await NativeDefaultPreferences.getDefaultPreference('test_key');
+
         expect(result, isNull);
       });
 
@@ -173,19 +189,27 @@ void main() {
           'null_key': null,
         });
 
-        expect(await NativeDefaultPreferences.getDefaultPreference('string_key'), equals('string_value'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('int_key'), equals('42'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('bool_key'), equals('true'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('double_key'), equals('3.14'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('null_key'), isNull);
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('string_key'),
+            equals('string_value'));
+        expect(await NativeDefaultPreferences.getDefaultPreference('int_key'),
+            equals('42'));
+        expect(await NativeDefaultPreferences.getDefaultPreference('bool_key'),
+            equals('true'));
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('double_key'),
+            equals('3.14'));
+        expect(await NativeDefaultPreferences.getDefaultPreference('null_key'),
+            isNull);
       });
 
       test('handles single entry fallback', () async {
         mockPlatform.setMockData({'single_key': 'single_value'});
 
         // Request a different key, should return null since key doesn't exist
-        final result = await NativeDefaultPreferences.getDefaultPreference('different_key');
-        
+        final result = await NativeDefaultPreferences.getDefaultPreference(
+            'different_key');
+
         expect(result, isNull);
       });
 
@@ -195,16 +219,18 @@ void main() {
           'key2': 'value2',
         });
 
-        final result = await NativeDefaultPreferences.getDefaultPreference('key3');
-        
+        final result =
+            await NativeDefaultPreferences.getDefaultPreference('key3');
+
         expect(result, isNull);
       });
 
       test('handles platform exceptions gracefully', () async {
         mockPlatform.setShouldThrowError(true);
 
-        final result = await NativeDefaultPreferences.getDefaultPreference('test_key');
-        
+        final result =
+            await NativeDefaultPreferences.getDefaultPreference('test_key');
+
         expect(result, isNull);
       });
 
@@ -215,9 +241,12 @@ void main() {
           'axeptio_cookies': '{"analytics": true}',
         });
 
-        final tcString = await NativeDefaultPreferences.getDefaultPreference('IABTCF_TCString');
-        final gdprApplies = await NativeDefaultPreferences.getDefaultPreference('IABTCF_gdprApplies');
-        final cookies = await NativeDefaultPreferences.getDefaultPreference('axeptio_cookies');
+        final tcString = await NativeDefaultPreferences.getDefaultPreference(
+            'IABTCF_TCString');
+        final gdprApplies = await NativeDefaultPreferences.getDefaultPreference(
+            'IABTCF_gdprApplies');
+        final cookies = await NativeDefaultPreferences.getDefaultPreference(
+            'axeptio_cookies');
 
         expect(tcString, equals('CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA'));
         expect(gdprApplies, equals('1'));
@@ -233,8 +262,9 @@ void main() {
           'key3': 'value3',
         });
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences(['key1', 'key3']);
-        
+        final result = await NativeDefaultPreferences.getDefaultPreferences(
+            ['key1', 'key3']);
+
         expect(result, isNotNull);
         expect(result!.containsKey('key1'), isTrue);
         expect(result.containsKey('key3'), isTrue);
@@ -249,8 +279,9 @@ void main() {
           'key2': 'value2',
         });
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences(['key1', 'nonexistent', 'key2']);
-        
+        final result = await NativeDefaultPreferences.getDefaultPreferences(
+            ['key1', 'nonexistent', 'key2']);
+
         expect(result, isNotNull);
         expect(result!.length, equals(2));
         expect(result.containsKey('key1'), isTrue);
@@ -264,16 +295,18 @@ void main() {
           'key2': 'value2',
         });
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences(['nonexistent1', 'nonexistent2']);
-        
+        final result = await NativeDefaultPreferences.getDefaultPreferences(
+            ['nonexistent1', 'nonexistent2']);
+
         expect(result, isNull);
       });
 
       test('returns null when no data available', () async {
         mockPlatform.setMockData({});
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences(['key1', 'key2']);
-        
+        final result = await NativeDefaultPreferences.getDefaultPreferences(
+            ['key1', 'key2']);
+
         expect(result, isNull);
       });
 
@@ -281,15 +314,16 @@ void main() {
         mockPlatform.setMockData({'key1': 'value1'});
 
         final result = await NativeDefaultPreferences.getDefaultPreferences([]);
-        
+
         expect(result, isNull);
       });
 
       test('handles platform exceptions gracefully', () async {
         mockPlatform.setShouldThrowError(true);
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences(['key1', 'key2']);
-        
+        final result = await NativeDefaultPreferences.getDefaultPreferences(
+            ['key1', 'key2']);
+
         expect(result, isNull);
       });
 
@@ -301,15 +335,13 @@ void main() {
           'other_key': 'other_value',
         });
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences([
-          'IABTCF_TCString',
-          'axeptio_cookies',
-          'IABTCF_gdprApplies'
-        ]);
-        
+        final result = await NativeDefaultPreferences.getDefaultPreferences(
+            ['IABTCF_TCString', 'axeptio_cookies', 'IABTCF_gdprApplies']);
+
         expect(result, isNotNull);
         expect(result!.length, equals(3));
-        expect(result['IABTCF_TCString'], equals('CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA'));
+        expect(result['IABTCF_TCString'],
+            equals('CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA'));
         expect(result['axeptio_cookies'], equals('{"analytics": true}'));
         expect(result['IABTCF_gdprApplies'], equals(1));
       });
@@ -325,8 +357,9 @@ void main() {
         };
         mockPlatform.setMockData(mockData);
 
-        final result = await NativeDefaultPreferences.getAllDefaultPreferences();
-        
+        final result =
+            await NativeDefaultPreferences.getAllDefaultPreferences();
+
         expect(result, isNotNull);
         expect(result!.length, equals(4));
         expect(result, equals(mockData));
@@ -335,16 +368,18 @@ void main() {
       test('returns null when no data available', () async {
         mockPlatform.setMockData({});
 
-        final result = await NativeDefaultPreferences.getAllDefaultPreferences();
-        
+        final result =
+            await NativeDefaultPreferences.getAllDefaultPreferences();
+
         expect(result, isNull);
       });
 
       test('handles platform exceptions gracefully', () async {
         mockPlatform.setShouldThrowError(true);
 
-        final result = await NativeDefaultPreferences.getAllDefaultPreferences();
-        
+        final result =
+            await NativeDefaultPreferences.getAllDefaultPreferences();
+
         expect(result, isNull);
       });
 
@@ -352,16 +387,18 @@ void main() {
         final mockData = {'key1': 'value1'};
         mockPlatform.setMockData(mockData);
 
-        final result = await NativeDefaultPreferences.getAllDefaultPreferences();
-        
+        final result =
+            await NativeDefaultPreferences.getAllDefaultPreferences();
+
         expect(result, isNotNull);
-        
+
         // Modify returned map
         result!['key1'] = 'modified_value';
         result['new_key'] = 'new_value';
-        
+
         // Original mock data should be unchanged
-        final result2 = await NativeDefaultPreferences.getAllDefaultPreferences();
+        final result2 =
+            await NativeDefaultPreferences.getAllDefaultPreferences();
         expect(result2!['key1'], equals('value1'));
         expect(result2.containsKey('new_key'), isFalse);
       });
@@ -380,14 +417,27 @@ void main() {
           'map_value': {'nested': 'object'},
         });
 
-        expect(await NativeDefaultPreferences.getDefaultPreference('null_value'), isNull);
-        expect(await NativeDefaultPreferences.getDefaultPreference('string_value'), equals('hello'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('bool_true'), equals('true'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('bool_false'), equals('false'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('int_value'), equals('42'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('double_value'), equals('3.14159'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('list_value'), equals('[1, 2, 3]'));
-        expect(await NativeDefaultPreferences.getDefaultPreference('map_value'), equals('{nested: object}'));
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('null_value'),
+            isNull);
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('string_value'),
+            equals('hello'));
+        expect(await NativeDefaultPreferences.getDefaultPreference('bool_true'),
+            equals('true'));
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('bool_false'),
+            equals('false'));
+        expect(await NativeDefaultPreferences.getDefaultPreference('int_value'),
+            equals('42'));
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('double_value'),
+            equals('3.14159'));
+        expect(
+            await NativeDefaultPreferences.getDefaultPreference('list_value'),
+            equals('[1, 2, 3]'));
+        expect(await NativeDefaultPreferences.getDefaultPreference('map_value'),
+            equals('{nested: object}'));
       });
     });
 
@@ -399,32 +449,41 @@ void main() {
           'IABTCF_CmpSdkVersion': '2',
           'IABTCF_PolicyVersion': '4',
           'IABTCF_gdprApplies': '1',
-          'IABTCF_TCString': 'CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA.argAC0gAAAAAAAAAAAA',
+          'IABTCF_TCString':
+              'CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA.argAC0gAAAAAAAAAAAA',
           'IABTCF_VendorConsents': '0000001111000011110000',
           'IABTCF_PurposeConsents': '1111000011110000',
         });
 
         // Get specific TCF keys
-        final tcfKeys = ['IABTCF_TCString', 'IABTCF_gdprApplies', 'IABTCF_VendorConsents'];
-        final result = await NativeDefaultPreferences.getDefaultPreferences(tcfKeys);
-        
+        final tcfKeys = [
+          'IABTCF_TCString',
+          'IABTCF_gdprApplies',
+          'IABTCF_VendorConsents'
+        ];
+        final result =
+            await NativeDefaultPreferences.getDefaultPreferences(tcfKeys);
+
         expect(result, isNotNull);
         expect(result!.length, equals(3));
         expect(result['IABTCF_gdprApplies'], equals('1'));
-        expect(result['IABTCF_TCString'], contains('CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA'));
+        expect(result['IABTCF_TCString'],
+            contains('CPXxRfAPXxRfAAfKABENATEIAAIAAAAAAAAAAAAA'));
       });
 
       test('simulates Axeptio brand preferences retrieval', () async {
         mockPlatform.setMockData({
-          'axeptio_cookies': '{"analytics": true, "ads": false, "social": true}',
+          'axeptio_cookies':
+              '{"analytics": true, "ads": false, "social": true}',
           'axeptio_all_vendors': '["google", "facebook", "twitter"]',
           'axeptio_authorized_vendors': '["google", "twitter"]',
           'AX_CLIENT_TOKEN': 'client-token-123',
         });
 
         final brandKeys = NativeDefaultPreferences.brandKeys;
-        final result = await NativeDefaultPreferences.getDefaultPreferences(brandKeys);
-        
+        final result =
+            await NativeDefaultPreferences.getDefaultPreferences(brandKeys);
+
         expect(result, isNotNull);
         expect(result!.length, equals(3));
         expect(result['axeptio_cookies'], contains('analytics'));
