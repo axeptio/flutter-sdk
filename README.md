@@ -43,7 +43,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^latest_version
+  axeptio_sdk: ^2.0.15
 ```
 
 ### Android Setup
@@ -70,29 +70,63 @@ allprojects {
         maven {
             url = uri("https://maven.pkg.github.com/axeptio/axeptio-android-sdk")
             credentials {
-                username = "[GITHUB_USERNAME]"  // Replace with your GitHub username
-                password = "[GITHUB_TOKEN]"    // Replace with your GitHub personal access token
+                username = System.getenv("GITHUB_USERNAME") ?: project.findProperty("github.username") as String? ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("github.token") as String? ?: ""
             }
         }
     }
 }
 ```
-##### GitHub Authentication
-To authenticate and access the Maven repository, you need to provide your **GitHub username** and **personal access token** in the `username` and `password` fields, respectively. To generate a personal access token (PAT) for GitHub, follow these steps:
-1. Visit the GitHub website and navigate to **Settings > Developer settings > Personal access tokens**.
-2. Click on **Generate new token** and select the necessary permissions (at least `read:packages` is required to access the repository).
-3. Copy the generated token and paste it into the `password` field in your `build.gradle` file.
-> **Note:** It is recommended to store sensitive information such as your GitHub credentials securely, using environment variables or a secure credential manager, rather than hardcoding them into your `build.gradle` file.
+##### GitHub Authentication & Security Setup
+
+⚠️ **SECURITY CRITICAL**: Never hardcode credentials in your build files or commit them to version control.
+
+**Step 1: Generate GitHub Token**
+1. Visit GitHub and navigate to **Settings > Developer settings > Personal access tokens**.
+2. Click **Generate new token** and select permissions (minimum: `read:packages`).
+3. Copy the generated token immediately (you won't see it again).
+
+**Step 2: Configure Environment Variables**
+Set up your credentials using **environment variables** (recommended) or **gradle.properties**:
+
+**Option A: Environment Variables (Recommended)**
+```bash
+export GITHUB_USERNAME=your_github_username
+export GITHUB_TOKEN=your_generated_token
+```
+
+**Option B: gradle.properties (Alternative)**
+Create `~/.gradle/gradle.properties` or `android/gradle.properties`:
+```properties
+github.username=your_github_username
+github.token=your_generated_token
+```
+
+**Step 3: Update .gitignore**
+Ensure your `.gitignore` includes:
+```gitignore
+# Gradle credentials
+gradle.properties
+local.properties
+```
+
+> **🔒 Security Best Practices:**
+> - Never commit credentials to version control
+> - Rotate tokens regularly (quarterly recommended)  
+> - Use minimal required permissions
+> - Consider using CI/CD environment variables for builds
 
 ##### Sync Gradle
 Once you've added the repository and credentials, sync your Gradle files by either running:
-```
-bash
+```bash
 flutter pub get
 ```
 Or manually through Android Studio by clicking **File > Sync Project** with Gradle Files.
 
 This will allow your project to fetch the necessary dependencies from the Axeptio Maven repository.
+
+> **🏭 Production Deployment Notice:**
+> For production builds, ensure you have configured CI/CD environment variables and never include credentials in your app bundle. Consider using build flavors for different environments.
 
 ### iOS Setup
 ##### Minimum iOS Version
@@ -529,7 +563,7 @@ This tagging is handled automatically by the native SDK components used under th
 In `android/build.gradle`, update the dependencies:
 ```gradle
 dependencies {
-    implementation("io.axept.android:android-sdk:2.0.4")
+    implementation("io.axept.android:android-sdk:2.0.8")
 }
 ```
 #### iOS
@@ -537,7 +571,7 @@ In `ios/axeptio_sdk.podspec`, update the version:
 ```ruby
 Pod::Spec.new do |s|
   s.name             = 'axeptio_sdk'
-  s.version          = '2.0.7'
+  s.version          = '2.0.15'
   s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
   s.homepage         = '<https://github.com/axeptio/flutter-sdk>'
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
@@ -545,7 +579,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => "<https://github.com/axeptio/flutter-sdk.git>" }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency "AxeptioIOSSDK", "2.0.7"
+  s.dependency "AxeptioIOSSDK", "2.0.15"
   s.platform = :ios, '15.0'
 ```
 
