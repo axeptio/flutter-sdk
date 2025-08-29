@@ -21,9 +21,26 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check if release tag exists
+        id: check-tag
+        run: |
+          TAG="${{ inputs.release_tag }}"
+          if git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Release tag $TAG exists"
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT" 
+            echo "⚠️ Release tag $TAG does not exist yet - using current branch for validation"
+          fi
+          
+      - name: Checkout release tag if it exists
+        if: steps.check-tag.outputs.tag_exists == 'true'
+        run: |
+          git checkout ${{ inputs.release_tag }}
+          echo "✅ Checked out release tag ${{ inputs.release_tag }}"
       
       - name: Extract version from release tag
         id: extract-version
@@ -130,13 +147,23 @@ jobs:
             echo "✅ Publishing credentials validated"
             echo ""
             echo "### Next Steps"
-            echo "🚀 **Ready for production release!**"
-            echo "1. GitHub release already created with tag: \`${{ inputs.release_tag }}\`"
-            echo "2. Run main publish workflow manually with same tag"
-            echo "3. Package will be published to pub.dev"
+            if [ "${{ steps.check-tag.outputs.tag_exists }}" = "true" ]; then
+              echo "🚀 **Ready for production release!**"
+              echo "1. GitHub release already created with tag: \`${{ inputs.release_tag }}\`"
+              echo "2. Run main publish workflow manually with same tag"
+              echo "3. Package will be published to pub.dev"
+            else
+              echo "🚀 **Ready for release preparation!**"
+              echo "1. Create GitHub release with tag: \`${{ inputs.release_tag }}\`"
+              echo "2. Run this dry-run again with the created tag to validate"
+              echo "3. Run main publish workflow manually with same tag"
+            fi
             echo ""
             echo "### Important Notes"
             echo "- This was a **dry-run only** - no actual publishing occurred"
             echo "- For production releases, run publish workflow manually"
             echo "- Validated release tag: \`${{ inputs.release_tag }}\`"
+            if [ "${{ steps.check-tag.outputs.tag_exists }}" = "false" ]; then
+              echo "- ⚠️ Tag does not exist yet - validated against current branch"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
