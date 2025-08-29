@@ -1,11 +1,16 @@
 name: Dry-run Publish to pub.dev
 
-# This workflow performs a dry-run publish validation using the current pubspec.yaml version
-# Use this to test package publishing without actually publishing to pub.dev
-# Note: For actual releases, use the main publish workflow triggered by GitHub releases
+# This workflow performs a dry-run publish validation using a specified release tag
+# Use this to validate a GitHub release before running the actual publish workflow
+# Note: For actual releases, run the main publish workflow manually with the same tag
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to validate (e.g., v2.0.16)'
+        required: true
+        type: string
       
 jobs:
   dry-run-publish:
@@ -15,12 +20,17 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Extract current version from pubspec.yaml
+      - name: Extract version from release tag
         id: extract-version
         run: |
-          VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //')
-          echo "Current version in pubspec.yaml: $VERSION"
+          TAG_VERSION="${{ inputs.release_tag }}"
+          VERSION="${TAG_VERSION#v}"
+          echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           
       - name: Validate version format
@@ -49,6 +59,21 @@ jobs:
             echo "Continuing with dry-run validation..."
           fi
           
+      - name: Update pubspec.yaml with release version
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Updating pubspec.yaml from release tag version: $VERSION"
+          
+          # Backup original pubspec.yaml
+          cp pubspec.yaml pubspec.yaml.backup
+          
+          # Update version in pubspec.yaml
+          sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
+          
+          echo "✅ Updated pubspec.yaml to version: $VERSION"
+          echo "Changes:"
+          diff pubspec.yaml.backup pubspec.yaml || true
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -92,12 +117,12 @@ jobs:
             echo ""
             echo "### Next Steps"
             echo "🚀 **Ready for production release!**"
-            echo "1. Create GitHub release with tag: \`v$VERSION\`"
-            echo "2. Main publish workflow will trigger automatically"
+            echo "1. GitHub release already created with tag: \`${{ inputs.release_tag }}\`"
+            echo "2. Run main publish workflow manually with same tag"
             echo "3. Package will be published to pub.dev"
             echo ""
             echo "### Important Notes"
             echo "- This was a **dry-run only** - no actual publishing occurred"
-            echo "- For production releases, use GitHub releases to trigger publishing"
-            echo "- Current pubspec.yaml version: \`$VERSION\`"
+            echo "- For production releases, run publish workflow manually"
+            echo "- Validated release tag: \`${{ inputs.release_tag }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
