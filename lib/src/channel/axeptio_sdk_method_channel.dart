@@ -111,10 +111,10 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
       );
       if (result == null) return <int, bool>{};
       return result.map((k, v) => MapEntry(int.parse(k.toString()), v as bool));
-    } on PlatformException catch (e) {
+    } catch (e) {
       if (kDebugMode) {
         print(
-          'AxeptioSDK: PlatformException in getVendorConsents - ${e.message}',
+          'AxeptioSDK: Exception in getVendorConsents - $e',
         );
       }
       return <int, bool>{};
@@ -129,10 +129,10 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
       );
       if (result == null) return <int>[];
       return result.map((e) => e as int).toList();
-    } on PlatformException catch (e) {
+    } catch (e) {
       if (kDebugMode) {
         print(
-          'AxeptioSDK: PlatformException in getConsentedVendors - ${e.message}',
+          'AxeptioSDK: Exception in getConsentedVendors - $e',
         );
       }
       return <int>[];
@@ -147,10 +147,10 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
       );
       if (result == null) return <int>[];
       return result.map((e) => e as int).toList();
-    } on PlatformException catch (e) {
+    } catch (e) {
       if (kDebugMode) {
         print(
-          'AxeptioSDK: PlatformException in getRefusedVendors - ${e.message}',
+          'AxeptioSDK: Exception in getRefusedVendors - $e',
         );
       }
       return <int>[];
@@ -165,10 +165,10 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
         {'vendorId': vendorId},
       );
       return result ?? false;
-    } on PlatformException catch (e) {
+    } catch (e) {
       if (kDebugMode) {
         print(
-          'AxeptioSDK: PlatformException in isVendorConsented - ${e.message}',
+          'AxeptioSDK: Exception in isVendorConsented - $e',
         );
       }
       return false;
