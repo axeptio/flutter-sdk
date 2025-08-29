@@ -21,7 +21,7 @@ jobs:
         run: |
           VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //')
           echo "Current version in pubspec.yaml: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           
       - name: Validate version format
         run: |
