@@ -15,7 +15,7 @@
 
 This repository demonstrates the integration of the **Axeptio Flutter SDK** into mobile applications, enabling seamless consent management for both brands and publishers, tailored to your specific requirements.
 <br><br>
-## 📑 Table of Contents
+## Table of Contents
 1. [Setup and Installation](#setup-and-installation)
    - [Android Setup](#android-setup)
    - [iOS Setup](#ios-setup)
@@ -28,10 +28,10 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 8. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
 9. [Clearing User Consent](#clearing-user-consent)
 10. [Event Handling and Customization](#event-handling-and-customization)
-11. [Event Source Identification](#event-source-identification)
-12. [Local Test](#local-test)
+    - [Event Source Identification](#event-source-identification)
+11. [Local Test](#local-test)
 <br><br><br>
-## 🚀Setup and Installation   
+## Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
 ```bash
 flutter pub add axeptio_sdk
@@ -138,7 +138,7 @@ platform :ios, '15.0'
 This ensures that your app targets devices running iOS 15 or later.
 
 <br><br><br>
-## 🔧SDK Initialization
+## SDK Initialization
 To initialize the Axeptio SDK on app startup, select either **brands** or **publishers** depending on your use case. The SDK is `initialized` through the AxeptioService enum and requires your `client_id`, `cookies_version`, and optionally a `consent_token`.
 
 ### Brands
@@ -206,7 +206,7 @@ try {
 }
 ```
 <br><br><br>
-## 🗂SDK and Mobile App Responsibilities
+## SDK and Mobile App Responsibilities
 
 The Axeptio SDK and your mobile application each have distinct responsibilities in the consent management process:
 
@@ -500,7 +500,7 @@ final url = await axeptioSdk.appendAxeptioTokenURL(
 This feature ensures that consent status is properly communicated across different parts of the application, including web content.
 <br><br><br>
 
-## 🔄Clearing User Consent
+## Clearing User Consent
 If necessary, you can clear the user’s consent choices by invoking the following method:
 ```dart
 axeptioSdk.clearConsent();
