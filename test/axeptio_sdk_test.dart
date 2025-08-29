@@ -10,7 +10,6 @@ class MockAxeptioSdkPlatform
   // Mock state
   bool _isInitialized = false;
   AxeptioService? _currentService;
-  String? _currentClientId;
   String? _currentToken;
   final List<AxeptioEventListener> _listeners = [];
   bool _userDeniedTracking = false;
@@ -71,7 +70,6 @@ class MockAxeptioSdkPlatform
     }
     _isInitialized = true;
     _currentService = service;
-    _currentClientId = clientId;
     _currentToken = token;
 
     // Update mock debug info
@@ -181,7 +179,6 @@ class MockAxeptioSdkPlatform
   void reset() {
     _isInitialized = false;
     _currentService = null;
-    _currentClientId = null;
     _currentToken = null;
     _listeners.clear();
     _userDeniedTracking = false;

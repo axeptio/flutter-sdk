@@ -480,7 +480,7 @@ void main() {
           'AX_CLIENT_TOKEN': 'client-token-123',
         });
 
-        final brandKeys = NativeDefaultPreferences.brandKeys;
+        const brandKeys = NativeDefaultPreferences.brandKeys;
         final result =
             await NativeDefaultPreferences.getDefaultPreferences(brandKeys);
 
