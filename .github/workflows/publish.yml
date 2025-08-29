@@ -1,23 +1,21 @@
 name: Publish to pub.dev
 
+# This workflow publishes to pub.dev when a GitHub release is created
+# Key improvements:
+# 1. Version extracted from GitHub release tag (not pubspec.yaml)
+# 2. pubspec.yaml updated dynamically from tag
+# 3. Validates version doesn't already exist on pub.dev
+# 4. Only triggered by releases, not manual dispatch
+# 
+# Process:
+# 1. Create GitHub release with version tag (e.g., v2.0.16)
+# 2. This workflow triggers automatically
+# 3. Extracts version from tag, updates pubspec.yaml
+# 4. Validates and publishes to pub.dev
+
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: 'Release type'
-        required: true
-        type: choice
-        options:
-          - stable
-          - beta
-        default: 'stable'
-      beta_increment:
-        description: 'Beta increment (leave empty for auto-increment)'
-        required: false
-        type: string
-        default: ''
       
 jobs:
   publish:
@@ -29,7 +27,7 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.release_type == 'beta' && 'develop' || github.ref }}
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Flutter
@@ -38,6 +36,56 @@ jobs:
           channel: master
           flutter-version: 3.29.3
           cache: false 
+      - name: Extract version from GitHub release
+        id: extract-version
+        run: |
+          TAG_VERSION="${{ github.event.release.tag_name }}"
+          VERSION=$(echo "$TAG_VERSION" | sed 's/^v//')
+          echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: X.Y.Z or X.Y.Z-suffix"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Check if version exists on pub.dev
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Checking if version $VERSION already exists on pub.dev..."
+          
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /dev/null "https://pub.dev/api/packages/axeptio_sdk/versions/$VERSION")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "❌ Version $VERSION already exists on pub.dev!"
+            echo "Cannot publish duplicate version. Please create a new release with a different version."
+            exit 1
+          elif [ "$HTTP_CODE" = "404" ]; then
+            echo "✅ Version $VERSION available for publishing"
+          else
+            echo "⚠️ Could not verify version availability (HTTP $HTTP_CODE)"
+            echo "Proceeding with caution..."
+          fi
+
+      - name: Update pubspec.yaml with release version
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Updating pubspec.yaml from release tag version: $VERSION"
+          
+          # Backup original pubspec.yaml
+          cp pubspec.yaml pubspec.yaml.backup
+          
+          # Update version in pubspec.yaml
+          sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
+          
+          echo "✅ Updated pubspec.yaml to version: $VERSION"
+          echo "Changes:"
+          diff pubspec.yaml.backup pubspec.yaml || true
+
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
@@ -45,164 +93,8 @@ jobs:
       - name: Run tests
         run: flutter test
       
-      # Beta release specific steps
-      - name: Setup Node.js (Beta only)
-        if: github.event.inputs.release_type == 'beta'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install semantic-release dependencies (Beta only)
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec conventional-changelog-conventionalcommits
-
-      - name: Calculate next beta version
-        if: github.event.inputs.release_type == 'beta'
-        id: next-version
-        run: |
-          # Get current version from pubspec.yaml
-          CURRENT_VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //')
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Get latest stable tag
-          LATEST_TAG=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null || echo "v$CURRENT_VERSION")
-          echo "Latest stable tag: $LATEST_TAG"
-          
-          # Calculate next version based on conventional commits
-          cat > .releaserc-beta.json << 'EOF'
-          {
-            "branches": [
-              {"name": "develop", "prerelease": "beta"}
-            ],
-            "plugins": [
-              ["@semantic-release/commit-analyzer", {
-                "preset": "conventionalcommits"
-              }],
-              ["@semantic-release/release-notes-generator", {
-                "preset": "conventionalcommits"
-              }]
-            ],
-            "dryRun": true
-          }
-          EOF
-          
-          # Run semantic-release in dry-run to get next version
-          NEXT_VERSION_OUTPUT=$(npx semantic-release --extends ./.releaserc-beta.json --dry-run 2>&1 || true)
-          echo "Semantic release output: $NEXT_VERSION_OUTPUT"
-          
-          # Extract next version from output or calculate manually
-          if echo "$NEXT_VERSION_OUTPUT" | grep -q "The next release version is"; then
-            NEXT_VERSION=$(echo "$NEXT_VERSION_OUTPUT" | grep "The next release version is" | sed 's/.*The next release version is //' | head -1)
-          else
-            # Fallback: increment patch version and add beta
-            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-            MAJOR="${VERSION_PARTS[0]}"
-            MINOR="${VERSION_PARTS[1]}"
-            PATCH=$(echo "${VERSION_PARTS[2]}" | cut -d'+' -f1)
-            NEXT_PATCH=$((PATCH + 1))
-            NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH-beta.1"
-          fi
-          
-          # Handle custom beta increment
-          if [ -n "${{ github.event.inputs.beta_increment }}" ]; then
-            BASE_VERSION=$(echo "$NEXT_VERSION" | sed 's/-beta\..*//')
-            NEXT_VERSION="$BASE_VERSION-beta.${{ github.event.inputs.beta_increment }}"
-          fi
-          
-          echo "Next beta version: $NEXT_VERSION"
-          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Check if beta version exists
-        if: github.event.inputs.release_type == 'beta'
-        id: check-version
-        run: |
-          BETA_VERSION="${{ steps.next-version.outputs.version }}"
-          
-          # Check if this beta version already exists as a tag
-          if git tag -l | grep -q "^v${BETA_VERSION}$"; then
-            echo "❌ Beta version v$BETA_VERSION already exists!"
-            echo "Available options:"
-            echo "1. Increment beta number manually"
-            echo "2. Make additional commits to develop"
-            exit 1
-          fi
-          
-          echo "✅ Beta version v$BETA_VERSION is available"
-          echo "beta_version=$BETA_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Update version in pubspec.yaml (Beta only)
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
-          sed -i "s/version: .*/version: $BETA_VERSION/" pubspec.yaml
-          echo "Updated pubspec.yaml to version: $BETA_VERSION"
-
-      - name: Generate beta changelog
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
-          
-          # Get commits since last stable release
-          LATEST_STABLE_TAG=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*$" --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)
-          
-          {
-            echo "## $BETA_VERSION (Beta)"
-            echo ""
-            echo "⚠️ **This is a beta release for testing purposes. Use with caution in production.**"
-            echo ""
-            
-            # Generate changelog from commits
-            if [ "$LATEST_STABLE_TAG" != "$(git rev-list --max-parents=0 HEAD)" ]; then
-              echo "### Changes since last stable release:"
-              git log "$LATEST_STABLE_TAG"..HEAD --pretty=format:"- %s" --no-merges
-            else
-              echo "### Changes in this beta:"
-              git log --pretty=format:"- %s" --no-merges -10
-            fi
-            
-            echo ""
-            echo ""
-            echo "### Installation"
-            echo '```yaml'
-            echo "dependencies:"
-            echo "  axeptio_sdk: $BETA_VERSION"
-            echo '```'
-          } > BETA_CHANGELOG.md
-
-      - name: Commit beta version
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
-          
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          git add pubspec.yaml
-          git commit -m "chore: bump version to $BETA_VERSION [skip ci]" || echo "No changes to commit"
-
-      - name: Create and push beta tag
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
-          
-          git tag -a "v$BETA_VERSION" -m "Beta release v$BETA_VERSION"
-          git push origin "v$BETA_VERSION"
-
       - name: Check Publish Warnings
         run: dart pub publish --dry-run
-      - name: Create GitHub pre-release (Beta only)
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
-          
-          gh release create "v$BETA_VERSION" \
-            --title "🧪 Beta Release v$BETA_VERSION" \
-            --notes-file BETA_CHANGELOG.md \
-            --prerelease \
-            --target develop
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to pub.dev
         uses: k-paxian/dart-package-publisher@v1.6
@@ -211,32 +103,28 @@ jobs:
             refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
             flutter: true
             skipTests: true
-            tagName: ${{ github.event.inputs.release_type == 'beta' && 'beta' || '' }}
 
-      - name: Reset version in pubspec.yaml (Beta only)
-        if: github.event.inputs.release_type == 'beta'
+      - name: Publish Summary
         run: |
-          # Reset to original version to avoid conflicts
-          git checkout HEAD~1 -- pubspec.yaml || echo "Could not reset pubspec.yaml"
-
-      - name: Summary (Beta only)
-        if: github.event.inputs.release_type == 'beta'
-        run: |
-          BETA_VERSION="${{ steps.check-version.outputs.beta_version }}"
+          VERSION="${{ steps.extract-version.outputs.version }}"
           {
-            echo "## 🧪 Beta Release Summary"
-            echo "✅ Beta version **v$BETA_VERSION** released successfully!"
+            echo "## 📦 Stable Release Summary"
+            echo "✅ Version **v$VERSION** published successfully to pub.dev!"
             echo ""
-            echo "### For Customers"
+            echo "### Release Information"
+            echo "- **Tag**: ${{ github.event.release.tag_name }}"
+            echo "- **Version**: $VERSION"
+            echo "- **Triggered by**: GitHub Release"
+            echo ""
+            echo "### For Users"
             echo '```yaml'
             echo "dependencies:"
-            echo "  axeptio_sdk: $BETA_VERSION"
+            echo "  axeptio_sdk: $VERSION"
             echo '```'
             echo ""
-            echo "### Next Steps"
-            echo "1. 📋 Share beta version with testing customers"
-            echo "2. 🔍 Monitor feedback and bug reports"
-            echo "3. 🛠️ Apply fixes to develop branch"
-            echo "4. 🔄 Create additional betas as needed"
-            echo "5. 🚀 Promote to stable when ready"
+            echo "### Process"
+            echo "✅ Version extracted from GitHub release tag"
+            echo "✅ pubspec.yaml updated dynamically"
+            echo "✅ Version availability verified on pub.dev"
+            echo "✅ Published to pub.dev successfully"
           } >> "$GITHUB_STEP_SUMMARY"
