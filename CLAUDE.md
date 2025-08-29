@@ -9,6 +9,10 @@
 - ASK FOR CLARIFICATION if you are uncertain of anything within the document.
 - DO NOT modify other repositories
 - ALWAYS use gh command for github operations
+- Test coverate MUST ALWAYS BE 95%
+- ALL test MUST ALWAYS pass
+- DO NOT DO quick fixes
+- DO NOT bypass test
 
 ## SDK Version Management
 - ALWAYS check that this repo is using the latest iOS APP SDK (axeptio/axeptio-ios-sdk-sources and axeptio/axeptio-ios-sdk)
