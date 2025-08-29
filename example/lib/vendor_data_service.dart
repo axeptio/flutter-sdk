@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:axeptio_sdk/axeptio_sdk.dart';
 
+/// Production-ready service for managing TCF vendor consent data
+/// Provides real-time updates and smart data filtering for UI consumption
 class VendorDataService {
   static const int maxDisplayVendors = 30;
   static const Duration refreshInterval = Duration(seconds: 3);
+  static const String _logName = 'VendorDataService';
 
   // Static callback for external refresh triggers (e.g., consent clearing)
   static VendorDataService? _activeInstance;
@@ -109,10 +113,15 @@ class VendorDataService {
       _summaryController.add(summaryData);
       _detailsController.add(detailsData);
 
-      // Debug logging (like iOS implementation)
+      // Log vendor analysis for debugging
       _logVendorAnalysis(vendorConsents, consentedVendors, refusedVendors);
-    } catch (e) {
-      print('Error refreshing vendor data: $e');
+    } catch (error) {
+      developer.log(
+        'Error refreshing vendor data',
+        name: _logName,
+        error: error,
+        level: 1000, // Warning level
+      );
     }
   }
 
@@ -226,23 +235,33 @@ class VendorDataService {
     List<int> refusedVendors,
   ) {
     final timestamp = DateTime.now().toIso8601String().substring(0, 19);
-    print('🔍 [VendorAnalysis] $timestamp');
-    print('   Processing: ${_isProcessing ? "PROCESSING" : "STABLE"}');
-    print(
-      '   Total: ${allVendors.length}, Consented: ${consentedVendors.length}, Refused: ${refusedVendors.length}',
+    developer.log(
+      'VendorAnalysis [$timestamp] Processing: ${_isProcessing ? "PROCESSING" : "STABLE"} '
+      'Total: ${allVendors.length}, Consented: ${consentedVendors.length}, Refused: ${refusedVendors.length}',
+      name: _logName,
+      level: 800, // Info level
     );
 
     // Check for the 25vs24 issue mentioned in iOS sample
     if (allVendors.length == 24 || consentedVendors.length == 24) {
-      print('   🚨 POTENTIAL 25vs24 ISSUE DETECTED');
+      developer.log(
+        'POTENTIAL 25vs24 ISSUE DETECTED',
+        name: _logName,
+        level: 900, // Warning level
+      );
     }
   }
 
   Future<bool> testVendorConsent(int vendorId) async {
     try {
       return await _axeptioSdk.isVendorConsented(vendorId);
-    } catch (e) {
-      print('Error testing vendor $vendorId: $e');
+    } catch (error) {
+      developer.log(
+        'Error testing vendor $vendorId',
+        name: _logName,
+        error: error,
+        level: 1000, // Warning level
+      );
       return false;
     }
   }
@@ -294,8 +313,8 @@ class VendorDataService {
           '• Auto-refresh: ${_refreshTimer?.isActive == true ? "Active" : "Inactive"}\n';
 
       return analysis;
-    } catch (e) {
-      return 'Error analyzing TCF strings: $e';
+    } catch (error) {
+      return 'Error analyzing TCF strings: $error';
     }
   }
 

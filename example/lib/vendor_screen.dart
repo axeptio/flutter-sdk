@@ -1,7 +1,10 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
 import 'vendor_data_service.dart';
 
+/// Production-ready TCF vendor management screen
+/// Provides comprehensive testing and analysis tools for vendor consent data
 class VendorScreen extends StatefulWidget {
   final AxeptioSdk axeptioSdk;
 
@@ -12,6 +15,8 @@ class VendorScreen extends StatefulWidget {
 }
 
 class _VendorScreenState extends State<VendorScreen> {
+  static const String _logName = 'VendorScreen';
+
   late VendorDataService _dataService;
   final _vendorIdController = TextEditingController();
   String _vendorTestResult = 'Enter a vendor ID to test';
@@ -55,15 +60,27 @@ class _VendorScreenState extends State<VendorScreen> {
     });
 
     try {
+      developer.log(
+        'Testing vendor consent for ID: $vendorId',
+        name: _logName,
+        level: 800, // Info level
+      );
+
       final isConsented = await _dataService.testVendorConsent(vendorId);
       setState(() {
         _vendorTestResult =
             'Vendor $vendorId: ${isConsented ? "✅ CONSENTED" : "❌ REFUSED"}';
         _isTestingVendor = false;
       });
-    } catch (e) {
+    } catch (error) {
+      developer.log(
+        'Error testing vendor $vendorId',
+        name: _logName,
+        error: error,
+        level: 1000, // Warning level
+      );
       setState(() {
-        _vendorTestResult = 'Error testing vendor $vendorId: $e';
+        _vendorTestResult = 'Error testing vendor $vendorId: $error';
         _isTestingVendor = false;
       });
     }
@@ -77,13 +94,25 @@ class _VendorScreenState extends State<VendorScreen> {
     });
 
     try {
+      developer.log(
+        'Starting TCF string analysis',
+        name: _logName,
+        level: 800, // Info level
+      );
+
       final analysis = await _dataService.analyzeTCFStrings();
       setState(() {
         _tcfAnalysisResult = analysis;
       });
-    } catch (e) {
+    } catch (error) {
+      developer.log(
+        'Error analyzing TCF strings',
+        name: _logName,
+        error: error,
+        level: 1000, // Warning level
+      );
       setState(() {
-        _tcfAnalysisResult = 'Error analyzing TCF strings: $e';
+        _tcfAnalysisResult = 'Error analyzing TCF strings: $error';
       });
     }
   }
@@ -243,9 +272,9 @@ class _VendorScreenState extends State<VendorScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -255,7 +284,7 @@ class _VendorScreenState extends State<VendorScreen> {
             title,
             style: TextStyle(
               fontSize: 12,
-              color: color.withOpacity(0.8),
+              color: color.withValues(alpha: 0.8),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -542,9 +571,9 @@ class _VendorScreenState extends State<VendorScreen> {
               height: height ?? 100,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.05),
+                color: color.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color.withOpacity(0.2)),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
               ),
               child: SingleChildScrollView(
                 child: Text(
@@ -592,9 +621,9 @@ class _VendorScreenState extends State<VendorScreen> {
               constraints: const BoxConstraints(maxHeight: 200),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.05),
+                color: color.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color.withOpacity(0.2)),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
               ),
               child: SingleChildScrollView(
                 child: Column(
