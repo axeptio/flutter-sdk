@@ -110,18 +110,15 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
         'getVendorConsents',
       );
       if (result == null) return <int, bool>{};
-      return result
-          .map((k, v) {
-            final key = k is num ? k.toInt() : int.tryParse(k.toString());
-            final value =
-                v is bool ? v : (v.toString().toLowerCase() == 'true');
-            return key != null ? MapEntry(key, value) : null;
-          })
-          .whereType<MapEntry<int, bool>>()
-          .fold<Map<int, bool>>({}, (map, entry) {
-            map[entry.key] = entry.value;
-            return map;
-          });
+      final safeResult = <int, bool>{};
+      result.forEach((k, v) {
+        final key = k is num ? k.toInt() : int.tryParse(k.toString());
+        if (key != null) {
+          final value = v is bool ? v : (v.toString().toLowerCase() == 'true');
+          safeResult[key] = value;
+        }
+      });
+      return safeResult;
     } catch (e) {
       if (kDebugMode) {
         print(
