@@ -23,12 +23,13 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 3. [App Tracking Transparency (ATT) Integration](#app-tracking-transparency-att-integration)
 4. [SDK and Mobile App Responsibilities](#sdk-and-mobile-app-responsibilities)
 5. [Retrieving and Managing Stored Consents](#retrieving-and-managing-stored-consents)
-6. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
-7. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
-8. [Clearing User Consent](#clearing-user-consent)
-9. [Event Handling and Customization](#event-handling-and-customization)
-10. [Event Source Identification](#event-source-for-kpi-tracking)
-11. [Local Test](#local-test)
+6. [TCF Vendor Consent Management](#tcf-vendor-consent-management)
+7. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
+8. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
+9. [Clearing User Consent](#clearing-user-consent)
+10. [Event Handling and Customization](#event-handling-and-customization)
+11. [Event Source Identification](#event-source-identification)
+12. [Local Test](#local-test)
 <br><br><br>
 ## 🚀Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -42,7 +43,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^latest_version
+  axeptio_sdk: ^2.0.15
 ```
 
 ### Android Setup
@@ -69,29 +70,63 @@ allprojects {
         maven {
             url = uri("https://maven.pkg.github.com/axeptio/axeptio-android-sdk")
             credentials {
-                username = "[GITHUB_USERNAME]"  // Replace with your GitHub username
-                password = "[GITHUB_TOKEN]"    // Replace with your GitHub personal access token
+                username = System.getenv("GITHUB_USERNAME") ?: project.findProperty("github.username") as String? ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("github.token") as String? ?: ""
             }
         }
     }
 }
 ```
-##### GitHub Authentication
-To authenticate and access the Maven repository, you need to provide your **GitHub username** and **personal access token** in the `username` and `password` fields, respectively. To generate a personal access token (PAT) for GitHub, follow these steps:
-1. Visit the GitHub website and navigate to **Settings > Developer settings > Personal access tokens**.
-2. Click on **Generate new token** and select the necessary permissions (at least `read:packages` is required to access the repository).
-3. Copy the generated token and paste it into the `password` field in your `build.gradle` file.
-> **Note:** It is recommended to store sensitive information such as your GitHub credentials securely, using environment variables or a secure credential manager, rather than hardcoding them into your `build.gradle` file.
+##### GitHub Authentication & Security Setup
+
+⚠️ **SECURITY CRITICAL**: Never hardcode credentials in your build files or commit them to version control.
+
+**Step 1: Generate GitHub Token**
+1. Visit GitHub and navigate to **Settings > Developer settings > Personal access tokens**.
+2. Click **Generate new token** and select permissions (minimum: `read:packages`).
+3. Copy the generated token immediately (you won't see it again).
+
+**Step 2: Configure Environment Variables**
+Set up your credentials using **environment variables** (recommended) or **gradle.properties**:
+
+**Option A: Environment Variables (Recommended)**
+```bash
+export GITHUB_USERNAME=your_github_username
+export GITHUB_TOKEN=your_generated_token
+```
+
+**Option B: gradle.properties (Alternative)**
+Create `~/.gradle/gradle.properties` or `android/gradle.properties`:
+```properties
+github.username=your_github_username
+github.token=your_generated_token
+```
+
+**Step 3: Update .gitignore**
+Ensure your `.gitignore` includes:
+```gitignore
+# Gradle credentials
+gradle.properties
+local.properties
+```
+
+> **🔒 Security Best Practices:**
+> - Never commit credentials to version control
+> - Rotate tokens regularly (quarterly recommended)  
+> - Use minimal required permissions
+> - Consider using CI/CD environment variables for builds
 
 ##### Sync Gradle
 Once you've added the repository and credentials, sync your Gradle files by either running:
-```
-bash
+```bash
 flutter pub get
 ```
 Or manually through Android Studio by clicking **File > Sync Project** with Gradle Files.
 
 This will allow your project to fetch the necessary dependencies from the Axeptio Maven repository.
+
+> **🏭 Production Deployment Notice:**
+> For production builds, ensure you have configured CI/CD environment variables and never include credentials in your app bundle. Consider using build flavors for different environments.
 
 ### iOS Setup
 ##### Minimum iOS Version
@@ -267,6 +302,183 @@ print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 > For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
 
 <br><br><br>
+## TCF Vendor Consent Management
+
+The Axeptio SDK provides comprehensive **TCF (Transparency & Consent Framework)** vendor consent management APIs, allowing you to programmatically access and analyze user consent decisions for individual vendors.
+
+> 📱 **Platform Support**: Available on **both iOS and Android** platforms.
+
+### Available APIs
+
+#### Get All Vendor Consents
+Returns a complete mapping of vendor IDs to their consent status:
+
+```dart
+import 'package:axeptio_sdk/axeptio_sdk.dart';
+
+// Get all vendor consents as a map
+Map<int, bool> vendorConsents = await axeptioSdk.getVendorConsents();
+
+// Example output: {1: true, 2: false, 50: true, 755: false}
+print('Total vendors: ${vendorConsents.length}');
+
+// Iterate through all vendor consents
+vendorConsents.forEach((vendorId, isConsented) {
+  print('Vendor $vendorId: ${isConsented ? "Consented" : "Refused"}');
+});
+```
+
+#### Get Consented Vendors
+Returns a list of vendor IDs that have been granted consent:
+
+```dart
+// Get list of consented vendor IDs
+List<int> consentedVendors = await axeptioSdk.getConsentedVendors();
+
+print('Consented vendors: $consentedVendors');
+print('Number of consented vendors: ${consentedVendors.length}');
+
+// Check if specific vendors are in the consented list
+if (consentedVendors.contains(1)) {
+  print('Google (Vendor ID 1) has consent');
+}
+```
+
+#### Get Refused Vendors
+Returns a list of vendor IDs that have been refused consent:
+
+```dart
+// Get list of refused vendor IDs
+List<int> refusedVendors = await axeptioSdk.getRefusedVendors();
+
+print('Refused vendors: $refusedVendors');
+print('Number of refused vendors: ${refusedVendors.length}');
+```
+
+#### Check Individual Vendor Consent
+Check the consent status of a specific vendor:
+
+```dart
+// Check consent for specific vendor IDs
+bool googleConsent = await axeptioSdk.isVendorConsented(1);    // Google
+bool facebookConsent = await axeptioSdk.isVendorConsented(2);  // Facebook
+bool appleConsent = await axeptioSdk.isVendorConsented(755);   // Apple
+
+print('Google consent: ${googleConsent ? "✅ Granted" : "❌ Refused"}');
+print('Facebook consent: ${facebookConsent ? "✅ Granted" : "❌ Refused"}');
+print('Apple consent: ${appleConsent ? "✅ Granted" : "❌ Refused"}');
+```
+
+### Practical Usage Examples
+
+#### Conditional Feature Loading
+```dart
+Future<void> loadFeatureBasedOnConsent() async {
+  // Check if advertising vendor has consent
+  bool adConsentGranted = await axeptioSdk.isVendorConsented(50);
+  
+  if (adConsentGranted) {
+    // Load advertising SDK
+    await initializeAdvertisingSDK();
+  } else {
+    print('Advertising consent not granted - skipping ad initialization');
+  }
+}
+```
+
+#### Vendor Consent Analytics
+```dart
+Future<void> analyzeVendorConsents() async {
+  // Get comprehensive vendor consent data
+  Map<int, bool> allConsents = await axeptioSdk.getVendorConsents();
+  List<int> consented = await axeptioSdk.getConsentedVendors();
+  List<int> refused = await axeptioSdk.getRefusedVendors();
+  
+  // Calculate consent statistics
+  double consentRate = consented.length / allConsents.length;
+  
+  print('📊 Consent Analytics:');
+  print('Total vendors: ${allConsents.length}');
+  print('Consented: ${consented.length}');
+  print('Refused: ${refused.length}');
+  print('Consent rate: ${(consentRate * 100).toStringAsFixed(1)}%');
+  
+  // Log specific vendor categories
+  List<int> adTechVendors = [1, 2, 50, 100]; // Example ad tech vendor IDs
+  List<int> consentedAdTech = adTechVendors.where(
+    (id) => consented.contains(id)
+  ).toList();
+  
+  print('Ad Tech vendors consented: $consentedAdTech');
+}
+```
+
+#### Integration with Privacy Settings UI
+```dart
+Widget buildVendorConsentList() {
+  return FutureBuilder<Map<int, bool>>(
+    future: axeptioSdk.getVendorConsents(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) return CircularProgressIndicator();
+      
+      final vendorConsents = snapshot.data!;
+      
+      return ListView.builder(
+        itemCount: vendorConsents.length,
+        itemBuilder: (context, index) {
+          final vendorId = vendorConsents.keys.elementAt(index);
+          final isConsented = vendorConsents[vendorId]!;
+          
+          return ListTile(
+            title: Text('Vendor $vendorId'),
+            trailing: Icon(
+              isConsented ? Icons.check_circle : Icons.cancel,
+              color: isConsented ? Colors.green : Colors.red,
+            ),
+            subtitle: Text(isConsented ? 'Consented' : 'Refused'),
+          );
+        },
+      );
+    },
+  );
+}
+```
+
+### Error Handling
+
+The vendor consent APIs include built-in error handling:
+
+```dart
+Future<void> safeVendorConsentCheck() async {
+  try {
+    // APIs return empty collections on error (never null)
+    Map<int, bool> consents = await axeptioSdk.getVendorConsents();
+    
+    if (consents.isEmpty) {
+      print('No vendor consent data available');
+      // Handle case where no consent data exists
+    } else {
+      print('Successfully retrieved ${consents.length} vendor consents');
+    }
+  } catch (e) {
+    print('Error retrieving vendor consents: $e');
+    // Handle any unexpected errors
+  }
+}
+```
+
+### Platform Compatibility
+
+| Method | iOS | Android |
+|--------|-----|---------|
+| `getVendorConsents()` | ✅ Available | ✅ Available |
+| `getConsentedVendors()` | ✅ Available | ✅ Available |  
+| `getRefusedVendors()` | ✅ Available | ✅ Available |
+| `isVendorConsented()` | ✅ Available | ✅ Available |
+
+> 📝 **Note**: All vendor consent APIs are fully supported on both iOS and Android platforms.
+
+<br><br><br>
 ## Displaying the Consent Popup on Demand
 If needed, you can display the consent popup manually by calling the following method:
 ```dart
@@ -351,7 +563,7 @@ This tagging is handled automatically by the native SDK components used under th
 In `android/build.gradle`, update the dependencies:
 ```gradle
 dependencies {
-    implementation("io.axept.android:android-sdk:2.0.4")
+    implementation("io.axept.android:android-sdk:2.0.8")
 }
 ```
 #### iOS
@@ -359,7 +571,7 @@ In `ios/axeptio_sdk.podspec`, update the version:
 ```ruby
 Pod::Spec.new do |s|
   s.name             = 'axeptio_sdk'
-  s.version          = '2.0.7'
+  s.version          = '2.0.15'
   s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
   s.homepage         = '<https://github.com/axeptio/flutter-sdk>'
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
@@ -367,7 +579,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => "<https://github.com/axeptio/flutter-sdk.git>" }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency "AxeptioIOSSDK", "2.0.7"
+  s.dependency "AxeptioIOSSDK", "2.0.15"
   s.platform = :ios, '15.0'
 ```
 

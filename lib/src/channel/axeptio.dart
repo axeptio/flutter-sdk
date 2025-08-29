@@ -49,6 +49,28 @@ class AxeptioSdk {
     );
   }
 
+  Future<Map<String, dynamic>?> getConsentDebugInfo({String? preferenceKey}) {
+    return AxeptioSdkPlatform.instance.getConsentDebugInfo(
+      preferenceKey: preferenceKey,
+    );
+  }
+
+  Future<Map<int, bool>> getVendorConsents() {
+    return AxeptioSdkPlatform.instance.getVendorConsents();
+  }
+
+  Future<List<int>> getConsentedVendors() {
+    return AxeptioSdkPlatform.instance.getConsentedVendors();
+  }
+
+  Future<List<int>> getRefusedVendors() {
+    return AxeptioSdkPlatform.instance.getRefusedVendors();
+  }
+
+  Future<bool> isVendorConsented(int vendorId) {
+    return AxeptioSdkPlatform.instance.isVendorConsented(vendorId);
+  }
+
   addEventListerner(AxeptioEventListener listener) {
     AxeptioSdkPlatform.instance.addEventListener(listener);
   }

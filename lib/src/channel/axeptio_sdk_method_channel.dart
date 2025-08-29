@@ -84,6 +84,112 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @override
+  Future<Map<String, dynamic>?> getConsentDebugInfo({
+    String? preferenceKey,
+  }) async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getConsentDebugInfo',
+        {"preferenceKey": preferenceKey},
+      );
+      return result?.map((k, v) => MapEntry(k.toString(), v));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: PlatformException in getConsentDebugInfo - ${e.message}',
+        );
+      }
+      return <String, dynamic>{};
+    }
+  }
+
+  @override
+  Future<Map<int, bool>> getVendorConsents() async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getVendorConsents',
+      );
+      if (result == null) return <int, bool>{};
+      final safeResult = <int, bool>{};
+      result.forEach((k, v) {
+        final key = k is num ? k.toInt() : int.tryParse(k.toString());
+        if (key != null) {
+          final value = v is bool ? v : (v.toString().toLowerCase() == 'true');
+          safeResult[key] = value;
+        }
+      });
+      return safeResult;
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in getVendorConsents - $e',
+        );
+      }
+      return <int, bool>{};
+    }
+  }
+
+  @override
+  Future<List<int>> getConsentedVendors() async {
+    try {
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'getConsentedVendors',
+      );
+      if (result == null) return <int>[];
+      return result
+          .map((e) => e is num ? e.toInt() : int.tryParse(e.toString()))
+          .whereType<int>()
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in getConsentedVendors - $e',
+        );
+      }
+      return <int>[];
+    }
+  }
+
+  @override
+  Future<List<int>> getRefusedVendors() async {
+    try {
+      final result = await methodChannel.invokeMethod<List<dynamic>>(
+        'getRefusedVendors',
+      );
+      if (result == null) return <int>[];
+      return result
+          .map((e) => e is num ? e.toInt() : int.tryParse(e.toString()))
+          .whereType<int>()
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in getRefusedVendors - $e',
+        );
+      }
+      return <int>[];
+    }
+  }
+
+  @override
+  Future<bool> isVendorConsented(int vendorId) async {
+    try {
+      final result = await methodChannel.invokeMethod<bool>(
+        'isVendorConsented',
+        {'vendorId': vendorId},
+      );
+      return result ?? false;
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          'AxeptioSDK: Exception in isVendorConsented - $e',
+        );
+      }
+      return false;
+    }
+  }
+
+  @override
   addEventListener(AxeptioEventListener listener) {
     _eventsHandler.addEventListener(listener);
   }

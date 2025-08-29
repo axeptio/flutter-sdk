@@ -1,3 +1,16 @@
+## 2.0.12
+
+- Update iOS Axeptio SDK to 2.0.15.
+- Update Android Axeptio SDK to 2.0.8.
+- Add comprehensive TCF vendor consent management APIs (iOS & Android).
+  - `getVendorConsents()`: Get all vendor consents as Map<int, bool>
+  - `getConsentedVendors()`: Get list of consented vendor IDs
+  - `getRefusedVendors()`: Get list of refused vendor IDs  
+  - `isVendorConsented(vendorId)`: Check specific vendor consent status
+- Add extensive README documentation with TCF vendor management examples.
+- Add TCF vendor consent demo in example app with detailed logging.
+- Fix GitHub Package Registry credentials configuration in example project.
+
 ## 2.0.11
 
 - Add NativeDefaultPreferences class for cross-platform access to native consent preferences (MSK-76).

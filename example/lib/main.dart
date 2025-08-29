@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:axeptio_sdk/axeptio_sdk.dart';
+import 'package:axeptio_sdk_example/debug_info_dialog.dart';
 import 'package:axeptio_sdk_example/preferences_dialog.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:flutter/material.dart';
@@ -283,9 +284,82 @@ class HomePage extends StatelessWidget {
               },
               child: const Text('Consent values', style: textStyle),
             ),
+            ElevatedButton(
+              style: style,
+              onPressed: () async {
+                final data = await axeptioSdk.getConsentDebugInfo();
+                if (!context.mounted) return;
+                if (data != null) {
+                  showDebugInfo(context: context, data: data);
+                } else {
+                  print("Could not read debug info.");
+                }
+              },
+              child: const Text('Consent Debug Info', style: textStyle),
+            ),
+            ElevatedButton(
+              style: style,
+              onPressed: () async {
+                await _demonstrateVendorConsent();
+              },
+              child: const Text('TCF Vendor Demo', style: textStyle),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _demonstrateVendorConsent() async {
+    print('\n=== TCF Vendor Consent Demo ===');
+
+    try {
+      // Get all vendor consents
+      final vendorConsents = await axeptioSdk.getVendorConsents();
+      print('📊 Total vendor consents: ${vendorConsents.length}');
+
+      if (vendorConsents.isEmpty) {
+        print(
+          'ℹ️ No vendor consent data available yet. Please accept/configure consents first.',
+        );
+        return;
+      }
+
+      // Get consented vendors
+      final consentedVendors = await axeptioSdk.getConsentedVendors();
+      print('✅ Consented vendors: ${consentedVendors.length}');
+      print(
+        '   Vendor IDs: ${consentedVendors.take(10).toList()}...',
+      ); // Show first 10
+
+      // Get refused vendors
+      final refusedVendors = await axeptioSdk.getRefusedVendors();
+      print('❌ Refused vendors: ${refusedVendors.length}');
+      print(
+        '   Vendor IDs: ${refusedVendors.take(10).toList()}...',
+      ); // Show first 10
+
+      // Test specific vendor consents (common ad tech vendors)
+      print('\n🧪 Testing specific vendors:');
+      final testVendors = [1, 2, 50, 100, 755]; // Google, Facebook, etc.
+
+      for (final vendorId in testVendors) {
+        final isConsented = await axeptioSdk.isVendorConsented(vendorId);
+        print(
+          '   Vendor $vendorId: ${isConsented ? "✅ Consented" : "❌ Refused"}',
+        );
+      }
+
+      // Calculate consent rate
+      if (vendorConsents.isNotEmpty) {
+        final consentRate =
+            (consentedVendors.length / vendorConsents.length * 100);
+        print('\n📈 Consent Rate: ${consentRate.toStringAsFixed(1)}%');
+      }
+
+      print('================================\n');
+    } catch (e) {
+      print('❌ Error demonstrating vendor consent: $e');
+    }
   }
 }
