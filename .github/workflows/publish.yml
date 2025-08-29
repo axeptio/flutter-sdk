@@ -58,6 +58,20 @@ jobs:
           fi
           echo "✅ Version format valid: $VERSION"
 
+      - name: Check if version exists in CHANGELOG
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Checking if version $VERSION exists in CHANGELOG.md..."
+          
+          if grep -q "^## $VERSION" CHANGELOG.md; then
+            echo "✅ Version $VERSION found in CHANGELOG.md"
+          else
+            echo "❌ Version $VERSION not found in CHANGELOG.md!"
+            echo "Cannot publish without changelog entry. Please add changelog entry for version $VERSION."
+            echo "Expected format: '## $VERSION' at the top of CHANGELOG.md"
+            exit 1
+          fi
+
       - name: Check if version exists on pub.dev
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
