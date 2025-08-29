@@ -113,6 +113,36 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val safeResponse = sanitizeForFlutter(response)
                 result.success(safeResponse)
             }
+            "getConsentDebugInfo" -> {
+                val preferenceKey = call.argument<String>("preferenceKey")
+                val response = AxeptioSDK.instance().getConsentDebugInfo(preferenceKey)
+                val safeResponse = sanitizeForFlutter(response)
+                result.success(safeResponse)
+            }
+            "getVendorConsents" -> {
+                val vendorConsents = AxeptioSDK.instance().getVendorConsents()
+                val safeResponse = sanitizeForFlutter(vendorConsents)
+                result.success(safeResponse)
+            }
+            "getConsentedVendors" -> {
+                val consentedVendors = AxeptioSDK.instance().getConsentedVendors()
+                val safeResponse = sanitizeForFlutter(consentedVendors)
+                result.success(safeResponse)
+            }
+            "getRefusedVendors" -> {
+                val refusedVendors = AxeptioSDK.instance().getRefusedVendors()
+                val safeResponse = sanitizeForFlutter(refusedVendors)
+                result.success(safeResponse)
+            }
+            "isVendorConsented" -> {
+                val vendorId = call.argument<Int>("vendorId")
+                if (vendorId != null) {
+                    val isConsented = AxeptioSDK.instance().isVendorConsented(vendorId)
+                    result.success(isConsented)
+                } else {
+                    result.error("invalid_args", "isVendorConsented: Missing argument 'vendorId'", null)
+                }
+            }
 
             // iOS specific
             "setupUI",
