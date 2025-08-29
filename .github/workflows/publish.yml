@@ -1,21 +1,25 @@
 name: Publish to pub.dev
 
-# This workflow publishes to pub.dev when a GitHub release is created
+# This workflow publishes to pub.dev with manual control and validation
 # Key improvements:
-# 1. Version extracted from GitHub release tag (not pubspec.yaml)
-# 2. pubspec.yaml updated dynamically from tag
-# 3. Validates version doesn't already exist on pub.dev
-# 4. Only triggered by releases, not manual dispatch
+# 1. Manual trigger prevents accidental publishing
+# 2. Version extracted from specified release tag (not pubspec.yaml)
+# 3. pubspec.yaml updated dynamically from tag
+# 4. Validates version doesn't already exist on pub.dev
 # 
 # Process:
 # 1. Create GitHub release with version tag (e.g., v2.0.16)
-# 2. This workflow triggers automatically
-# 3. Extracts version from tag, updates pubspec.yaml
+# 2. Run dry-run-publish.yml for validation
+# 3. Manually trigger this workflow with release tag
 # 4. Validates and publishes to pub.dev
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to publish (e.g., v2.0.16)'
+        required: true
+        type: string
       
 jobs:
   publish:
@@ -27,7 +31,7 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.inputs.release_tag }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Flutter
@@ -36,13 +40,25 @@ jobs:
           channel: master
           flutter-version: 3.29.3
           cache: false 
-      - name: Extract version from GitHub release
+      - name: Extract version from release tag input
         id: extract-version
         run: |
-          TAG_VERSION="${{ github.event.release.tag_name }}"
+          TAG_VERSION="${{ github.event.inputs.release_tag }}"
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          
+      - name: Verify release exists
+        run: |
+          TAG_VERSION="${{ github.event.inputs.release_tag }}"
+          if ! gh release view "$TAG_VERSION" >/dev/null 2>&1; then
+            echo "❌ Release $TAG_VERSION does not exist!"
+            echo "Please create the release first or check the tag name."
+            exit 1
+          fi
+          echo "✅ Release $TAG_VERSION exists"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Validate version format
         run: |
@@ -110,14 +126,15 @@ jobs:
       - name: Publish Summary
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
+          TAG_VERSION="${{ github.event.inputs.release_tag }}"
           {
             echo "## 📦 Stable Release Summary"
-            echo "✅ Version **v$VERSION** published successfully to pub.dev!"
+            echo "✅ Version **$VERSION** published successfully to pub.dev!"
             echo ""
             echo "### Release Information"
-            echo "- **Tag**: ${{ github.event.release.tag_name }}"
-            echo "- **Version**: $VERSION"
-            echo "- **Triggered by**: GitHub Release"
+            echo "- **Release Tag**: \`$TAG_VERSION\`"
+            echo "- **Version**: \`$VERSION\`"
+            echo "- **Triggered by**: Manual workflow dispatch"
             echo ""
             echo "### For Users"
             echo '```yaml'
@@ -125,9 +142,16 @@ jobs:
             echo "  axeptio_sdk: $VERSION"
             echo '```'
             echo ""
-            echo "### Process"
-            echo "✅ Version extracted from GitHub release tag"
+            echo "### Process Completed"
+            echo "✅ Release tag validated and exists"
+            echo "✅ Version extracted from release tag"
             echo "✅ pubspec.yaml updated dynamically"
             echo "✅ Version availability verified on pub.dev"
             echo "✅ Published to pub.dev successfully"
+            echo ""
+            echo "### Next Steps"
+            echo "🎉 **Release is live!**"
+            echo "- Package is available on [pub.dev](https://pub.dev/packages/axeptio_sdk)"
+            echo "- Update release status if needed (remove draft/pre-release flags)"
+            echo "- Announce release to development teams"
           } >> "$GITHUB_STEP_SUMMARY"
