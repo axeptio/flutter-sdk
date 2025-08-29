@@ -10,6 +10,7 @@ import 'package:axeptio_sdk_example/preferences_dialog.dart';
 import 'package:axeptio_sdk_example/tokendialog.dart';
 import 'package:axeptio_sdk_example/config_screen.dart';
 import 'package:axeptio_sdk_example/vendor_screen.dart';
+import 'package:axeptio_sdk_example/vendor_data_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -210,7 +211,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.axeptioSdk,
@@ -221,6 +222,41 @@ class HomePage extends StatelessWidget {
   final AxeptioSdk axeptioSdk;
   final Function()? onAdBtnPressed;
   final Function() onClearPressed;
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool _isClearing = false;
+
+  Future<void> _clearConsentWithFeedback() async {
+    if (_isClearing) return;
+
+    setState(() {
+      _isClearing = true;
+    });
+
+    try {
+      // Clear consent
+      widget.axeptioSdk.clearConsent();
+      
+      // Trigger immediate refresh of vendor data
+      VendorDataService.triggerGlobalRefresh();
+      
+      // Call the original callback
+      widget.onClearPressed();
+
+      // Show feedback for 2 seconds
+      await Future.delayed(const Duration(seconds: 2));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isClearing = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -251,22 +287,31 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               style: style,
               onPressed: () {
-                axeptioSdk.showConsentScreen();
+                widget.axeptioSdk.showConsentScreen();
               },
               child: const Text('Consent popup', style: textStyle),
             ),
             ElevatedButton(
               style: style,
-              onPressed: onAdBtnPressed,
+              onPressed: widget.onAdBtnPressed,
               child: const Text('Google ad', style: textStyle),
             ),
             ElevatedButton(
-              style: clearConsentStyle,
-              onPressed: () {
-                axeptioSdk.clearConsent();
-                onClearPressed();
-              },
-              child: const Text('Clear consent', style: textStyle),
+              style: _isClearing 
+                ? ElevatedButton.styleFrom(
+                    textStyle: textStyle,
+                    elevation: 0,
+                    backgroundColor: Colors.green,
+                  )
+                : clearConsentStyle,
+              onPressed: _isClearing ? null : _clearConsentWithFeedback,
+              child: Text(
+                _isClearing ? '✅ Cleared!' : 'Clear consent',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: _isClearing ? Colors.white : Colors.black,
+                ),
+              ),
             ),
             ElevatedButton(
               style: style,
@@ -275,7 +320,7 @@ class HomePage extends StatelessWidget {
                   context: context,
                   builder:
                       (BuildContext context) =>
-                          TokenAppendDialog(axeptioSdk: axeptioSdk),
+                          TokenAppendDialog(axeptioSdk: widget.axeptioSdk),
                 );
               },
               child: const Text('Show webview with token', style: textStyle),
@@ -283,7 +328,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               style: style,
               onPressed: () async {
-                final data = await axeptioSdk.getConsentSavedData();
+                final data = await widget.axeptioSdk.getConsentSavedData();
                 if (!context.mounted) return;
                 if (data != null) {
                   showPreferences(context: context, data: data);
@@ -296,7 +341,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               style: style,
               onPressed: () async {
-                final data = await axeptioSdk.getConsentDebugInfo();
+                final data = await widget.axeptioSdk.getConsentDebugInfo();
                 if (!context.mounted) return;
                 if (data != null) {
                   showDebugInfo(context: context, data: data);
@@ -324,7 +369,7 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => VendorScreen(axeptioSdk: axeptioSdk),
+                    builder: (context) => VendorScreen(axeptioSdk: widget.axeptioSdk),
                   ),
                 );
               },

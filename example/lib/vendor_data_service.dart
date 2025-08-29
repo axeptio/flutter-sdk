@@ -5,6 +5,9 @@ class VendorDataService {
   static const int maxDisplayVendors = 30;
   static const Duration refreshInterval = Duration(seconds: 3);
   
+  // Static callback for external refresh triggers (e.g., consent clearing)
+  static VendorDataService? _activeInstance;
+  
   final AxeptioSdk _axeptioSdk;
   Timer? _refreshTimer;
   Timer? _processingDelayTimer;
@@ -17,7 +20,9 @@ class VendorDataService {
   Stream<VendorSummaryData> get summaryStream => _summaryController.stream;
   Stream<VendorDetailsData> get detailsStream => _detailsController.stream;
   
-  VendorDataService(this._axeptioSdk);
+  VendorDataService(this._axeptioSdk) {
+    _activeInstance = this;
+  }
 
   void startAutoRefresh() {
     _refreshTimer?.cancel();
@@ -29,6 +34,19 @@ class VendorDataService {
   void stopAutoRefresh() {
     _refreshTimer?.cancel();
     _processingDelayTimer?.cancel();
+  }
+
+  /// Forces an immediate refresh of vendor data (bypasses normal delay)
+  /// Useful when external actions require immediate UI updates (e.g., consent clearing)
+  void forceRefresh() {
+    _processingDelayTimer?.cancel();
+    _isProcessing = true;
+    
+    // Immediate refresh without delay for external triggers
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _isProcessing = false;
+      _refreshData();
+    });
   }
 
   void _refreshDataWithDelay() {
@@ -260,6 +278,17 @@ class VendorDataService {
     stopAutoRefresh();
     _summaryController.close();
     _detailsController.close();
+    
+    // Clear active instance if this is the current one
+    if (_activeInstance == this) {
+      _activeInstance = null;
+    }
+  }
+  
+  /// Triggers immediate refresh on the currently active VendorDataService instance
+  /// Used by external components (e.g., Clear Consent button) to force UI updates
+  static void triggerGlobalRefresh() {
+    _activeInstance?.forceRefresh();
   }
 }
 
