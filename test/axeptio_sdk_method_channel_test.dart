@@ -33,7 +33,8 @@ void main() {
           case 'appendAxeptioTokenURL':
             final url = methodCall.arguments['url'] as String;
             final token = methodCall.arguments['token'] as String;
-            return '$url?axeptio_token=$token';
+            final separator = url.contains('?') ? '&' : '?';
+            return '$url${separator}axeptio_token=$token';
           case 'getConsentSavedData':
             final preferenceKey = methodCall.arguments?['preferenceKey'] as String?;
             final mockData = {
@@ -207,7 +208,7 @@ void main() {
         'https://example.com/path?param=value', 
         'token@123#'
       );
-      expect(result, equals('https://example.com/path?param=value?axeptio_token=token@123#'));
+      expect(result, equals('https://example.com/path?param=value&axeptio_token=token@123#'));
     });
   });
 }

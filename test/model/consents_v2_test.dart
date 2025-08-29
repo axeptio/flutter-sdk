@@ -47,20 +47,20 @@ void main() {
         expect(consents.adPersonalization, isFalse);
       });
 
-      test('creates object from dictionary with mixed boolean values', () {
+      test('creates object from dictionary with different boolean combinations', () {
         final dictionary = {
-          'analyticsStorage': true,
-          'adStorage': false,
-          'adUserData': true,
-          'adPersonalization': false,
+          'analyticsStorage': false,
+          'adStorage': true,
+          'adUserData': false,
+          'adPersonalization': true,
         };
 
         final consents = ConsentsV2.fromDictionary(dictionary);
 
-        expect(consents.analyticsStorage, isTrue);
-        expect(consents.adStorage, isFalse);
-        expect(consents.adUserData, isTrue);
-        expect(consents.adPersonalization, isFalse);
+        expect(consents.analyticsStorage, isFalse);
+        expect(consents.adStorage, isTrue);
+        expect(consents.adUserData, isFalse);
+        expect(consents.adPersonalization, isTrue);
       });
 
       test('handles dictionary with extra keys', () {
@@ -97,8 +97,7 @@ void main() {
     });
 
     group('Edge cases and error handling', () {
-      test('fromDictionary with null dictionary should handle gracefully', () {
-        // This test depends on the implementation - it might throw or handle null
+      test('fromDictionary with null dictionary throws NoSuchMethodError', () {
         expect(() => ConsentsV2.fromDictionary(null), throwsA(isA<NoSuchMethodError>()));
       });
 
