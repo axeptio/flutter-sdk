@@ -135,6 +135,9 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
       return array.compactMap { sanitizeForFlutter($0) }
     case let dict as [String: Any]:
       return dict.mapValues { sanitizeForFlutter($0) }
+    case let dict as [Int: Bool]:
+      // Convert [Int: Bool] to [String: Bool] for Flutter compatibility
+      return Dictionary(uniqueKeysWithValues: dict.map { (String($0), $1) })
     default:
       // unsupported type, stringify as fallback
       return String(describing: value)
