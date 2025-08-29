@@ -79,6 +79,43 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
       let safeResponse = sanitizeForFlutter(response)
       result(safeResponse)
 
+    case "getConsentDebugInfo":
+      let arguments = call.arguments as? [String: Any]
+      let preferenceKey = arguments?["preferenceKey"] as? String
+
+      let response = Axeptio.shared.getConsentDebugInfo(preferenceKey: preferenceKey)
+
+      let safeResponse = sanitizeForFlutter(response)
+      result(safeResponse)
+
+    case "getVendorConsents":
+      let vendorConsents = Axeptio.shared.getVendorConsents()
+      let safeResponse = sanitizeForFlutter(vendorConsents)
+      result(safeResponse)
+
+    case "getConsentedVendors":
+      let consentedVendors = Axeptio.shared.getConsentedVendors()
+      let safeResponse = sanitizeForFlutter(consentedVendors)
+      result(safeResponse)
+
+    case "getRefusedVendors":
+      let refusedVendors = Axeptio.shared.getRefusedVendors()
+      let safeResponse = sanitizeForFlutter(refusedVendors)
+      result(safeResponse)
+
+    case "isVendorConsented":
+      guard let arguments = call.arguments as? [String: Any],
+        let vendorId = arguments["vendorId"] as? Int
+      else {
+        result(
+          FlutterError.init(
+            code: "invalid_args", message: "isVendorConsented: Missing argument 'vendorId'",
+            details: nil))
+        return
+      }
+      let isConsented = Axeptio.shared.isVendorConsented(vendorId)
+      result(isConsented)
+
     default:
       result(FlutterMethodNotImplemented)
     }
