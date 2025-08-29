@@ -72,7 +72,7 @@ Future<void> showDebugInfo({
                         const SizedBox(height: 16),
 
                         // Debug data entries
-                        ...data.entries.map((entry) {
+                        ...(data.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((entry) {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(12),
@@ -166,7 +166,8 @@ String _formatValue(dynamic value) {
     // Pretty print maps/objects
     final buffer = StringBuffer();
     buffer.writeln('{');
-    for (final entry in value.entries) {
+    final sortedEntries = value.entries.toList()..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+    for (final entry in sortedEntries) {
       buffer.writeln('  ${entry.key}: ${_formatValue(entry.value)},');
     }
     buffer.write('}');

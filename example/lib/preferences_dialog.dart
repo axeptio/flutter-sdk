@@ -4,6 +4,15 @@ Future<void> showPreferences({
   required BuildContext context,
   required Map<String, dynamic> data,
 }) async {
+  // Filter to only show IABTCF_ and Axeptio-related values
+  final filteredData = <String, dynamic>{};
+  for (final entry in data.entries) {
+    if (entry.key.startsWith('IABTCF_') || 
+        entry.key.startsWith('axeptio_') || 
+        entry.key.startsWith('AX_')) {
+      filteredData[entry.key] = entry.value;
+    }
+  }
   showDialog(
     context: context,
     builder: (context) {
@@ -15,7 +24,7 @@ Future<void> showPreferences({
           children: [
             Flexible(
               child: Text(
-                'Preferences',
+                'Consent Values',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
@@ -31,7 +40,17 @@ Future<void> showPreferences({
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              ...data.entries.map((entry) {
+              if (filteredData.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'No IABTCF or Axeptio consent values found.',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                ...(filteredData.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((entry) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Column(
