@@ -128,7 +128,7 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
           git-user-name: axeptio-bot
@@ -137,10 +137,8 @@ jobs:
           skip-commit: true
           skip-tag: true
           git-push: false
-          tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
-          preset: 'angular'
-          release-count: 1
+          version: ${{ steps.extract-version.outputs.version }}
 
       - name: Commit Changelog and Version Update
         if: steps.changelog.outputs.skipped != 'true'
