@@ -20,6 +20,7 @@
 * **ci:** use direct GitHub release download for actionlint installation ([8964342](https://github.com/axeptio/flutter-sdk/commit/89643422dfcbaaf8322daf70a28b0314b58c9aa8))
 * **ci:** use fallback-version parameter for TriPSs/conventional-changelog-action ([a31d77e](https://github.com/axeptio/flutter-sdk/commit/a31d77e62b34315ad702a26b7ff75224bcd48074))
 * **ci:** use go install for actionlint setup ([9a63559](https://github.com/axeptio/flutter-sdk/commit/9a635591608624b595fe2f3798b17c0f1cea5ea9))
+* **ci:** use TriPSs/conventional-changelog-action@v6 with explicit version ([b52c33c](https://github.com/axeptio/flutter-sdk/commit/b52c33c5ad4a9ac74a20592538aa20ce58cd29e0))
 * **docs:** align Flutter version and license in README badges ([0a5d31e](https://github.com/axeptio/flutter-sdk/commit/0a5d31e369be973dde19bc285d69d5676fe46c4e))
 * **docs:** remove license section from CONTRIBUTING.md ([569d7f5](https://github.com/axeptio/flutter-sdk/commit/569d7f5c78285aa142b344b9fb61a301bcf05efd))
 * **documentation:** Update README ([e8cf0c3](https://github.com/axeptio/flutter-sdk/commit/e8cf0c3d062efefd5c456708ec9098d273b700f7))
