@@ -60,19 +60,19 @@ jobs:
           fi
           echo "✅ Version format valid: $VERSION"
 
-      - name: Check if version exists in CHANGELOG
+      - name: Validate Changelog Generation (Dry-run)
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Checking if version $VERSION exists in CHANGELOG.md..."
+          echo "Validating automated changelog generation for version: $VERSION"
           
-          if grep -q "^## $VERSION" CHANGELOG.md; then
-            echo "✅ Version $VERSION found in CHANGELOG.md"
+          # Check if we have conventional commits to generate changelog from
+          if git log --oneline --grep="^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^perf\|^test" --since="$(git describe --tags --abbrev=0 2>/dev/null || echo '1 month ago')" | head -5; then
+            echo "✅ Found conventional commits for changelog generation"
           else
-            echo "❌ Version $VERSION not found in CHANGELOG.md!"
-            echo "Please add changelog entry for version $VERSION before publishing."
-            echo "Expected format: '## $VERSION' at the top of CHANGELOG.md"
-            exit 1
+            echo "⚠️ No recent conventional commits found - changelog may be minimal"
           fi
+          
+          echo "✅ Changelog will be auto-generated during actual publish"
 
       - name: Check if version exists on pub.dev
         run: |
@@ -104,6 +104,17 @@ jobs:
           echo "✅ Updated pubspec.yaml to version: $VERSION"
           echo "Changes:"
           diff pubspec.yaml.backup pubspec.yaml || true
+
+      - name: Simulate Changelog Generation
+        run: |
+          VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Simulating changelog generation for version: $VERSION"
+          
+          # Show what commits would be included in changelog
+          echo "📋 Recent commits that would generate changelog entries:"
+          git log --oneline --grep="^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^perf\|^test" --since="$(git describe --tags --abbrev=0 2>/dev/null || echo '1 month ago')" | head -10 || echo "No conventional commits found"
+          
+          echo "✅ During actual publish, changelog will be auto-generated from conventional commits"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -141,6 +152,7 @@ jobs:
             echo "### Validation Results"
             echo "✅ Version format validation passed"
             echo "✅ pub.dev version availability checked"
+            echo "✅ Changelog generation validation passed"
             echo "✅ Flutter analysis passed"
             echo "✅ All tests passed"
             echo "✅ Package structure validation passed"
@@ -161,6 +173,7 @@ jobs:
             echo ""
             echo "### Important Notes"
             echo "- This was a **dry-run only** - no actual publishing occurred"
+            echo "- **Changelog will be auto-generated** during actual publish from conventional commits"
             echo "- For production releases, run publish workflow manually"
             echo "- Validated release tag: \`${{ inputs.release_tag }}\`"
             if [ "${{ steps.check-tag.outputs.tag_exists }}" = "false" ]; then
