@@ -36,11 +36,11 @@ jobs:
             echo "⚠️ Release tag $TAG does not exist yet - using current branch for validation"
           fi
           
-      - name: Checkout release tag if it exists
+      - name: Validate release tag for dry-run
         if: steps.check-tag.outputs.tag_exists == 'true'
         run: |
-          git checkout ${{ inputs.release_tag }}
-          echo "✅ Checked out release tag ${{ inputs.release_tag }}"
+          echo "✅ Release tag ${{ inputs.release_tag }} exists and ready for validation"
+          echo "Note: Dry-run validation uses current branch state, not the specific tag"
       
       - name: Extract version from release tag
         id: extract-version

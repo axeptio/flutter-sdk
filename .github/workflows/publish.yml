@@ -33,7 +33,6 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
           fetch-depth: 0
           persist-credentials: false
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
@@ -43,6 +42,16 @@ jobs:
           channel: master
           flutter-version: 3.29.3
           cache: false 
+      - name: Validate release tag exists
+        run: |
+          TAG="${{ inputs.release_tag }}"
+          if ! git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "❌ Release tag $TAG does not exist!"
+            echo "Please create the GitHub release first before running this workflow."
+            exit 1
+          fi
+          echo "✅ Release tag $TAG exists"
+      
       - name: Extract version from release tag
         id: extract-version
         run: |
