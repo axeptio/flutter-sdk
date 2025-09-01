@@ -89,6 +89,10 @@ jobs:
           git config --global user.signingkey ${{ steps.import_gpg.outputs.keyid }}
           git config --global gpg.program "$(which gpg)"
           git remote set-url origin https://x-access-token:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          
+          # Ensure we're on master branch with proper upstream tracking
+          git checkout -B master
+          git branch --set-upstream-to=origin/master master
 
       - name: Check if version exists on pub.dev
         run: |
