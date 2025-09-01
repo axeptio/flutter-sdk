@@ -126,45 +126,19 @@ jobs:
           echo "Changes:"
           diff pubspec.yaml.backup pubspec.yaml || true
 
-      - name: Generate Changelog
-        id: changelog
-        uses: TriPSs/conventional-changelog-action@v6
-        with:
-          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
-          git-user-name: axeptio-bot
-          git-user-email: ${{ secrets.BOT_EMAIL }}
-          skip-version-file: true
-          skip-commit: true
-          skip-tag: true
-          git-push: false
-          tag-prefix: ''
-          version-file: 'pubspec.yaml'
-          version-path: 'version'
-          output-file: 'CHANGELOG.md'
-          version: ${{ steps.extract-version.outputs.version }}
-
-      - name: Commit Changelog and Version Update
-        if: steps.changelog.outputs.skipped != 'true'
+      - name: Check if version exists in CHANGELOG
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
+          echo "Checking if version $VERSION exists in CHANGELOG.md..."
           
-          # Restore git config after changelog action changes it
-          git config --global user.name "axeptio-bot"
-          git config --global user.email "${{ secrets.BOT_EMAIL }}"
-          git config --global commit.gpgsign true
-          
-          # Add and commit both pubspec.yaml and CHANGELOG.md
-          git add pubspec.yaml CHANGELOG.md
-          git commit -S -m "chore(release): v$VERSION [skip ci]
-          
-          📦 Automated release preparation:
-          - Updated pubspec.yaml to v$VERSION
-          - Generated CHANGELOG.md from conventional commits"
-          
-          # Push the changes
-          git push origin HEAD:master
-          
-          echo "✅ Committed and pushed version update and changelog"
+          if grep -q "^## $VERSION" CHANGELOG.md; then
+            echo "✅ Version $VERSION found in CHANGELOG.md"
+          else
+            echo "❌ Version $VERSION not found in CHANGELOG.md!"
+            echo "Cannot publish without changelog entry. Please add changelog entry for version $VERSION."
+            echo "Expected format: '## $VERSION' at the top of CHANGELOG.md"
+            exit 1
+          fi
 
       - name: Install dependencies
         run: flutter pub get
