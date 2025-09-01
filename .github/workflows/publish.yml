@@ -137,7 +137,7 @@ jobs:
           skip-commit: true
           skip-tag: true
           git-push: false
-          version: ${{ steps.extract-version.outputs.version }}
+          fallback-version: ${{ steps.extract-version.outputs.version }}
           tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
 
