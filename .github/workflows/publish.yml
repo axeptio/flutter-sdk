@@ -137,6 +137,9 @@ jobs:
           skip-commit: true
           skip-tag: true
           git-push: false
+          tag-prefix: ''
+          version-file: 'pubspec.yaml'
+          version-path: 'version'
           output-file: 'CHANGELOG.md'
           version: ${{ steps.extract-version.outputs.version }}
 
