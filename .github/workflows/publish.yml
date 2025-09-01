@@ -78,7 +78,7 @@ jobs:
           git config --global commit.gpgsign true
           git config --global tag.gpgsign true
           git config --global user.signingkey ${{ steps.import_gpg.outputs.keyid }}
-          git config --global gpg.program $(which gpg)
+          git config --global gpg.program "$(which gpg)"
           git remote set-url origin https://x-access-token:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: Check if version exists on pub.dev
