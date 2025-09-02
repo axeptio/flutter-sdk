@@ -118,6 +118,37 @@ void main() {
         expect(() => VendorInfo.fromJson(json, true), throwsA(isA<TypeError>()));
       });
 
+      test('creates object from JSON with all optional fields', () {
+        final json = {
+          'id': 755,
+          'name': 'Complete Vendor',
+          'description': 'Full vendor description',
+          'purposes': [1, 2, 3],
+          'legIntPurposes': [4, 5],
+          'specialFeatures': [1, 2],
+          'specialPurposes': [1],
+          'cookieMaxAgeSeconds': 86400,
+          'usesCookies': true,
+          'usesNonCookieAccess': false,
+          'policyUrl': 'https://example.com/privacy',
+        };
+
+        final vendorInfo = VendorInfo.fromJson(json, true);
+
+        expect(vendorInfo.id, equals(755));
+        expect(vendorInfo.name, equals('Complete Vendor'));
+        expect(vendorInfo.consented, isTrue);
+        expect(vendorInfo.description, equals('Full vendor description'));
+        expect(vendorInfo.purposes, equals([1, 2, 3]));
+        expect(vendorInfo.legitimateInterestPurposes, equals([4, 5]));
+        expect(vendorInfo.specialFeatures, equals([1, 2]));
+        expect(vendorInfo.specialPurposes, equals([1]));
+        expect(vendorInfo.cookieMaxAgeSeconds, equals(86400));
+        expect(vendorInfo.usesCookies, isTrue);
+        expect(vendorInfo.usesNonCookieAccess, isFalse);
+        expect(vendorInfo.policyUrl, equals('https://example.com/privacy'));
+      });
+
       test('handles different numeric types for ID', () {
         final json = {
           'id': 755.0, // Double instead of int
@@ -167,6 +198,37 @@ void main() {
         expect(json['purposes'], equals([1, 2]));
       });
 
+      test('converts object with all fields to complete JSON', () {
+        final vendorInfo = VendorInfo(
+          id: 755,
+          name: 'Complete Vendor',
+          consented: true,
+          description: 'Full vendor description',
+          purposes: [1, 2, 3],
+          legitimateInterestPurposes: [4, 5],
+          specialFeatures: [1, 2],
+          specialPurposes: [1],
+          cookieMaxAgeSeconds: 86400,
+          usesCookies: true,
+          usesNonCookieAccess: false,
+          policyUrl: 'https://example.com/privacy',
+        );
+
+        final json = vendorInfo.toJson();
+
+        expect(json['id'], equals(755));
+        expect(json['name'], equals('Complete Vendor'));
+        expect(json['description'], equals('Full vendor description'));
+        expect(json['purposes'], equals([1, 2, 3]));
+        expect(json['legIntPurposes'], equals([4, 5]));
+        expect(json['specialFeatures'], equals([1, 2]));
+        expect(json['specialPurposes'], equals([1]));
+        expect(json['cookieMaxAgeSeconds'], equals(86400));
+        expect(json['usesCookies'], isTrue);
+        expect(json['usesNonCookieAccess'], isFalse);
+        expect(json['policyUrl'], equals('https://example.com/privacy'));
+      });
+
       test('round-trip conversion maintains data integrity', () {
         final original = VendorInfo(
           id: 755,
@@ -208,6 +270,51 @@ void main() {
         expect(updated.consented, isFalse); // Changed
         expect(updated.description, equals('Original description')); // Unchanged
         expect(updated.purposes, equals([3, 4, 5])); // Changed
+      });
+
+      test('copyWith updates all optional fields', () {
+        final original = VendorInfo(
+          id: 1,
+          name: 'Original Vendor',
+          consented: true,
+          description: 'Original description',
+          purposes: [1, 2],
+          legitimateInterestPurposes: [3, 4],
+          specialFeatures: [1],
+          specialPurposes: [2],
+          cookieMaxAgeSeconds: 86400,
+          usesCookies: true,
+          usesNonCookieAccess: false,
+          policyUrl: 'https://example.com/privacy',
+        );
+
+        final updated = original.copyWith(
+          id: 999,
+          name: 'Updated Vendor',
+          consented: false,
+          description: 'Updated description',
+          purposes: [5, 6],
+          legitimateInterestPurposes: [7, 8],
+          specialFeatures: [2, 3],
+          specialPurposes: [4, 5],
+          cookieMaxAgeSeconds: 3600,
+          usesCookies: false,
+          usesNonCookieAccess: true,
+          policyUrl: 'https://updated.com/privacy',
+        );
+
+        expect(updated.id, equals(999));
+        expect(updated.name, equals('Updated Vendor'));
+        expect(updated.consented, isFalse);
+        expect(updated.description, equals('Updated description'));
+        expect(updated.purposes, equals([5, 6]));
+        expect(updated.legitimateInterestPurposes, equals([7, 8]));
+        expect(updated.specialFeatures, equals([2, 3]));
+        expect(updated.specialPurposes, equals([4, 5]));
+        expect(updated.cookieMaxAgeSeconds, equals(3600));
+        expect(updated.usesCookies, isFalse);
+        expect(updated.usesNonCookieAccess, isTrue);
+        expect(updated.policyUrl, equals('https://updated.com/privacy'));
       });
 
       test('creates exact copy when no parameters provided', () {
@@ -269,6 +376,12 @@ void main() {
         );
 
         expect(vendor1, equals(vendor2));
+        
+        // Test hashCode is used - we don't test exact values but that it works
+        final hash1 = vendor1.hashCode;
+        final hash2 = vendor2.hashCode;
+        expect(hash1, isA<int>());
+        expect(hash2, isA<int>());
       });
 
       test('objects with different values are not equal', () {

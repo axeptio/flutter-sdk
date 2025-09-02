@@ -8,8 +8,9 @@ import 'package:axeptio_sdk/src/model/vendor_info.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  MethodChannelAxeptioSdk platform = MethodChannelAxeptioSdk();
-  const MethodChannel channel = MethodChannel('axeptio_sdk');
+  group('Normal Operations', () {
+    MethodChannelAxeptioSdk platform = MethodChannelAxeptioSdk();
+    const MethodChannel channel = MethodChannel('axeptio_sdk');
 
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -338,6 +339,233 @@ void main() {
           result,
           equals(
               'https://example.com/path?param=value&axeptio_token=token@123#'));
+    });
+  });
+  }); // End Normal Operations
+
+  group('Error Handling', () {
+    late MethodChannelAxeptioSdk errorPlatform;
+
+    setUp(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        // Mock platform exceptions for error testing
+        switch (call.method) {
+          case 'getPlatformVersion':
+            throw PlatformException(code: 'UNAVAILABLE', message: 'Platform version unavailable');
+          case 'getVendorConsents':
+            throw PlatformException(code: 'FETCH_ERROR', message: 'Failed to fetch vendor consents');
+          case 'getConsentSavedData':
+            return null; // Simulate null return
+          case 'getVendorName':
+            final vendorId = call.arguments['vendorId'] as int;
+            if (vendorId < 0) {
+              throw PlatformException(code: 'INVALID_ID', message: 'Invalid vendor ID');
+            }
+            return null; // Normal null return for unknown vendor
+          case 'getVendorConsentsWithNames':
+            return {}; // Empty result
+          case 'loadGVL':
+            throw PlatformException(code: 'NETWORK_ERROR', message: 'Failed to load GVL');
+          default:
+            return null;
+        }
+      });
+      errorPlatform = MethodChannelAxeptioSdk();
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), null);
+    });
+
+    test('getPlatformVersion handles platform exception', () async {
+      expect(
+        () => errorPlatform.getPlatformVersion(),
+        throwsA(isA<PlatformException>()),
+      );
+    });
+
+    test('getVendorConsents returns empty map on platform exception', () async {
+      final result = await errorPlatform.getVendorConsents();
+      expect(result, isEmpty);
+    });
+
+    test('getConsentSavedData handles null return gracefully', () async {
+      final result = await errorPlatform.getConsentSavedData();
+      expect(result, isNull);
+    });
+
+    test('getConsentSavedData handles platform exception', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getConsentSavedData') {
+          throw PlatformException(code: 'ERROR', message: 'Test error');
+        }
+        return null;
+      });
+
+      final platform = MethodChannelAxeptioSdk();
+      final result = await platform.getConsentSavedData();
+      expect(result, isEmpty);
+    });
+
+    test('getConsentDebugInfo handles platform exception', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getConsentDebugInfo') {
+          throw PlatformException(code: 'ERROR', message: 'Test error');
+        }
+        return null;
+      });
+
+      final platform = MethodChannelAxeptioSdk();
+      final result = await platform.getConsentDebugInfo();
+      expect(result, isEmpty);
+    });
+
+    test('getVendorConsents handles null return', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getVendorConsents') {
+          return null;
+        }
+        return <String, dynamic>{'755': true};
+      });
+
+      final platform = MethodChannelAxeptioSdk();
+      final result = await platform.getVendorConsents();
+      expect(result, isEmpty);
+    });
+
+    test('getConsentedVendors handles null return', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getConsentedVendors') {
+          return null;
+        }
+        return [755];
+      });
+
+      final platform = MethodChannelAxeptioSdk();
+      final result = await platform.getConsentedVendors();
+      expect(result, isEmpty);
+    });
+
+    test('loadGVL returns false on platform exception', () async {
+      final result = await errorPlatform.loadGVL();
+      expect(result, isFalse);
+    });
+
+    test('getConsentedVendors handles platform exception', () async {
+      // Reset mock to throw exception for getConsentedVendors
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getConsentedVendors') {
+          throw PlatformException(code: 'ERROR', message: 'Test error');
+        }
+        return null;
+      });
+
+      final result = await errorPlatform.getConsentedVendors();
+      expect(result, isEmpty);
+    });
+
+    test('getRefusedVendors handles platform exception', () async {
+      // Reset mock to throw exception for getRefusedVendors  
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getRefusedVendors') {
+          throw PlatformException(code: 'ERROR', message: 'Test error');
+        }
+        return null;
+      });
+
+      final result = await errorPlatform.getRefusedVendors();
+      expect(result, isEmpty);
+    });
+
+    test('isVendorConsented handles platform exception', () async {
+      // Reset mock to throw exception for isVendorConsented
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'isVendorConsented') {
+          throw PlatformException(code: 'ERROR', message: 'Test error');
+        }
+        return null;
+      });
+
+      final result = await errorPlatform.isVendorConsented(1);
+      expect(result, isFalse);
+    });
+
+    test('getVendorNames handles platform exception', () async {
+      // Reset mock to throw exception for getVendorNames
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        if (call.method == 'getVendorNames') {
+          throw PlatformException(code: 'ERROR', message: 'Test error');
+        }
+        return null;
+      });
+
+      final result = await errorPlatform.getVendorNames([1, 2, 3]);
+      expect(result, isEmpty);
+    });
+
+    test('GVL methods handle platform exceptions gracefully', () async {
+      // Reset mock to throw exceptions for all GVL methods
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        switch (call.method) {
+          case 'isGVLLoaded':
+            throw PlatformException(code: 'ERROR', message: 'Test error');
+          case 'getGVLVersion':
+            throw PlatformException(code: 'ERROR', message: 'Test error');
+          case 'unloadGVL':
+            throw PlatformException(code: 'ERROR', message: 'Test error');
+          case 'clearGVL':
+            throw PlatformException(code: 'ERROR', message: 'Test error');
+          default:
+            return null;
+        }
+      });
+
+      // These methods should handle exceptions gracefully
+      expect(await errorPlatform.isGVLLoaded(), isFalse);
+      expect(await errorPlatform.getGVLVersion(), isNull);
+      await expectLater(errorPlatform.unloadGVL(), completes);
+      await expectLater(errorPlatform.clearGVL(), completes);
+    });
+
+    test('data parsing handles invalid formats', () async {
+      // Test malformed data handling
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
+        switch (call.method) {
+          case 'getVendorConsents':
+            return {'invalid': 'not_a_boolean'}; // Invalid format
+          case 'getConsentedVendors':
+            return [1, 'invalid', 2.5, null]; // Mixed types
+          case 'getVendorConsentsWithNames':
+            return {
+              'invalid_key': 'not_a_map',
+              1: {'incomplete': 'data'}, // Missing required fields
+            };
+          default:
+            return null;
+        }
+      });
+
+      // These should handle invalid data gracefully
+      final vendorConsents = await errorPlatform.getVendorConsents();
+      expect(vendorConsents, isEmpty);
+
+      final consentedVendors = await errorPlatform.getConsentedVendors();
+      expect(consentedVendors, contains(1)); // Should filter out invalid entries
+
+      final vendorConsentsWithNames = await errorPlatform.getVendorConsentsWithNames();
+      expect(vendorConsentsWithNames, isEmpty); // Should handle parsing errors
     });
   });
 }
