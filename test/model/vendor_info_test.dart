@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('VendorInfo', () {
     test('constructor creates object with all properties', () {
-      final vendorInfo = VendorInfo(
+      const vendorInfo = VendorInfo(
         id: 755,
         name: 'Google LLC',
         consented: true,
@@ -20,7 +20,7 @@ void main() {
     });
 
     test('constructor works with minimal required parameters', () {
-      final vendorInfo = VendorInfo(
+      const vendorInfo = VendorInfo(
         id: 123,
         name: 'Test Vendor',
         consented: false,
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('constructor works with empty purposes list', () {
-      final vendorInfo = VendorInfo(
+      const vendorInfo = VendorInfo(
         id: 456,
         name: 'Empty Purposes Vendor',
         consented: true,
@@ -165,7 +165,7 @@ void main() {
 
     group('toJson method', () {
       test('converts object to JSON with all fields', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
@@ -183,7 +183,7 @@ void main() {
       });
 
       test('converts object to JSON with null description', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 123,
           name: 'Test Vendor',
           consented: false,
@@ -200,7 +200,7 @@ void main() {
       });
 
       test('converts object with all fields to complete JSON', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 755,
           name: 'Complete Vendor',
           consented: true,
@@ -231,7 +231,7 @@ void main() {
       });
 
       test('round-trip conversion maintains data integrity', () {
-        final original = VendorInfo(
+        const original = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
@@ -252,7 +252,7 @@ void main() {
 
     group('copyWith method', () {
       test('creates copy with updated fields', () {
-        final original = VendorInfo(
+        const original = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
@@ -275,7 +275,7 @@ void main() {
       });
 
       test('copyWith updates all optional fields', () {
-        final original = VendorInfo(
+        const original = VendorInfo(
           id: 1,
           name: 'Original Vendor',
           consented: true,
@@ -320,7 +320,7 @@ void main() {
       });
 
       test('creates exact copy when no parameters provided', () {
-        final original = VendorInfo(
+        const original = VendorInfo(
           id: 123,
           name: 'Test Vendor',
           consented: true,
@@ -337,7 +337,7 @@ void main() {
       });
 
       test('copies all fields when no parameters provided', () {
-        final original = VendorInfo(
+        const original = VendorInfo(
           id: 456,
           name: 'Has Description',
           consented: true,
@@ -355,26 +355,26 @@ void main() {
 
     group('equality and hashCode', () {
       test('objects with same values are equal', () {
-        final vendor1 = VendorInfo(
+        const vendor1 = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
           description: 'Google services',
           purposes: [1, 2, 3],
-          legitimateInterestPurposes: const [],
-          specialFeatures: const [],
-          specialPurposes: const [],
+          legitimateInterestPurposes: [],
+          specialFeatures: [],
+          specialPurposes: [],
         );
 
-        final vendor2 = VendorInfo(
+        const vendor2 = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
           description: 'Google services',
           purposes: [1, 2, 3],
-          legitimateInterestPurposes: const [],
-          specialFeatures: const [],
-          specialPurposes: const [],
+          legitimateInterestPurposes: [],
+          specialFeatures: [],
+          specialPurposes: [],
         );
 
         expect(vendor1, equals(vendor2));
@@ -387,14 +387,14 @@ void main() {
       });
 
       test('objects with different values are not equal', () {
-        final vendor1 = VendorInfo(
+        const vendor1 = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
           purposes: [1, 2, 3],
         );
 
-        final vendor2 = VendorInfo(
+        const vendor2 = VendorInfo(
           id: 756, // Different ID
           name: 'Google LLC',
           consented: true,
@@ -405,14 +405,14 @@ void main() {
       });
 
       test('objects with same null descriptions are equal', () {
-        final vendor1 = VendorInfo(
+        const vendor1 = VendorInfo(
           id: 123,
           name: 'Test',
           consented: false,
           purposes: [1],
         );
 
-        final vendor2 = VendorInfo(
+        const vendor2 = VendorInfo(
           id: 123,
           name: 'Test',
           consented: false,
@@ -423,14 +423,14 @@ void main() {
       });
 
       test('objects with different purpose lists are not equal', () {
-        final vendor1 = VendorInfo(
+        const vendor1 = VendorInfo(
           id: 123,
           name: 'Test',
           consented: true,
           purposes: [1, 2, 3],
         );
 
-        final vendor2 = VendorInfo(
+        const vendor2 = VendorInfo(
           id: 123,
           name: 'Test',
           consented: true,
@@ -443,7 +443,7 @@ void main() {
 
     group('toString method', () {
       test('provides readable string representation', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
@@ -462,7 +462,7 @@ void main() {
       });
 
       test('handles null description in string representation', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 123,
           name: 'Test',
           consented: false,
@@ -477,7 +477,7 @@ void main() {
 
     group('Real-world scenarios', () {
       test('handles typical TCF vendor data', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 755,
           name: 'Google LLC',
           consented: true,
@@ -493,7 +493,7 @@ void main() {
       });
 
       test('handles vendor with no consent', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 50,
           name: 'Criteo SA',
           consented: false,
@@ -504,7 +504,7 @@ void main() {
       });
 
       test('handles vendor with single purpose', () {
-        final vendorInfo = VendorInfo(
+        const vendorInfo = VendorInfo(
           id: 100,
           name: 'Single Purpose Vendor',
           consented: true,
