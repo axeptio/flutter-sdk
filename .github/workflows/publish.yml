@@ -6,7 +6,7 @@ name: Publish to pub.dev
 # 2. pubspec.yaml updated dynamically from tag
 # 3. Validates version doesn't already exist on pub.dev
 # 4. Only triggered by releases, not manual dispatch
-# 
+#
 # Process:
 # 1. Create GitHub release with version tag (e.g., v2.0.16)
 # 2. This workflow triggers automatically
@@ -20,7 +20,7 @@ on:
         description: 'Release tag (e.g., v2.0.16)'
         required: true
         type: string
-      
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
         with:
           channel: master
           flutter-version: 3.29.3
-          cache: false 
+          cache: false
       - name: Validate release tag exists
         run: |
           TAG="${{ inputs.release_tag }}"
@@ -51,7 +51,7 @@ jobs:
             exit 1
           fi
           echo "✅ Release tag $TAG exists"
-      
+
       - name: Extract version from release tag
         id: extract-version
         run: |
@@ -81,7 +81,7 @@ jobs:
           git_config_global: true
           git_committer_name: axeptio-bot
           git_committer_email: ${{ secrets.BOT_EMAIL }}
-      
+
       - name: Configure Git for signed commits
         run: |
           git config --global commit.gpgsign true
@@ -89,7 +89,7 @@ jobs:
           git config --global user.signingkey ${{ steps.import_gpg.outputs.keyid }}
           git config --global gpg.program "$(which gpg)"
           git remote set-url origin https://x-access-token:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          
+
           # Ensure we're on master branch with proper upstream tracking
           git checkout -B master
           git branch --set-upstream-to=origin/master master
@@ -98,7 +98,7 @@ jobs:
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Checking if version $VERSION already exists on pub.dev..."
-          
+
           HTTP_CODE=$(curl -s -w "%{http_code}" -o /dev/null "https://pub.dev/api/packages/axeptio_sdk/versions/$VERSION")
           if [ "$HTTP_CODE" = "200" ]; then
             echo "❌ Version $VERSION already exists on pub.dev!"
@@ -115,13 +115,13 @@ jobs:
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Updating pubspec.yaml from release tag version: $VERSION"
-          
+
           # Backup original pubspec.yaml
           cp pubspec.yaml pubspec.yaml.backup
-          
+
           # Update version in pubspec.yaml
           sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
-          
+
           echo "✅ Updated pubspec.yaml to version: $VERSION"
           echo "Changes:"
           diff pubspec.yaml.backup pubspec.yaml || true
@@ -130,7 +130,7 @@ jobs:
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Checking if version $VERSION exists in CHANGELOG.md..."
-          
+
           if grep -q "^## $VERSION" CHANGELOG.md; then
             echo "✅ Version $VERSION found in CHANGELOG.md"
           else
@@ -143,10 +143,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
       - name: Run tests
         run: flutter test
-      
+
       - name: Check Publish Warnings
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"

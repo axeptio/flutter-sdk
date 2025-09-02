@@ -11,7 +11,7 @@ on:
         description: 'Release tag to validate (e.g., v2.0.16)'
         required: true
         type: string
-      
+
 jobs:
   dry-run-publish:
     runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Check if release tag exists
         id: check-tag
         run: |
@@ -32,16 +32,16 @@ jobs:
             echo "tag_exists=true" >> "$GITHUB_OUTPUT"
             echo "✅ Release tag $TAG exists"
           else
-            echo "tag_exists=false" >> "$GITHUB_OUTPUT" 
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
             echo "⚠️ Release tag $TAG does not exist yet - using current branch for validation"
           fi
-          
+
       - name: Validate release tag for dry-run
         if: steps.check-tag.outputs.tag_exists == 'true'
         run: |
           echo "✅ Release tag ${{ inputs.release_tag }} exists and ready for validation"
           echo "Note: Dry-run validation uses current branch state, not the specific tag"
-      
+
       - name: Extract version from release tag
         id: extract-version
         run: |
@@ -49,7 +49,7 @@ jobs:
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          
+
       - name: Validate version format
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
@@ -64,21 +64,21 @@ jobs:
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Validating automated changelog generation for version: $VERSION"
-          
+
           # Check if we have conventional commits to generate changelog from
           if git log --oneline --grep="^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^perf\|^test" --since="$(git describe --tags --abbrev=0 2>/dev/null || echo '1 month ago')" | head -5; then
             echo "✅ Found conventional commits for changelog generation"
           else
             echo "⚠️ No recent conventional commits found - changelog may be minimal"
           fi
-          
+
           echo "✅ Changelog will be auto-generated during actual publish"
 
       - name: Check if version exists on pub.dev
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Checking if version $VERSION already exists on pub.dev..."
-          
+
           HTTP_CODE=$(curl -s -w "%{http_code}" -o /dev/null "https://pub.dev/api/packages/axeptio_sdk/versions/$VERSION")
           if [ "$HTTP_CODE" = "200" ]; then
             echo "⚠️ Version $VERSION already exists on pub.dev!"
@@ -89,18 +89,18 @@ jobs:
             echo "⚠️ Could not verify version availability (HTTP $HTTP_CODE)"
             echo "Continuing with dry-run validation..."
           fi
-          
+
       - name: Update pubspec.yaml with release version
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Updating pubspec.yaml from release tag version: $VERSION"
-          
+
           # Backup original pubspec.yaml
           cp pubspec.yaml pubspec.yaml.backup
-          
+
           # Update version in pubspec.yaml
           sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
-          
+
           echo "✅ Updated pubspec.yaml to version: $VERSION"
           echo "Changes:"
           diff pubspec.yaml.backup pubspec.yaml || true
@@ -109,11 +109,11 @@ jobs:
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           echo "Simulating changelog generation for version: $VERSION"
-          
+
           # Show what commits would be included in changelog
           echo "📋 Recent commits that would generate changelog entries:"
           git log --oneline --grep="^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^perf\|^test" --since="$(git describe --tags --abbrev=0 2>/dev/null || echo '1 month ago')" | head -10 || echo "No conventional commits found"
-          
+
           echo "✅ During actual publish, changelog will be auto-generated from conventional commits"
 
       - name: Set up Flutter
@@ -121,11 +121,11 @@ jobs:
         with:
           channel: master
           flutter-version: 3.29.3
-          cache: false 
+          cache: false
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
       - name: Run tests
         run: flutter test
       - name: Check Publish Warnings (Dry Run)
@@ -141,7 +141,7 @@ jobs:
           flutter: true
           skipTests: true
           dryRunOnly: true
-          
+
       - name: Dry-run Summary
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"

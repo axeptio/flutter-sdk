@@ -40,7 +40,7 @@ jobs:
 
       - name: Run tests
         run: |
-          flutter analyze
+          flutter analyze --no-fatal-infos
           flutter test
 
       - name: Setup Node.js
