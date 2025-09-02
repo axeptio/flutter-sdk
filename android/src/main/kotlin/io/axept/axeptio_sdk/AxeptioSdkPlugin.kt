@@ -144,6 +144,7 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
 
+
             // iOS specific
             "setupUI",
             "setUserDeniedTracking" -> {

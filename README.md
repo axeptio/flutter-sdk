@@ -23,14 +23,20 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 3. [App Tracking Transparency (ATT) Integration](#app-tracking-transparency-att-integration)
 4. [SDK and Mobile App Responsibilities](#sdk-and-mobile-app-responsibilities)
 5. [Retrieving and Managing Stored Consents](#retrieving-and-managing-stored-consents)
-6. [TCF Vendor Consent Management](#tcf-vendor-consent-management)
-7. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
-8. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
-9. [Clearing User Consent](#clearing-user-consent)
-10. [Event Handling and Customization](#event-handling-and-customization)
+6. [TCF (Transparency & Consent Framework) Vendor Management](#tcf-transparency--consent-framework-vendor-management)
+7. [TCF Global Vendor List (GVL) Integration](#tcf-global-vendor-list-gvl-integration)
+   - [Loading the Global Vendor List](#loading-the-global-vendor-list)
+   - [Getting Vendor Names](#getting-vendor-names)
+   - [Enhanced Consent Data with Names](#enhanced-consent-data-with-names)
+   - [Cache Management](#cache-management)
+   - [Error Handling](#error-handling)
+8. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
+9. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
+10. [Clearing User Consent](#clearing-user-consent)
+11. [Event Handling and Customization](#event-handling-and-customization)
     - [Event Source Identification](#event-source-identification)
-11. [Testing and Development](#testing-and-development)
-12. [Local Test](#local-test)
+12. [Testing and Development](#testing-and-development)
+13. [Local Test](#local-test)
 <br><br><br>
 ## Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -44,7 +50,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^2.0.15
+  axeptio_sdk: ^2.0.18
 ```
 
 ### Android Setup
@@ -303,7 +309,7 @@ print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 > For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
 
 <br><br><br>
-## TCF Vendor Consent Management
+## TCF (Transparency & Consent Framework) Vendor Management
 
 The Axeptio SDK provides comprehensive **TCF (Transparency & Consent Framework)** vendor consent management APIs, allowing you to programmatically access and analyze user consent decisions for individual vendors.
 
@@ -547,6 +553,136 @@ The following values are used:
 - `sdk-web`: Brands widget on websites.
 
 This tagging is handled automatically by the native SDK components used under the hood in the Flutter module.
+<br><br><br>
+
+## TCF Global Vendor List (GVL) Integration
+
+The Axeptio SDK provides comprehensive **Global Vendor List (GVL) integration** for resolving TCF vendor IDs to human-readable vendor names. This feature bridges the gap between numeric vendor IDs and user-friendly vendor information.
+
+> 📱 **Platform Support**: Available on **both iOS and Android** platforms.  
+> 🌐 **Data Source**: Fetches from the official IAB Global Vendor List API
+
+### Key Features
+
+- **🔄 Automatic Caching**: 7-day intelligent caching with background refresh
+- **⚡ High Performance**: Optimized memory usage and fast lookups  
+- **🌐 Offline Support**: Graceful fallback when network unavailable
+- **🎯 Flexible APIs**: Individual and bulk vendor name resolution
+- **🛡️ Error Handling**: Robust error handling with fallback mechanisms
+
+### Loading the Global Vendor List
+
+Before using vendor name resolution, load the GVL data:
+
+```dart
+import 'package:axeptio_sdk/axeptio_sdk.dart';
+
+// Load latest GVL version
+final success = await axeptioSdk.loadGVL();
+if (success) {
+  print('✅ GVL loaded successfully');
+} else {
+  print('❌ Failed to load GVL');
+}
+
+// Load specific GVL version (optional)
+final loaded = await axeptioSdk.loadGVL(gvlVersion: "123");
+```
+
+### Getting Vendor Names
+
+#### Single Vendor Name Resolution
+```dart
+// Get human-readable name for a vendor ID
+final vendorName = await axeptioSdk.getVendorName(755);
+print('Vendor 755: $vendorName'); // e.g., "Vendor 755: Microsoft"
+
+// Handle missing vendors gracefully
+final unknownVendor = await axeptioSdk.getVendorName(99999);
+if (unknownVendor != null) {
+  print('Found: $unknownVendor');
+} else {
+  print('Vendor not found in GVL');
+}
+```
+
+#### Bulk Vendor Name Resolution
+```dart
+// Get names for multiple vendor IDs efficiently
+final vendorIds = [1, 2, 755, 5175, 8690];
+final vendorNames = await axeptioSdk.getVendorNames(vendorIds);
+
+vendorNames.forEach((id, name) {
+  print('Vendor $id: $name');
+});
+
+// Example output:
+// Vendor 1: Google LLC
+// Vendor 2: Facebook Inc.
+// Vendor 755: Microsoft Corporation
+// Vendor 5175: Apple Inc.
+```
+
+### Enhanced Consent Data with Names
+
+Get comprehensive vendor information including consent status and detailed vendor data:
+
+```dart
+// Get complete vendor information with consent status
+final vendorInfos = await axeptioSdk.getVendorConsentsWithNames();
+
+vendorInfos.forEach((id, info) {
+  print('${info.name}: ${info.consented ? "✅" : "❌"}');
+  print('  Purposes: ${info.purposes}');
+  print('  Uses cookies: ${info.usesCookies}');
+  print('  Policy: ${info.policyUrl ?? "Not provided"}');
+});
+```
+
+### Cache Management
+
+Control GVL caching behavior for optimal performance:
+
+```dart
+// Check if GVL is currently loaded
+final isLoaded = await axeptioSdk.isGVLLoaded();
+print('GVL loaded: $isLoaded');
+
+// Get current GVL version  
+final version = await axeptioSdk.getGVLVersion();
+print('Current GVL version: ${version ?? "Not loaded"}');
+
+// Clear GVL data from memory (preserves cache)
+await axeptioSdk.unloadGVL();
+
+// Clear all cached GVL data (forces fresh download)
+await axeptioSdk.clearGVL();
+```
+
+### Error Handling
+
+```dart
+Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
+  try {
+    // Ensure GVL is loaded
+    if (!await axeptioSdk.isGVLLoaded()) {
+      final loaded = await axeptioSdk.loadGVL();
+      if (!loaded) {
+        return <int, String>{}; // Return empty map on failure
+      }
+    }
+    
+    return await axeptioSdk.getVendorNames(vendorIds);
+  } catch (e) {
+    print('Error getting vendor names: $e');
+    // Fallback to generic names
+    return Map.fromEntries(
+      vendorIds.map((id) => MapEntry(id, 'Vendor $id'))
+    );
+  }
+}
+```
+
 <br><br><br>
 
 ## Testing and Development

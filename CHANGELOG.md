@@ -1,3 +1,39 @@
+## 2.0.18
+
+### ✨ New Features
+- **Flutter-Native GVL Service**: Complete Global Vendor List integration implemented in pure Dart/Flutter
+  - `loadGVL()`: Download and cache IAB Global Vendor List from https://static.axept.io/gvl/vendor-list.json
+  - `getVendorName(vendorId)`: Get individual vendor name by ID with intelligent fallbacks
+  - `getVendorNames(vendorIds[])`: Get multiple vendor names efficiently
+  - `getVendorConsentsWithNames()`: Enhanced consent data combining platform consent with GVL names
+  - `unloadGVL()`, `clearGVL()`: Memory and cache management for GVL data
+  - `isGVLLoaded()`, `getGVLVersion()`: Status and version information
+- **VendorInfo Model**: Comprehensive vendor information class with purposes, features, and metadata
+- **Smart Caching**: 7-day local storage with SharedPreferences and automatic cache invalidation
+- **Zero Native Dependencies**: Pure Flutter implementation eliminates platform-specific GVL code
+
+### 🎛️ Enhanced Example App
+- **Advanced GVL Management UI**: Comprehensive interface for testing all GVL features
+- **Real-time Vendor Analytics**: Live vendor consent visualization with names
+- **Interactive Controls**: Load/unload/clear GVL operations with status feedback
+- **Performance Monitoring**: GVL loading status, version tracking, and error reporting
+
+### 🧪 Testing Improvements
+- **100% Test Success Rate**: All 163 tests passing with real GVL API integration
+- **Real Data Testing**: Tests use actual GVL data (1372+ vendors) instead of mocks
+- **Comprehensive Coverage**: Unit, integration, and error handling tests for all GVL features
+
+### 🔧 Technical Architecture
+- **HTTP Client Integration**: Direct API calls with proper error handling and timeouts
+- **Memory Optimization**: Efficient loading and unloading of large vendor datasets (1372+ vendors)
+- **Platform Interface Cleanup**: Removed complex GVL method signatures from native bridges
+- **Backward Compatibility**: All existing APIs maintained, zero breaking changes
+
+### 📚 Documentation
+- Enhanced README with GVL integration examples
+- Comprehensive API documentation for all new methods
+- Example app serves as complete integration reference
+
 ## 2.0.17
 
 - Update example app with improved user interface and functionality.

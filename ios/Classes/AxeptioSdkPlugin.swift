@@ -116,10 +116,12 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
       let isConsented = Axeptio.shared.isVendorConsented(vendorId)
       result(isConsented)
 
+
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+
 
   /// Recursively converts values to Flutter-supported types,
   /// preventing codec crashes.
@@ -178,7 +180,7 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
     let axeptioService =
       targetService == "brands" ? AxeptioService.brands : AxeptioService.publisherTcf
 
-    let token = args["token"] as? String
+    _ = args["token"] as? String
 
     if let token = args["token"] as? String {
       Axeptio.shared.initialize(
