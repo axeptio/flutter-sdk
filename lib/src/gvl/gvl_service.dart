@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/vendor_info.dart';
@@ -36,7 +37,7 @@ class GVLService {
       // Fetch from remote
       return await _fetchFromRemote(gvlVersion);
     } catch (error) {
-      print('GVLService: Error loading GVL - $error');
+      developer.log('Error loading GVL', error: error, name: 'GVLService');
       return false;
     } finally {
       _isLoading = false;
@@ -147,11 +148,13 @@ class GVLService {
       _cachedVendors = _parseVendorList(gvlData);
       _cachedVersion = cachedVersion;
 
-      print(
-          'GVLService: Loaded ${_cachedVendors?.length ?? 0} vendors from cache (v$_cachedVersion)');
+      developer.log(
+          'Loaded ${_cachedVendors?.length ?? 0} vendors from cache (v$_cachedVersion)',
+          name: 'GVLService');
       return true;
     } catch (error) {
-      print('GVLService: Error loading from cache - $error');
+      developer.log('Error loading from cache',
+          error: error, name: 'GVLService');
       return false;
     }
   }
@@ -164,7 +167,7 @@ class GVLService {
         url = '$_baseUrl/vendor-list-v$specificVersion.json';
       }
 
-      print('GVLService: Fetching GVL from $url');
+      developer.log('Fetching GVL from $url', name: 'GVLService');
 
       final response = await http.get(
         Uri.parse(url),
@@ -175,8 +178,8 @@ class GVLService {
       ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode != 200) {
-        print(
-            'GVLService: HTTP ${response.statusCode} - ${response.reasonPhrase}');
+        developer.log('HTTP ${response.statusCode} - ${response.reasonPhrase}',
+            name: 'GVLService');
         return false;
       }
 
@@ -189,11 +192,13 @@ class GVLService {
       // Cache the data
       await _saveToCache(response.body, _cachedVersion!);
 
-      print(
-          'GVLService: Loaded ${_cachedVendors?.length ?? 0} vendors from remote (v$_cachedVersion)');
+      developer.log(
+          'Loaded ${_cachedVendors?.length ?? 0} vendors from remote (v$_cachedVersion)',
+          name: 'GVLService');
       return true;
     } catch (error) {
-      print('GVLService: Error fetching from remote - $error');
+      developer.log('Error fetching from remote',
+          error: error, name: 'GVLService');
       return false;
     }
   }
@@ -236,7 +241,8 @@ class GVLService {
         );
       }
     } catch (error) {
-      print('GVLService: Error parsing vendor list - $error');
+      developer.log('Error parsing vendor list',
+          error: error, name: 'GVLService');
     }
 
     return vendors;
@@ -251,7 +257,7 @@ class GVLService {
       await prefs.setInt(
           _cacheKeyGvlTimestamp, DateTime.now().millisecondsSinceEpoch);
     } catch (error) {
-      print('GVLService: Error saving to cache - $error');
+      developer.log('Error saving to cache', error: error, name: 'GVLService');
     }
   }
 }

@@ -281,11 +281,11 @@ class _VendorScreenState extends State<VendorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
-                const Icon(Icons.storage, color: Colors.purple),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.storage, color: Colors.purple),
+                SizedBox(width: 8),
+                Text(
                   'Global Vendor List (GVL)',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
