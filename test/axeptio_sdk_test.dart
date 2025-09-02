@@ -187,6 +187,83 @@ class MockAxeptioSdkPlatform
   bool get isInitialized => _isInitialized;
   AxeptioService? get currentService => _currentService;
   List<AxeptioEventListener> get listeners => List.unmodifiable(_listeners);
+
+  // GVL Mock Methods
+  @override
+  Future<bool> loadGVL({String? gvlVersion}) async {
+    return true; // Mock success
+  }
+
+  @override
+  Future<void> unloadGVL() async {
+    // Mock implementation
+  }
+
+  @override
+  Future<void> clearGVL() async {
+    // Mock implementation
+  }
+
+  @override
+  Future<String?> getVendorName(int vendorId) async {
+    // Mock vendor names
+    final mockNames = {
+      1: 'Google',
+      2: 'Facebook', 
+      755: 'Microsoft',
+      5175: 'Apple',
+      8690: 'Amazon'
+    };
+    return mockNames[vendorId];
+  }
+
+  @override
+  Future<Map<int, String>> getVendorNames(List<int> vendorIds) async {
+    final mockNames = {
+      1: 'Google',
+      2: 'Facebook',
+      755: 'Microsoft',
+      5175: 'Apple',
+      8690: 'Amazon'
+    };
+    
+    final result = <int, String>{};
+    for (final id in vendorIds) {
+      final name = mockNames[id];
+      if (name != null) {
+        result[id] = name;
+      }
+    }
+    return result;
+  }
+
+  @override
+  Future<Map<int, VendorInfo>> getVendorConsentsWithNames() async {
+    final mockVendorConsents = await getVendorConsents();
+    final result = <int, VendorInfo>{};
+    
+    for (final entry in mockVendorConsents.entries) {
+      final vendorName = await getVendorName(entry.key);
+      result[entry.key] = VendorInfo(
+        id: entry.key,
+        name: vendorName ?? 'Vendor ${entry.key}',
+        consented: entry.value,
+        purposes: [1, 2, 3],
+      );
+    }
+    
+    return result;
+  }
+
+  @override
+  Future<bool> isGVLLoaded() async {
+    return true; // Mock loaded state
+  }
+
+  @override
+  Future<String?> getGVLVersion() async {
+    return '123'; // Mock version
+  }
 }
 
 void main() {
@@ -434,6 +511,196 @@ void main() {
       sdk.addEventListerner(listener);
 
       expect(mockPlatform.listeners.length, equals(1));
+    });
+  });
+
+  group('GVL Integration', () {
+    late AxeptioSdk sdk;
+    late MockAxeptioSdkPlatform mockPlatform;
+
+    setUp(() async {
+      sdk = AxeptioSdk();
+      mockPlatform = MockAxeptioSdkPlatform();
+      AxeptioSdkPlatform.instance = mockPlatform;
+      mockPlatform.reset();
+
+      // Initialize SDK for GVL tests
+      await sdk.initialize(
+          AxeptioService.publishers, 'test-client', 'v1.0.0', null);
+    });
+
+    group('GVL Loading', () {
+      test('loadGVL succeeds with default version', () async {
+        final result = await sdk.loadGVL();
+        expect(result, isTrue);
+      });
+
+      test('loadGVL succeeds with specific version', () async {
+        final result = await sdk.loadGVL(gvlVersion: '123');
+        expect(result, isTrue);
+      });
+
+      test('isGVLLoaded returns correct status', () async {
+        final isLoaded = await sdk.isGVLLoaded();
+        expect(isLoaded, isTrue);
+      });
+
+      test('getGVLVersion returns version string', () async {
+        final version = await sdk.getGVLVersion();
+        expect(version, equals('123'));
+      });
+
+      test('unloadGVL completes successfully', () async {
+        await expectLater(sdk.unloadGVL(), completes);
+      });
+
+      test('clearGVL completes successfully', () async {
+        await expectLater(sdk.clearGVL(), completes);
+      });
+    });
+
+    group('Vendor Name Resolution', () {
+      test('getVendorName returns vendor name for known ID', () async {
+        final vendorName = await sdk.getVendorName(1);
+        expect(vendorName, equals('Google'));
+      });
+
+      test('getVendorName returns null for unknown ID', () async {
+        final vendorName = await sdk.getVendorName(9999);
+        expect(vendorName, isNull);
+      });
+
+      test('getVendorNames returns map for multiple IDs', () async {
+        final vendorNames = await sdk.getVendorNames([1, 2, 755]);
+        expect(vendorNames, isA<Map<int, String>>());
+        expect(vendorNames[1], equals('Google'));
+        expect(vendorNames[2], equals('Facebook'));
+        expect(vendorNames[755], equals('Microsoft'));
+      });
+
+      test('getVendorNames handles empty list', () async {
+        final vendorNames = await sdk.getVendorNames([]);
+        expect(vendorNames, isEmpty);
+      });
+
+      test('getVendorNames filters unknown IDs', () async {
+        final vendorNames = await sdk.getVendorNames([1, 9999, 755]);
+        expect(vendorNames.length, equals(2));
+        expect(vendorNames.containsKey(9999), isFalse);
+        expect(vendorNames[1], equals('Google'));
+        expect(vendorNames[755], equals('Microsoft'));
+      });
+    });
+
+    group('Vendor Consents with Names', () {
+      test('getVendorConsentsWithNames returns enhanced consent data', () async {
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+        expect(vendorConsentsWithNames, isA<Map<int, VendorInfo>>());
+        expect(vendorConsentsWithNames.isNotEmpty, isTrue);
+      });
+
+      test('getVendorConsentsWithNames includes consent status', () async {
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+        
+        for (final entry in vendorConsentsWithNames.entries) {
+          final vendorInfo = entry.value;
+          expect(vendorInfo.id, equals(entry.key));
+          expect(vendorInfo.name, isNotEmpty);
+          expect(vendorInfo.consented, isA<bool>());
+          expect(vendorInfo.purposes, isA<List<int>>());
+        }
+      });
+
+      test('getVendorConsentsWithNames includes vendor names', () async {
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+        
+        // Check specific vendors we know exist
+        if (vendorConsentsWithNames.containsKey(1)) {
+          expect(vendorConsentsWithNames[1]!.name, equals('Google'));
+        }
+        if (vendorConsentsWithNames.containsKey(755)) {
+          expect(vendorConsentsWithNames[755]!.name, equals('Microsoft'));
+        }
+      });
+
+      test('getVendorConsentsWithNames provides fallback names for unknown vendors', () async {
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+        
+        for (final entry in vendorConsentsWithNames.entries) {
+          final vendorInfo = entry.value;
+          // Should never be null or empty
+          expect(vendorInfo.name, isNotEmpty);
+          // If no name found, should fallback to "Vendor {id}"
+          if (!vendorInfo.name.contains('Google') && 
+              !vendorInfo.name.contains('Facebook') && 
+              !vendorInfo.name.contains('Microsoft')) {
+            expect(vendorInfo.name, contains('Vendor'));
+            expect(vendorInfo.name, contains(vendorInfo.id.toString()));
+          }
+        }
+      });
+    });
+
+    group('GVL Error Handling', () {
+      test('GVL methods work without initialization', () async {
+        mockPlatform.reset(); // Reset to uninitialized state
+        
+        // These methods should still work as they don't require SDK initialization
+        await expectLater(sdk.loadGVL(), completes);
+        await expectLater(sdk.getVendorName(1), completes);
+        await expectLater(sdk.getVendorNames([1, 2]), completes);
+        await expectLater(sdk.unloadGVL(), completes);
+        await expectLater(sdk.clearGVL(), completes);
+      });
+    });
+
+    group('Integration with Existing Vendor Methods', () {
+      test('GVL enhances existing vendor consent data', () async {
+        // Get standard vendor consents
+        final vendorConsents = await sdk.getVendorConsents();
+        expect(vendorConsents, isA<Map<int, bool>>());
+
+        // Get enhanced vendor consents with names
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+        expect(vendorConsentsWithNames, isA<Map<int, VendorInfo>>());
+
+        // Both should have same vendor IDs
+        expect(vendorConsentsWithNames.keys.toSet(), equals(vendorConsents.keys.toSet()));
+
+        // Consent status should match
+        for (final vendorId in vendorConsents.keys) {
+          expect(vendorConsentsWithNames[vendorId]!.consented, 
+                 equals(vendorConsents[vendorId]));
+        }
+      });
+
+      test('GVL data is consistent with isVendorConsented', () async {
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+
+        for (final entry in vendorConsentsWithNames.entries) {
+          final vendorId = entry.key;
+          final vendorInfo = entry.value;
+          
+          final isConsented = await sdk.isVendorConsented(vendorId);
+          expect(vendorInfo.consented, equals(isConsented));
+        }
+      });
+
+      test('GVL data is consistent with consented/refused vendor lists', () async {
+        final consentedVendors = await sdk.getConsentedVendors();
+        final refusedVendors = await sdk.getRefusedVendors();
+        final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
+
+        // Check consented vendors
+        for (final vendorId in consentedVendors) {
+          expect(vendorConsentsWithNames[vendorId]?.consented, isTrue);
+        }
+
+        // Check refused vendors
+        for (final vendorId in refusedVendors) {
+          expect(vendorConsentsWithNames[vendorId]?.consented, isFalse);
+        }
+      });
     });
   });
 }

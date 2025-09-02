@@ -549,6 +549,136 @@ The following values are used:
 This tagging is handled automatically by the native SDK components used under the hood in the Flutter module.
 <br><br><br>
 
+## Global Vendor List (GVL) Integration
+
+The Axeptio SDK provides comprehensive **Global Vendor List (GVL) integration** for resolving TCF vendor IDs to human-readable vendor names. This feature bridges the gap between numeric vendor IDs and user-friendly vendor information.
+
+> 📱 **Platform Support**: Available on **both iOS and Android** platforms.  
+> 🌐 **Data Source**: Fetches from the official IAB Global Vendor List API
+
+### Key Features
+
+- **🔄 Automatic Caching**: 7-day intelligent caching with background refresh
+- **⚡ High Performance**: Optimized memory usage and fast lookups  
+- **🌐 Offline Support**: Graceful fallback when network unavailable
+- **🎯 Flexible APIs**: Individual and bulk vendor name resolution
+- **🛡️ Error Handling**: Robust error handling with fallback mechanisms
+
+### Loading the Global Vendor List
+
+Before using vendor name resolution, load the GVL data:
+
+```dart
+import 'package:axeptio_sdk/axeptio_sdk.dart';
+
+// Load latest GVL version
+final success = await axeptioSdk.loadGVL();
+if (success) {
+  print('✅ GVL loaded successfully');
+} else {
+  print('❌ Failed to load GVL');
+}
+
+// Load specific GVL version (optional)
+final loaded = await axeptioSdk.loadGVL(gvlVersion: "123");
+```
+
+### Getting Vendor Names
+
+#### Single Vendor Name Resolution
+```dart
+// Get human-readable name for a vendor ID
+final vendorName = await axeptioSdk.getVendorName(755);
+print('Vendor 755: $vendorName'); // e.g., "Vendor 755: Microsoft"
+
+// Handle missing vendors gracefully
+final unknownVendor = await axeptioSdk.getVendorName(99999);
+if (unknownVendor != null) {
+  print('Found: $unknownVendor');
+} else {
+  print('Vendor not found in GVL');
+}
+```
+
+#### Bulk Vendor Name Resolution
+```dart
+// Get names for multiple vendor IDs efficiently
+final vendorIds = [1, 2, 755, 5175, 8690];
+final vendorNames = await axeptioSdk.getVendorNames(vendorIds);
+
+vendorNames.forEach((id, name) {
+  print('Vendor $id: $name');
+});
+
+// Example output:
+// Vendor 1: Google LLC
+// Vendor 2: Facebook Inc.
+// Vendor 755: Microsoft Corporation
+// Vendor 5175: Apple Inc.
+```
+
+### Enhanced Consent Data with Names
+
+Get comprehensive vendor information including consent status and detailed vendor data:
+
+```dart
+// Get complete vendor information with consent status
+final vendorInfos = await axeptioSdk.getVendorConsentsWithNames();
+
+vendorInfos.forEach((id, info) {
+  print('${info.name}: ${info.consented ? "✅" : "❌"}');
+  print('  Purposes: ${info.purposes}');
+  print('  Uses cookies: ${info.usesCookies}');
+  print('  Policy: ${info.policyUrl ?? "Not provided"}');
+});
+```
+
+### Cache Management
+
+Control GVL caching behavior for optimal performance:
+
+```dart
+// Check if GVL is currently loaded
+final isLoaded = await axeptioSdk.isGVLLoaded();
+print('GVL loaded: $isLoaded');
+
+// Get current GVL version  
+final version = await axeptioSdk.getGVLVersion();
+print('Current GVL version: ${version ?? "Not loaded"}');
+
+// Clear GVL data from memory (preserves cache)
+await axeptioSdk.unloadGVL();
+
+// Clear all cached GVL data (forces fresh download)
+await axeptioSdk.clearGVL();
+```
+
+### Error Handling
+
+```dart
+Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
+  try {
+    // Ensure GVL is loaded
+    if (!await axeptioSdk.isGVLLoaded()) {
+      final loaded = await axeptioSdk.loadGVL();
+      if (!loaded) {
+        return <int, String>{}; // Return empty map on failure
+      }
+    }
+    
+    return await axeptioSdk.getVendorNames(vendorIds);
+  } catch (e) {
+    print('Error getting vendor names: $e');
+    // Fallback to generic names
+    return Map.fromEntries(
+      vendorIds.map((id) => MapEntry(id, 'Vendor $id'))
+    );
+  }
+}
+```
+
+<br><br><br>
+
 ## Testing and Development
 
 The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions. 

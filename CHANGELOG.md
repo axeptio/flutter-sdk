@@ -1,3 +1,26 @@
+## 2.0.18
+
+### ✨ New Features
+- **GVL Integration**: Add Global Vendor List integration for vendor ID to name mapping
+  - `loadGVL()`: Download and cache IAB Global Vendor List
+  - `getVendorName(vendorId)`: Get individual vendor name by ID
+  - `getVendorNames(vendorIds[])`: Get multiple vendor names
+  - `getVendorConsentsWithNames()`: Enhanced consent data with names
+  - `unloadGVL()`, `clearGVL()`: GVL cache management
+- **Vendor Information Model**: New VendorInfo class with comprehensive vendor details
+- **Intelligent Caching**: 7-day TTL with background refresh and offline fallback
+- **Cross-Platform Support**: Full iOS and Android implementation
+
+### 📚 Documentation
+- Add comprehensive GVL integration guide
+- Include code examples for all new APIs
+- Add migration guide for existing implementations
+
+### 🔧 Technical
+- Optimize memory usage for large vendor lists
+- Add comprehensive error handling for network operations
+- Implement efficient caching strategy with configurable TTL
+
 ## 2.0.17
 
 - Update example app with improved user interface and functionality.

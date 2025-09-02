@@ -198,4 +198,144 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   removeEventListener(AxeptioEventListener listener) {
     _eventsHandler.removeEventListener(listener);
   }
+
+  // GVL Management methods
+  @override
+  Future<bool> loadGVL({String? gvlVersion}) async {
+    try {
+      final result = await methodChannel.invokeMethod<bool>(
+        'loadGVL',
+        gvlVersion != null ? {'gvlVersion': gvlVersion} : null,
+      );
+      return result ?? false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in loadGVL - $e');
+      }
+      return false;
+    }
+  }
+
+  @override
+  Future<void> unloadGVL() async {
+    try {
+      await methodChannel.invokeMethod<void>('unloadGVL');
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in unloadGVL - $e');
+      }
+    }
+  }
+
+  @override
+  Future<void> clearGVL() async {
+    try {
+      await methodChannel.invokeMethod<void>('clearGVL');
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in clearGVL - $e');
+      }
+    }
+  }
+
+  // Vendor information methods
+  @override
+  Future<String?> getVendorName(int vendorId) async {
+    try {
+      final result = await methodChannel.invokeMethod<String>(
+        'getVendorName',
+        {'vendorId': vendorId},
+      );
+      return result;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in getVendorName - $e');
+      }
+      return null;
+    }
+  }
+
+  @override
+  Future<Map<int, String>> getVendorNames(List<int> vendorIds) async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getVendorNames',
+        {'vendorIds': vendorIds},
+      );
+      if (result == null) return <int, String>{};
+
+      final Map<int, String> vendorNames = <int, String>{};
+      result.forEach((key, value) {
+        if (key is num && value is String) {
+          vendorNames[key.toInt()] = value;
+        }
+      });
+      return vendorNames;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in getVendorNames - $e');
+      }
+      return <int, String>{};
+    }
+  }
+
+  @override
+  Future<Map<int, VendorInfo>> getVendorConsentsWithNames() async {
+    try {
+      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+        'getVendorConsentsWithNames',
+      );
+      if (result == null) return <int, VendorInfo>{};
+
+      final Map<int, VendorInfo> vendorInfos = <int, VendorInfo>{};
+      result.forEach((key, value) {
+        if (key is num && value is Map<dynamic, dynamic>) {
+          try {
+            final vendorInfo = VendorInfo.fromJson(
+              Map<String, dynamic>.from(value),
+              value['consented'] as bool? ?? false,
+            );
+            vendorInfos[key.toInt()] = vendorInfo;
+          } catch (parseError) {
+            if (kDebugMode) {
+              print('AxeptioSDK: Error parsing vendor info for ID $key - $parseError');
+            }
+          }
+        }
+      });
+      return vendorInfos;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in getVendorConsentsWithNames - $e');
+      }
+      return <int, VendorInfo>{};
+    }
+  }
+
+  // GVL status methods
+  @override
+  Future<bool> isGVLLoaded() async {
+    try {
+      final result = await methodChannel.invokeMethod<bool>('isGVLLoaded');
+      return result ?? false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in isGVLLoaded - $e');
+      }
+      return false;
+    }
+  }
+
+  @override
+  Future<String?> getGVLVersion() async {
+    try {
+      final result = await methodChannel.invokeMethod<String>('getGVLVersion');
+      return result;
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioSDK: Exception in getGVLVersion - $e');
+      }
+      return null;
+    }
+  }
 }
