@@ -399,12 +399,10 @@ class VendorDataService {
 
         if (vendorNamesMap.isNotEmpty) {
           analysis += '\n👥 Sample Consented Vendors (with names):\n';
-          int count = 0;
           for (final vendorId in apiConsentedVendors.take(10)) {
             final name = vendorNamesMap[vendorId];
             if (name != null && name.isNotEmpty) {
               analysis += '• $vendorId: $name\n';
-              count++;
             } else {
               analysis += '• $vendorId: Name not available\n';
             }

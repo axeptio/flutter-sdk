@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/vendor_info.dart';
@@ -21,7 +20,6 @@ class GVLService {
 
   Map<int, VendorInfo>? _cachedVendors;
   String? _cachedVersion;
-  DateTime? _lastFetch;
   bool _isLoading = false;
 
   /// Loads GVL data from cache or remote
@@ -89,7 +87,6 @@ class GVLService {
   void unloadGVL() {
     _cachedVendors = null;
     _cachedVersion = null;
-    _lastFetch = null;
   }
 
   /// Clears GVL cache completely
@@ -149,7 +146,6 @@ class GVLService {
       final Map<String, dynamic> gvlData = json.decode(cachedData);
       _cachedVendors = _parseVendorList(gvlData);
       _cachedVersion = cachedVersion;
-      _lastFetch = cacheTime;
 
       print(
           'GVLService: Loaded ${_cachedVendors?.length ?? 0} vendors from cache (v$_cachedVersion)');
@@ -189,7 +185,6 @@ class GVLService {
       _cachedVersion = gvlData['gvlSpecificationVersion']?.toString() ??
           gvlData['tcfPolicyVersion']?.toString() ??
           'unknown';
-      _lastFetch = DateTime.now();
 
       // Cache the data
       await _saveToCache(response.body, _cachedVersion!);
