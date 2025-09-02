@@ -92,39 +92,4 @@ abstract interface class AxeptioSdkPlatform extends PlatformInterface {
     throw UnimplementedError('removeEventListener() has not been implemented');
   }
 
-  // GVL Management methods
-  Future<bool> loadGVL({String? gvlVersion}) {
-    throw UnimplementedError('loadGVL() has not been implemented');
-  }
-
-  Future<void> unloadGVL() {
-    throw UnimplementedError('unloadGVL() has not been implemented');
-  }
-
-  Future<void> clearGVL() {
-    throw UnimplementedError('clearGVL() has not been implemented');
-  }
-
-  // Vendor information methods
-  Future<String?> getVendorName(int vendorId) {
-    throw UnimplementedError('getVendorName() has not been implemented');
-  }
-
-  Future<Map<int, String>> getVendorNames(List<int> vendorIds) {
-    throw UnimplementedError('getVendorNames() has not been implemented');
-  }
-
-  Future<Map<int, VendorInfo>> getVendorConsentsWithNames() {
-    throw UnimplementedError(
-        'getVendorConsentsWithNames() has not been implemented');
-  }
-
-  // GVL status methods
-  Future<bool> isGVLLoaded() {
-    throw UnimplementedError('isGVLLoaded() has not been implemented');
-  }
-
-  Future<String?> getGVLVersion() {
-    throw UnimplementedError('getGVLVersion() has not been implemented');
-  }
 }

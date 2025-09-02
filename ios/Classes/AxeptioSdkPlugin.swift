@@ -116,108 +116,12 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
       let isConsented = Axeptio.shared.isVendorConsented(vendorId)
       result(isConsented)
 
-    // GVL Management methods
-    case "loadGVL":
-      let arguments = call.arguments as? [String: Any]
-      let gvlVersion = arguments?["gvlVersion"] as? String
-      
-      loadGVL(gvlVersion: gvlVersion) { success in
-        result(success)
-      }
-
-    case "unloadGVL":
-      AxeptioGVLManager.shared.unloadGVL()
-      result(nil)
-
-    case "clearGVL":
-      AxeptioGVLManager.shared.clearGVL()
-      result(nil)
-
-    // Vendor information methods
-    case "getVendorName":
-      guard let arguments = call.arguments as? [String: Any],
-        let vendorId = arguments["vendorId"] as? Int
-      else {
-        result(
-          FlutterError.init(
-            code: "invalid_args", message: "getVendorName: Missing argument 'vendorId'",
-            details: nil))
-        return
-      }
-      let vendorName = AxeptioGVLManager.shared.getVendorName(vendorId)
-      result(vendorName)
-
-    case "getVendorNames":
-      guard let arguments = call.arguments as? [String: Any],
-        let vendorIds = arguments["vendorIds"] as? [Int]
-      else {
-        result(
-          FlutterError.init(
-            code: "invalid_args", message: "getVendorNames: Missing argument 'vendorIds'",
-            details: nil))
-        return
-      }
-      let vendorNames = AxeptioGVLManager.shared.getVendorNames(vendorIds)
-      let safeResponse = sanitizeForFlutter(vendorNames)
-      result(safeResponse)
-
-    case "getVendorConsentsWithNames":
-      getVendorConsentsWithNames { vendorInfos in
-        let safeResponse = sanitizeForFlutter(vendorInfos)
-        result(safeResponse)
-      }
-
-    // GVL status methods
-    case "isGVLLoaded":
-      let isLoaded = AxeptioGVLManager.shared.isGVLLoaded()
-      result(isLoaded)
-
-    case "getGVLVersion":
-      let version = AxeptioGVLManager.shared.getGVLVersion()
-      result(version)
 
     default:
       result(FlutterMethodNotImplemented)
     }
   }
 
-  // MARK: - GVL Helper Methods
-
-  private func loadGVL(gvlVersion: String?, completion: @escaping (Bool) -> Void) {
-    AxeptioGVLManager.shared.loadGVL(version: gvlVersion) { success in
-      DispatchQueue.main.async {
-        completion(success)
-      }
-    }
-  }
-
-  private func getVendorConsentsWithNames(completion: @escaping ([String: [String: Any]]) -> Void) {
-    let vendorConsents = Axeptio.shared.getVendorConsents()
-    var vendorInfos: [String: [String: Any]] = [:]
-    
-    for (vendorId, consented) in vendorConsents {
-      if let vendorInfo = AxeptioGVLManager.shared.getVendorInfo(vendorId) {
-        var info = vendorInfo
-        info["consented"] = consented
-        vendorInfos[String(vendorId)] = info
-      } else {
-        // Fallback for vendors not in GVL
-        vendorInfos[String(vendorId)] = [
-          "id": vendorId,
-          "name": "Vendor \(vendorId)",
-          "consented": consented,
-          "purposes": [],
-          "legIntPurposes": [],
-          "specialFeatures": [],
-          "specialPurposes": [],
-          "usesCookies": false,
-          "usesNonCookieAccess": false
-        ]
-      }
-    }
-    
-    completion(vendorInfos)
-  }
 
   /// Recursively converts values to Flutter-supported types,
   /// preventing codec crashes.
@@ -276,7 +180,7 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
     let axeptioService =
       targetService == "brands" ? AxeptioService.brands : AxeptioService.publisherTcf
 
-    let token = args["token"] as? String
+    _ = args["token"] as? String
 
     if let token = args["token"] as? String {
       Axeptio.shared.initialize(

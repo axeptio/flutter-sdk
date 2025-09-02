@@ -1,5 +1,6 @@
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
+import 'package:axeptio_sdk/src/gvl/gvl_service.dart';
 
 import 'axeptio_sdk_platform_interface.dart';
 
@@ -96,7 +97,7 @@ class AxeptioSdk {
   /// }
   /// ```
   Future<bool> loadGVL({String? gvlVersion}) {
-    return AxeptioSdkPlatform.instance.loadGVL(gvlVersion: gvlVersion);
+    return GVLService.instance.loadGVL(gvlVersion: gvlVersion);
   }
 
   /// Unloads the currently cached GVL data from memory.
@@ -105,7 +106,8 @@ class AxeptioSdk {
   /// for future loading. Useful for memory management in resource-constrained
   /// environments.
   Future<void> unloadGVL() {
-    return AxeptioSdkPlatform.instance.unloadGVL();
+    GVLService.instance.unloadGVL();
+    return Future.value();
   }
 
   /// Clears all cached GVL data from storage.
@@ -114,7 +116,7 @@ class AxeptioSdk {
   /// download on the next [loadGVL] call. Use this to refresh stale data
   /// or clear storage space.
   Future<void> clearGVL() {
-    return AxeptioSdkPlatform.instance.clearGVL();
+    return GVLService.instance.clearGVL();
   }
 
   // Vendor information methods
@@ -129,8 +131,8 @@ class AxeptioSdk {
   /// final vendorName = await axeptioSdk.getVendorName(1);
   /// print('Vendor 1: $vendorName'); // e.g., "Vendor 1: Google"
   /// ```
-  Future<String?> getVendorName(int vendorId) {
-    return AxeptioSdkPlatform.instance.getVendorName(vendorId);
+  Future<String?> getVendorName(int vendorId) async {
+    return GVLService.instance.getVendorName(vendorId);
   }
 
   /// Gets the human-readable names for multiple vendor IDs.
@@ -145,8 +147,8 @@ class AxeptioSdk {
   ///   print('Vendor $id: $name');
   /// });
   /// ```
-  Future<Map<int, String>> getVendorNames(List<int> vendorIds) {
-    return AxeptioSdkPlatform.instance.getVendorNames(vendorIds);
+  Future<Map<int, String>> getVendorNames(List<int> vendorIds) async {
+    return GVLService.instance.getVendorNames(vendorIds);
   }
 
   /// Gets comprehensive vendor information with consent status.
@@ -161,8 +163,11 @@ class AxeptioSdk {
   ///   print('${info.name}: ${info.consented ? "✅" : "❌"}');
   /// });
   /// ```
-  Future<Map<int, VendorInfo>> getVendorConsentsWithNames() {
-    return AxeptioSdkPlatform.instance.getVendorConsentsWithNames();
+  Future<Map<int, VendorInfo>> getVendorConsentsWithNames() async {
+    // Get current vendor consents from platform
+    final vendorConsents = await getVendorConsents();
+    // Combine with GVL data using Flutter-native service
+    return GVLService.instance.createVendorConsentsWithNames(vendorConsents);
   }
 
   // GVL status methods
@@ -171,15 +176,15 @@ class AxeptioSdk {
   ///
   /// Returns `true` if the GVL data is loaded in memory and ready for use,
   /// `false` otherwise.
-  Future<bool> isGVLLoaded() {
-    return AxeptioSdkPlatform.instance.isGVLLoaded();
+  Future<bool> isGVLLoaded() async {
+    return GVLService.instance.isGVLLoaded();
   }
 
   /// Gets the version of the currently loaded GVL.
   ///
   /// Returns the version string of the loaded GVL, or `null` if no GVL
   /// is currently loaded.
-  Future<String?> getGVLVersion() {
-    return AxeptioSdkPlatform.instance.getGVLVersion();
+  Future<String?> getGVLVersion() async {
+    return GVLService.instance.getGVLVersion();
   }
 }
