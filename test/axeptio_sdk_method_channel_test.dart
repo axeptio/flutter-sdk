@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_method_channel.dart';
 import 'package:axeptio_sdk/src/model/axeptio_service.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
-import 'package:axeptio_sdk/src/model/vendor_info.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
