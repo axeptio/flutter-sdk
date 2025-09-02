@@ -26,9 +26,6 @@ class AxeptioSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
         eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "axeptio_sdk/events")
         eventChannel.setStreamHandler(AxeptioEventStreamHandler)
-        
-        // Initialize GVL Manager
-        AxeptioGVLManager.initialize(flutterPluginBinding.applicationContext)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
