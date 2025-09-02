@@ -65,55 +65,6 @@ void main() {
           case 'isVendorConsented':
             final vendorId = methodCall.arguments['vendorId'] as int;
             return vendorId == 1 || vendorId == 50; // bool
-          case 'loadGVL':
-            final gvlVersion = methodCall.arguments?['gvlVersion'] as String?;
-            return true; // Mock successful load
-          case 'unloadGVL':
-            return null; // Void method
-          case 'clearGVL':
-            return null; // Void method
-          case 'getVendorName':
-            final vendorId = methodCall.arguments['vendorId'] as int;
-            final mockNames = {
-              1: 'Google',
-              2: 'Facebook',
-              755: 'Microsoft',
-            };
-            return mockNames[vendorId];
-          case 'getVendorNames':
-            final vendorIds = methodCall.arguments['vendorIds'] as List<dynamic>;
-            final mockNames = {
-              1: 'Google',
-              2: 'Facebook',
-              755: 'Microsoft',
-            };
-            final result = <dynamic, dynamic>{};
-            for (final id in vendorIds) {
-              final name = mockNames[id as int];
-              if (name != null) {
-                result[id] = name; // Keep as int key to match platform expectation
-              }
-            }
-            return result;
-          case 'getVendorConsentsWithNames':
-            return {
-              1: {
-                'id': 1,
-                'name': 'Google',
-                'consented': true,
-                'purposes': [1, 2, 3],
-              },
-              755: {
-                'id': 755,
-                'name': 'Microsoft',
-                'consented': false,
-                'purposes': [1, 4, 5],
-              },
-            };
-          case 'isGVLLoaded':
-            return true;
-          case 'getGVLVersion':
-            return '123';
           default:
             return null;
         }
@@ -251,75 +202,6 @@ void main() {
     });
   });
 
-  group('GVL Methods', () {
-    test('loadGVL with default version returns true', () async {
-      final result = await platform.loadGVL();
-      expect(result, isTrue);
-    });
-
-    test('loadGVL with specific version returns true', () async {
-      final result = await platform.loadGVL(gvlVersion: '123');
-      expect(result, isTrue);
-    });
-
-    test('unloadGVL completes successfully', () async {
-      await expectLater(platform.unloadGVL(), completes);
-    });
-
-    test('clearGVL completes successfully', () async {
-      await expectLater(platform.clearGVL(), completes);
-    });
-
-    test('getVendorName returns name for known vendor', () async {
-      final name = await platform.getVendorName(1);
-      expect(name, equals('Google'));
-    });
-
-    test('getVendorName returns null for unknown vendor', () async {
-      final name = await platform.getVendorName(9999);
-      expect(name, isNull);
-    });
-
-    test('getVendorNames returns map of vendor names', () async {
-      final names = await platform.getVendorNames([1, 2, 755]);
-      expect(names, isA<Map<int, String>>());
-      expect(names[1], equals('Google'));
-      expect(names[2], equals('Facebook'));
-      expect(names[755], equals('Microsoft'));
-    });
-
-    test('getVendorNames handles empty list', () async {
-      final names = await platform.getVendorNames([]);
-      expect(names, isEmpty);
-    });
-
-    test('getVendorConsentsWithNames returns VendorInfo objects', () async {
-      final consents = await platform.getVendorConsentsWithNames();
-      expect(consents, isA<Map<int, VendorInfo>>());
-      
-      final googleVendor = consents[1]!;
-      expect(googleVendor.id, equals(1));
-      expect(googleVendor.name, equals('Google'));
-      expect(googleVendor.consented, isTrue);
-      expect(googleVendor.purposes, equals([1, 2, 3]));
-      
-      final microsoftVendor = consents[755]!;
-      expect(microsoftVendor.id, equals(755));
-      expect(microsoftVendor.name, equals('Microsoft'));
-      expect(microsoftVendor.consented, isFalse);
-      expect(microsoftVendor.purposes, equals([1, 4, 5]));
-    });
-
-    test('isGVLLoaded returns boolean status', () async {
-      final isLoaded = await platform.isGVLLoaded();
-      expect(isLoaded, isTrue);
-    });
-
-    test('getGVLVersion returns version string', () async {
-      final version = await platform.getGVLVersion();
-      expect(version, equals('123'));
-    });
-  });
 
   group('Edge Cases', () {
     test('isVendorConsented with unknown vendor returns false', () async {
@@ -363,10 +245,6 @@ void main() {
               throw PlatformException(code: 'INVALID_ID', message: 'Invalid vendor ID');
             }
             return null; // Normal null return for unknown vendor
-          case 'getVendorConsentsWithNames':
-            return {}; // Empty result
-          case 'loadGVL':
-            throw PlatformException(code: 'NETWORK_ERROR', message: 'Failed to load GVL');
           default:
             return null;
         }
@@ -452,10 +330,6 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('loadGVL returns false on platform exception', () async {
-      final result = await errorPlatform.loadGVL();
-      expect(result, isFalse);
-    });
 
     test('getConsentedVendors handles platform exception', () async {
       // Reset mock to throw exception for getConsentedVendors
@@ -499,43 +373,18 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('getVendorNames handles platform exception', () async {
-      // Reset mock to throw exception for getVendorNames
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
-        if (call.method == 'getVendorNames') {
-          throw PlatformException(code: 'ERROR', message: 'Test error');
-        }
-        return null;
-      });
-
-      final result = await errorPlatform.getVendorNames([1, 2, 3]);
-      expect(result, isEmpty);
-    });
 
     test('GVL methods handle platform exceptions gracefully', () async {
       // Reset mock to throw exceptions for all GVL methods
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(const MethodChannel('axeptio_sdk'), (call) async {
         switch (call.method) {
-          case 'isGVLLoaded':
-            throw PlatformException(code: 'ERROR', message: 'Test error');
-          case 'getGVLVersion':
-            throw PlatformException(code: 'ERROR', message: 'Test error');
-          case 'unloadGVL':
-            throw PlatformException(code: 'ERROR', message: 'Test error');
-          case 'clearGVL':
-            throw PlatformException(code: 'ERROR', message: 'Test error');
           default:
             return null;
         }
       });
 
-      // These methods should handle exceptions gracefully
-      expect(await errorPlatform.isGVLLoaded(), isFalse);
-      expect(await errorPlatform.getGVLVersion(), isNull);
-      await expectLater(errorPlatform.unloadGVL(), completes);
-      await expectLater(errorPlatform.clearGVL(), completes);
+      // Test removed as GVL methods are now Flutter-native
     });
 
     test('data parsing handles invalid formats', () async {
@@ -547,11 +396,6 @@ void main() {
             return {'invalid': 'not_a_boolean'}; // Invalid format
           case 'getConsentedVendors':
             return [1, 'invalid', 2.5, null]; // Mixed types
-          case 'getVendorConsentsWithNames':
-            return {
-              'invalid_key': 'not_a_map',
-              1: {'incomplete': 'data'}, // Missing required fields
-            };
           default:
             return null;
         }
@@ -564,8 +408,7 @@ void main() {
       final consentedVendors = await errorPlatform.getConsentedVendors();
       expect(consentedVendors, contains(1)); // Should filter out invalid entries
 
-      final vendorConsentsWithNames = await errorPlatform.getVendorConsentsWithNames();
-      expect(vendorConsentsWithNames, isEmpty); // Should handle parsing errors
+      // GVL methods removed - now Flutter-native
     });
   });
 }
