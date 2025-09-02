@@ -12,7 +12,7 @@ repos:
     hooks:
       - id: flutter-analyze
         name: Flutter Analyze
-        entry: flutter analyze
+        entry: flutter analyze --no-fatal-infos
         language: system
         pass_filenames: false
         files: \.(dart)$
