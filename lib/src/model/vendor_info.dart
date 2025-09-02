@@ -61,7 +61,7 @@ class VendorInfo {
   /// and the [consented] parameter indicates the user's consent status.
   factory VendorInfo.fromJson(Map<String, dynamic> json, bool consented) {
     return VendorInfo(
-      id: json['id'] as int,
+      id: json['id'] is num ? (json['id'] as num).toInt() : json['id'] as int,
       name: json['name'] as String,
       consented: consented,
       description: json['description'] as String?,

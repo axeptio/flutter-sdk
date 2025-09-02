@@ -86,23 +86,23 @@ void main() {
               2: 'Facebook',
               755: 'Microsoft',
             };
-            final result = <String, String>{};
+            final result = <dynamic, dynamic>{};
             for (final id in vendorIds) {
               final name = mockNames[id as int];
               if (name != null) {
-                result[id.toString()] = name;
+                result[id] = name; // Keep as int key to match platform expectation
               }
             }
             return result;
           case 'getVendorConsentsWithNames':
             return {
-              '1': {
+              1: {
                 'id': 1,
                 'name': 'Google',
                 'consented': true,
                 'purposes': [1, 2, 3],
               },
-              '755': {
+              755: {
                 'id': 755,
                 'name': 'Microsoft',
                 'consented': false,

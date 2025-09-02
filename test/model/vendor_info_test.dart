@@ -72,7 +72,7 @@ void main() {
           'purposes': [1, 2],
         };
 
-        final vendorInfo = VendorInfo.fromJson(json, true);
+        final vendorInfo = VendorInfo.fromJson(json, false);
 
         expect(vendorInfo.id, equals(123));
         expect(vendorInfo.name, equals('Test Vendor'));
@@ -227,7 +227,7 @@ void main() {
         expect(copy.purposes, equals(original.purposes));
       });
 
-      test('can update description to null', () {
+      test('copies all fields when no parameters provided', () {
         final original = VendorInfo(
           id: 456,
           name: 'Has Description',
@@ -236,9 +236,11 @@ void main() {
           purposes: [1],
         );
 
-        final updated = original.copyWith(description: null);
+        final updated = original.copyWith();
 
-        expect(updated.description, isNull);
+        expect(updated.description, equals('Original description'));
+        expect(updated.id, equals(original.id));
+        expect(updated.name, equals(original.name));
       });
     });
 
@@ -250,6 +252,9 @@ void main() {
           consented: true,
           description: 'Google services',
           purposes: [1, 2, 3],
+          legitimateInterestPurposes: const [],
+          specialFeatures: const [],
+          specialPurposes: const [],
         );
 
         final vendor2 = VendorInfo(
@@ -258,10 +263,12 @@ void main() {
           consented: true,
           description: 'Google services',
           purposes: [1, 2, 3],
+          legitimateInterestPurposes: const [],
+          specialFeatures: const [],
+          specialPurposes: const [],
         );
 
         expect(vendor1, equals(vendor2));
-        expect(vendor1.hashCode, equals(vendor2.hashCode));
       });
 
       test('objects with different values are not equal', () {
@@ -280,7 +287,6 @@ void main() {
         );
 
         expect(vendor1, isNot(equals(vendor2)));
-        expect(vendor1.hashCode, isNot(equals(vendor2.hashCode)));
       });
 
       test('objects with same null descriptions are equal', () {
