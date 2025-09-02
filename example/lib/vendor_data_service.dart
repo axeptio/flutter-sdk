@@ -103,8 +103,10 @@ class VendorDataService {
         refusedVendors,
         refusedVendors.length,
       );
-      final allVendorsPreviewFormatted = await _formatAllVendorsPreview(vendorConsents);
-      
+      final allVendorsPreviewFormatted = await _formatAllVendorsPreview(
+        vendorConsents,
+      );
+
       final detailsData = VendorDetailsData(
         consentedVendors: consentedVendorsFormatted,
         refusedVendors: refusedVendorsFormatted,
@@ -140,8 +142,10 @@ class VendorDataService {
 
     try {
       // Try to get vendor names if GVL is loaded
-      final vendorNames = await getVendorNamesForIds(vendors.take(maxDisplayVendors).toList());
-      
+      final vendorNames = await getVendorNamesForIds(
+        vendors.take(maxDisplayVendors).toList(),
+      );
+
       List<String> formattedVendors = [];
       for (int vendorId in vendors.take(maxDisplayVendors)) {
         final name = vendorNames[vendorId];
@@ -341,8 +345,9 @@ class VendorDataService {
       // ========== GVL Status Section ==========
       try {
         final isGVLLoaded = await _axeptioSdk.isGVLLoaded();
-        final gvlVersion = isGVLLoaded ? await _axeptioSdk.getGVLVersion() : null;
-        
+        final gvlVersion =
+            isGVLLoaded ? await _axeptioSdk.getGVLVersion() : null;
+
         analysis += '🌐 GVL Status:\n';
         analysis += '• GVL Loaded: ${isGVLLoaded ? "✅ Yes" : "❌ No"}\n';
         if (isGVLLoaded && gvlVersion != null) {
@@ -388,8 +393,10 @@ class VendorDataService {
       // ========== Enhanced Vendor Analysis with Names ==========
       try {
         // Try to get vendor names for enhanced analysis
-        final vendorNamesMap = await getVendorNamesForIds(apiConsentedVendors.take(10).toList());
-        
+        final vendorNamesMap = await getVendorNamesForIds(
+          apiConsentedVendors.take(10).toList(),
+        );
+
         if (vendorNamesMap.isNotEmpty) {
           analysis += '\n👥 Sample Consented Vendors (with names):\n';
           int count = 0;
@@ -402,41 +409,53 @@ class VendorDataService {
               analysis += '• $vendorId: Name not available\n';
             }
           }
-          
+
           if (apiConsentedVendors.length > 10) {
-            analysis += '... and ${apiConsentedVendors.length - 10} more vendors\n';
+            analysis +=
+                '... and ${apiConsentedVendors.length - 10} more vendors\n';
           }
-          
+
           // Calculate name resolution rate
-          final nameResolutionRate = vendorNamesMap.length / (apiConsentedVendors.take(10).length) * 100;
-          analysis += '\n📈 Name Resolution Rate: ${nameResolutionRate.toStringAsFixed(1)}% (${vendorNamesMap.length}/10 sample)\n';
+          final nameResolutionRate =
+              vendorNamesMap.length /
+              (apiConsentedVendors.take(10).length) *
+              100;
+          analysis +=
+              '\n📈 Name Resolution Rate: ${nameResolutionRate.toStringAsFixed(1)}% (${vendorNamesMap.length}/10 sample)\n';
         } else {
-          analysis += '\n👥 Vendor Names: ⚠️ No vendor names available (GVL may not be loaded)\n';
+          analysis +=
+              '\n👥 Vendor Names: ⚠️ No vendor names available (GVL may not be loaded)\n';
         }
       } catch (error) {
-        analysis += '\n👥 Vendor Names: ⚠️ Error retrieving vendor names: $error\n';
+        analysis +=
+            '\n👥 Vendor Names: ⚠️ Error retrieving vendor names: $error\n';
       }
 
       // ========== GVL vs TCF Data Consistency Check ==========
       try {
         final vendorConsentsWithNames = await getVendorConsentsWithNames();
-        
+
         if (vendorConsentsWithNames.isNotEmpty) {
           analysis += '\n🔍 GVL vs TCF Consistency:\n';
-          analysis += '• GVL Enhanced Data: ${vendorConsentsWithNames.length} vendors with detailed info\n';
-          
+          analysis +=
+              '• GVL Enhanced Data: ${vendorConsentsWithNames.length} vendors with detailed info\n';
+
           // Check for vendors with purposes data
-          final vendorsWithPurposes = vendorConsentsWithNames.values
-              .where((v) => v.purposes.isNotEmpty)
-              .length;
+          final vendorsWithPurposes =
+              vendorConsentsWithNames.values
+                  .where((v) => v.purposes.isNotEmpty)
+                  .length;
           analysis += '• Vendors with Purpose Data: $vendorsWithPurposes\n';
-          
+
           // Check for vendors with descriptions
-          final vendorsWithDescriptions = vendorConsentsWithNames.values
-              .where((v) => v.description != null && v.description!.isNotEmpty)
-              .length;
+          final vendorsWithDescriptions =
+              vendorConsentsWithNames.values
+                  .where(
+                    (v) => v.description != null && v.description!.isNotEmpty,
+                  )
+                  .length;
           analysis += '• Vendors with Descriptions: $vendorsWithDescriptions\n';
-          
+
           // Sample vendor details
           final sampleVendor = vendorConsentsWithNames.values.first;
           analysis += '\n📋 Sample Vendor Details:\n';
@@ -457,22 +476,31 @@ class VendorDataService {
 
       // ========== Recommendations ==========
       analysis += '\n💡 Recommendations:\n';
-      
+
       try {
         final isGVLLoaded = await _axeptioSdk.isGVLLoaded();
         if (!isGVLLoaded) {
-          analysis += '• Load GVL to enable vendor name resolution and detailed vendor info\n';
-          analysis += '• GVL provides vendor descriptions, purposes, and policy URLs\n';
+          analysis +=
+              '• Load GVL to enable vendor name resolution and detailed vendor info\n';
+          analysis +=
+              '• GVL provides vendor descriptions, purposes, and policy URLs\n';
         } else {
-          analysis += '• GVL is loaded - vendor names and detailed info should be available\n';
-          analysis += '• Use the Vendor Information panel to explore specific vendor details\n';
+          analysis +=
+              '• GVL is loaded - vendor names and detailed info should be available\n';
+          analysis +=
+              '• Use the Vendor Information panel to explore specific vendor details\n';
         }
       } catch (error) {
         analysis += '• Unable to check GVL status for recommendations\n';
       }
 
-      if (apiVendorConsents.length != apiConsentedVendors.length + (apiVendorConsents.values.where((consented) => !consented).length)) {
-        analysis += '• Check for potential data inconsistencies in vendor consent tracking\n';
+      if (apiVendorConsents.length !=
+          apiConsentedVendors.length +
+              (apiVendorConsents.values
+                  .where((consented) => !consented)
+                  .length)) {
+        analysis +=
+            '• Check for potential data inconsistencies in vendor consent tracking\n';
       }
 
       return analysis;
@@ -488,7 +516,7 @@ class VendorDataService {
     try {
       final isLoaded = await _axeptioSdk.isGVLLoaded();
       final version = isLoaded ? await _axeptioSdk.getGVLVersion() : null;
-      
+
       final statusData = GVLStatusData(
         isLoaded: isLoaded,
         version: version,
@@ -496,16 +524,18 @@ class VendorDataService {
         isLoading: false,
         error: null,
       );
-      
+
       _gvlStatusController.add(statusData);
     } catch (error) {
-      _gvlStatusController.add(GVLStatusData(
-        isLoaded: false,
-        version: null,
-        lastUpdate: DateTime.now(),
-        isLoading: false,
-        error: error.toString(),
-      ));
+      _gvlStatusController.add(
+        GVLStatusData(
+          isLoaded: false,
+          version: null,
+          lastUpdate: DateTime.now(),
+          isLoading: false,
+          error: error.toString(),
+        ),
+      );
     }
   }
 
@@ -513,40 +543,46 @@ class VendorDataService {
   Future<bool> loadGVLWithStatus({String? gvlVersion}) async {
     try {
       // Emit loading state
-      _gvlStatusController.add(GVLStatusData(
-        isLoaded: false,
-        version: null,
-        lastUpdate: DateTime.now(),
-        isLoading: true,
-        error: null,
-      ));
+      _gvlStatusController.add(
+        GVLStatusData(
+          isLoaded: false,
+          version: null,
+          lastUpdate: DateTime.now(),
+          isLoading: true,
+          error: null,
+        ),
+      );
 
       final success = await _axeptioSdk.loadGVL(gvlVersion: gvlVersion);
-      
+
       if (success) {
         // Update status after successful load
         await _updateGVLStatus();
         // Trigger data refresh to update vendor names
         _refreshDataWithDelay();
       } else {
-        _gvlStatusController.add(GVLStatusData(
+        _gvlStatusController.add(
+          GVLStatusData(
+            isLoaded: false,
+            version: null,
+            lastUpdate: DateTime.now(),
+            isLoading: false,
+            error: 'Failed to load GVL',
+          ),
+        );
+      }
+
+      return success;
+    } catch (error) {
+      _gvlStatusController.add(
+        GVLStatusData(
           isLoaded: false,
           version: null,
           lastUpdate: DateTime.now(),
           isLoading: false,
-          error: 'Failed to load GVL',
-        ));
-      }
-      
-      return success;
-    } catch (error) {
-      _gvlStatusController.add(GVLStatusData(
-        isLoaded: false,
-        version: null,
-        lastUpdate: DateTime.now(),
-        isLoading: false,
-        error: error.toString(),
-      ));
+          error: error.toString(),
+        ),
+      );
       return false;
     }
   }
@@ -635,7 +671,7 @@ class VendorDataService {
     try {
       final isConsented = await _axeptioSdk.isVendorConsented(vendorId);
       final vendorName = await getVendorName(vendorId);
-      
+
       return VendorTestResult(
         vendorId: vendorId,
         vendorName: vendorName,

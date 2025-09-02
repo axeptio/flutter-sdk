@@ -198,5 +198,4 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   removeEventListener(AxeptioEventListener listener) {
     _eventsHandler.removeEventListener(listener);
   }
-
 }

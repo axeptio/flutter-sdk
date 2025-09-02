@@ -72,14 +72,16 @@ class _VendorScreenState extends State<VendorScreen> {
       );
 
       final result = await _dataService.testVendorWithInfo(vendorId);
-      
+
       setState(() {
         if (result.error != null) {
           _vendorTestResult = 'Error testing vendor $vendorId: ${result.error}';
         } else {
-          final consentStatus = result.isConsented ? "✅ CONSENTED" : "❌ REFUSED";
+          final consentStatus =
+              result.isConsented ? "✅ CONSENTED" : "❌ REFUSED";
           if (result.vendorName != null && result.vendorName!.isNotEmpty) {
-            _vendorTestResult = 'Vendor $vendorId (${result.vendorName}): $consentStatus';
+            _vendorTestResult =
+                'Vendor $vendorId (${result.vendorName}): $consentStatus';
           } else {
             _vendorTestResult = 'Vendor $vendorId: $consentStatus';
           }
@@ -142,7 +144,7 @@ class _VendorScreenState extends State<VendorScreen> {
       );
 
       final success = await _dataService.loadGVLWithStatus();
-      
+
       if (success) {
         developer.log(
           'GVL loaded successfully',
@@ -175,7 +177,7 @@ class _VendorScreenState extends State<VendorScreen> {
       );
 
       await _dataService.unloadGVL();
-      
+
       developer.log(
         'GVL unloaded successfully',
         name: _logName,
@@ -200,7 +202,7 @@ class _VendorScreenState extends State<VendorScreen> {
       );
 
       await _dataService.clearGVL();
-      
+
       developer.log(
         'GVL cache cleared successfully',
         name: _logName,
@@ -303,38 +305,36 @@ class _VendorScreenState extends State<VendorScreen> {
                     // Status Row
                     Row(
                       children: [
-                        Expanded(
-                          child: _buildGVLStatusCard(gvlStatus),
-                        ),
+                        Expanded(child: _buildGVLStatusCard(gvlStatus)),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildGVLVersionCard(gvlStatus),
-                        ),
+                        Expanded(child: _buildGVLVersionCard(gvlStatus)),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Action Buttons Row
                     Row(
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: gvlStatus.isLoading 
-                                ? null 
-                                : () => _loadGVL(),
-                            icon: gvlStatus.isLoading
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.download),
+                            onPressed:
+                                gvlStatus.isLoading ? null : () => _loadGVL(),
+                            icon:
+                                gvlStatus.isLoading
+                                    ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Icon(Icons.download),
                             label: Text(
-                              gvlStatus.isLoading 
-                                  ? 'Loading...' 
-                                  : gvlStatus.isLoaded 
-                                      ? 'Reload GVL' 
-                                      : 'Load GVL'
+                              gvlStatus.isLoading
+                                  ? 'Loading...'
+                                  : gvlStatus.isLoaded
+                                  ? 'Reload GVL'
+                                  : 'Load GVL',
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple,
@@ -346,9 +346,10 @@ class _VendorScreenState extends State<VendorScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: (!gvlStatus.isLoaded || gvlStatus.isLoading) 
-                                ? null 
-                                : () => _unloadGVL(),
+                            onPressed:
+                                (!gvlStatus.isLoaded || gvlStatus.isLoading)
+                                    ? null
+                                    : () => _unloadGVL(),
                             icon: const Icon(Icons.clear),
                             label: const Text('Unload'),
                             style: ElevatedButton.styleFrom(
@@ -361,9 +362,10 @@ class _VendorScreenState extends State<VendorScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: (!gvlStatus.isLoaded || gvlStatus.isLoading) 
-                                ? null 
-                                : () => _clearGVL(),
+                            onPressed:
+                                (!gvlStatus.isLoaded || gvlStatus.isLoading)
+                                    ? null
+                                    : () => _clearGVL(),
                             icon: const Icon(Icons.delete_outline),
                             label: const Text('Clear Cache'),
                             style: ElevatedButton.styleFrom(
@@ -375,7 +377,7 @@ class _VendorScreenState extends State<VendorScreen> {
                         ),
                       ],
                     ),
-                    
+
                     // Error Display
                     if (gvlStatus.error != null) ...[
                       const SizedBox(height: 12),
@@ -385,11 +387,17 @@ class _VendorScreenState extends State<VendorScreen> {
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error, color: Colors.red, size: 20),
+                            const Icon(
+                              Icons.error,
+                              color: Colors.red,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -418,7 +426,7 @@ class _VendorScreenState extends State<VendorScreen> {
     final isLoaded = gvlStatus.isLoaded;
     final color = isLoaded ? Colors.green : Colors.grey;
     final icon = isLoaded ? Icons.check_circle : Icons.radio_button_unchecked;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -455,7 +463,7 @@ class _VendorScreenState extends State<VendorScreen> {
   Widget _buildGVLVersionCard(GVLStatusData gvlStatus) {
     final version = gvlStatus.version ?? 'N/A';
     final color = gvlStatus.isLoaded ? Colors.blue : Colors.grey;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -740,7 +748,7 @@ class _VendorScreenState extends State<VendorScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Vendor ID Input
             Row(
               children: [
@@ -771,19 +779,20 @@ class _VendorScreenState extends State<VendorScreen> {
                       vertical: 12,
                     ),
                   ),
-                  child: _isLoadingVendorInfo
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Get Info'),
+                  child:
+                      _isLoadingVendorInfo
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text('Get Info'),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Vendor Information Display
             Container(
               width: double.infinity,
@@ -859,14 +868,14 @@ class _VendorScreenState extends State<VendorScreen> {
           _buildVendorInfoRow('ID:', vendor.id.toString()),
           _buildVendorInfoRow('Name:', vendor.name),
           _buildVendorInfoRow(
-            'Consent Status:', 
+            'Consent Status:',
             vendor.consented ? '✅ Consented' : '❌ Refused',
             valueStyle: TextStyle(
               fontWeight: FontWeight.bold,
               color: vendor.consented ? Colors.green : Colors.red,
             ),
           ),
-          
+
           if (vendor.description != null && vendor.description!.isNotEmpty) ...[
             const SizedBox(height: 12),
             const Text(
@@ -874,54 +883,69 @@ class _VendorScreenState extends State<VendorScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
             const SizedBox(height: 4),
-            Text(
-              vendor.description!,
-              style: const TextStyle(fontSize: 11),
-            ),
+            Text(vendor.description!, style: const TextStyle(fontSize: 11)),
           ],
-          
+
           // Purposes
           if (vendor.purposes.isNotEmpty) ...[
             const SizedBox(height: 12),
             _buildVendorInfoRow('Purposes:', vendor.purposes.join(', ')),
           ],
-          
+
           // Legitimate Interest Purposes
           if (vendor.legitimateInterestPurposes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            _buildVendorInfoRow('Legitimate Interest:', vendor.legitimateInterestPurposes.join(', ')),
+            _buildVendorInfoRow(
+              'Legitimate Interest:',
+              vendor.legitimateInterestPurposes.join(', '),
+            ),
           ],
-          
+
           // Special Features
           if (vendor.specialFeatures.isNotEmpty) ...[
             const SizedBox(height: 8),
-            _buildVendorInfoRow('Special Features:', vendor.specialFeatures.join(', ')),
+            _buildVendorInfoRow(
+              'Special Features:',
+              vendor.specialFeatures.join(', '),
+            ),
           ],
-          
+
           // Special Purposes
           if (vendor.specialPurposes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            _buildVendorInfoRow('Special Purposes:', vendor.specialPurposes.join(', ')),
+            _buildVendorInfoRow(
+              'Special Purposes:',
+              vendor.specialPurposes.join(', '),
+            ),
           ],
-          
+
           // Cookie Info
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
-                child: _buildVendorInfoRow('Uses Cookies:', vendor.usesCookies ? 'Yes' : 'No'),
+                child: _buildVendorInfoRow(
+                  'Uses Cookies:',
+                  vendor.usesCookies ? 'Yes' : 'No',
+                ),
               ),
               Expanded(
-                child: _buildVendorInfoRow('Non-Cookie Access:', vendor.usesNonCookieAccess ? 'Yes' : 'No'),
+                child: _buildVendorInfoRow(
+                  'Non-Cookie Access:',
+                  vendor.usesNonCookieAccess ? 'Yes' : 'No',
+                ),
               ),
             ],
           ),
-          
+
           if (vendor.cookieMaxAgeSeconds != null) ...[
             const SizedBox(height: 8),
-            _buildVendorInfoRow('Cookie Max Age:', '${vendor.cookieMaxAgeSeconds} seconds'),
+            _buildVendorInfoRow(
+              'Cookie Max Age:',
+              '${vendor.cookieMaxAgeSeconds} seconds',
+            ),
           ],
-          
+
           // Policy URL
           if (vendor.policyUrl != null && vendor.policyUrl!.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -932,7 +956,11 @@ class _VendorScreenState extends State<VendorScreen> {
     );
   }
 
-  Widget _buildVendorInfoRow(String label, String value, {TextStyle? valueStyle}) {
+  Widget _buildVendorInfoRow(
+    String label,
+    String value, {
+    TextStyle? valueStyle,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -942,10 +970,7 @@ class _VendorScreenState extends State<VendorScreen> {
             width: 100,
             child: Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
           Expanded(
@@ -992,9 +1017,10 @@ class _VendorScreenState extends State<VendorScreen> {
       );
 
       // Try to get vendor info from the enhanced consent data
-      final vendorConsentsWithNames = await _dataService.getVendorConsentsWithNames();
+      final vendorConsentsWithNames =
+          await _dataService.getVendorConsentsWithNames();
       final vendorInfo = vendorConsentsWithNames[vendorId];
-      
+
       if (vendorInfo != null) {
         setState(() {
           _selectedVendorInfo = vendorInfo;
@@ -1011,7 +1037,7 @@ class _VendorScreenState extends State<VendorScreen> {
             consented: testResult.isConsented,
             purposes: [], // Empty as we don't have detailed info
           );
-          
+
           setState(() {
             _selectedVendorInfo = basicVendorInfo;
             _isLoadingVendorInfo = false;
@@ -1019,7 +1045,8 @@ class _VendorScreenState extends State<VendorScreen> {
           });
         } else {
           setState(() {
-            _vendorInfoError = 'Vendor $vendorId not found or error: ${testResult.error}';
+            _vendorInfoError =
+                'Vendor $vendorId not found or error: ${testResult.error}';
             _isLoadingVendorInfo = false;
           });
         }

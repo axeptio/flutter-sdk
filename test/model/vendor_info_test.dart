@@ -115,7 +115,8 @@ void main() {
           'purposes': [1, 2],
         };
 
-        expect(() => VendorInfo.fromJson(json, true), throwsA(isA<TypeError>()));
+        expect(
+            () => VendorInfo.fromJson(json, true), throwsA(isA<TypeError>()));
       });
 
       test('creates object from JSON with all optional fields', () {
@@ -268,7 +269,8 @@ void main() {
         expect(updated.id, equals(755)); // Unchanged
         expect(updated.name, equals('Updated Google LLC')); // Changed
         expect(updated.consented, isFalse); // Changed
-        expect(updated.description, equals('Original description')); // Unchanged
+        expect(
+            updated.description, equals('Original description')); // Unchanged
         expect(updated.purposes, equals([3, 4, 5])); // Changed
       });
 
@@ -376,7 +378,7 @@ void main() {
         );
 
         expect(vendor1, equals(vendor2));
-        
+
         // Test hashCode is used - we don't test exact values but that it works
         final hash1 = vendor1.hashCode;
         final hash2 = vendor2.hashCode;
@@ -479,7 +481,8 @@ void main() {
           id: 755,
           name: 'Google LLC',
           consented: true,
-          description: 'We collect and process personal data for the following purposes: Store and/or access information on a device, Select basic ads, Create a personalised ads profile, Select personalised ads, Create a personalised content profile, Select personalised content, Measure ad performance, Measure content performance, Apply market research to generate audience insights, Develop and improve products.',
+          description:
+              'We collect and process personal data for the following purposes: Store and/or access information on a device, Select basic ads, Create a personalised ads profile, Select personalised ads, Create a personalised content profile, Select personalised content, Measure ad performance, Measure content performance, Apply market research to generate audience insights, Develop and improve products.',
           purposes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         );
 

@@ -145,38 +145,45 @@ void main() {
       // Test that default empty callbacks work without errors
       expect(() => listener.onPopupClosedEvent(), returnsNormally);
       expect(() => listener.onConsentCleared(), returnsNormally);
-      expect(() => listener.onGoogleConsentModeUpdate(ConsentsV2(true, true, true, true)), returnsNormally);
+      expect(
+          () => listener
+              .onGoogleConsentModeUpdate(ConsentsV2(true, true, true, true)),
+          returnsNormally);
     });
 
     test('callbacks can be set to null and reassigned', () {
       bool wasTriggered = false;
-      
+
       // Set a callback
       listener.onPopupClosedEvent = () {
         wasTriggered = true;
       };
-      
+
       // Replace with empty callback
       listener.onPopupClosedEvent = () {};
       listener.onPopupClosedEvent();
-      
+
       expect(wasTriggered, isFalse);
     });
 
     test('listener maintains separate callback instances', () {
       final listener1 = AxeptioEventListener();
       final listener2 = AxeptioEventListener();
-      
+
       int count1 = 0;
       int count2 = 0;
-      
-      listener1.onPopupClosedEvent = () { count1++; };
-      listener2.onPopupClosedEvent = () { count2++; };
-      
+
+      listener1.onPopupClosedEvent = () {
+        count1++;
+      };
+      listener2.onPopupClosedEvent = () {
+        count2++;
+      };
+
       listener1.onPopupClosedEvent();
       expect(count1, equals(1));
       expect(count2, equals(0));
-      
+
       listener2.onPopupClosedEvent();
       expect(count1, equals(1));
       expect(count2, equals(1));

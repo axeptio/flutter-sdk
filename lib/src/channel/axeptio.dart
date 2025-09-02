@@ -81,7 +81,7 @@ class AxeptioSdk {
   }
 
   // GVL Management methods
-  
+
   /// Loads the Global Vendor List (GVL) from the IAB server.
   ///
   /// Downloads and caches the vendor list data locally. The [gvlVersion]

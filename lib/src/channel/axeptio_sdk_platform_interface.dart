@@ -91,5 +91,4 @@ abstract interface class AxeptioSdkPlatform extends PlatformInterface {
   removeEventListener(AxeptioEventListener listener) {
     throw UnimplementedError('removeEventListener() has not been implemented');
   }
-
 }

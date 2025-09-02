@@ -209,7 +209,7 @@ class MockAxeptioSdkPlatform
     // Mock vendor names
     final mockNames = {
       1: 'Google',
-      2: 'Facebook', 
+      2: 'Facebook',
       755: 'Microsoft',
       5175: 'Apple',
       8690: 'Amazon'
@@ -226,7 +226,7 @@ class MockAxeptioSdkPlatform
       5175: 'Apple',
       8690: 'Amazon'
     };
-    
+
     final result = <int, String>{};
     for (final id in vendorIds) {
       final name = mockNames[id];
@@ -241,7 +241,7 @@ class MockAxeptioSdkPlatform
   Future<Map<int, VendorInfo>> getVendorConsentsWithNames() async {
     final mockVendorConsents = await getVendorConsents();
     final result = <int, VendorInfo>{};
-    
+
     for (final entry in mockVendorConsents.entries) {
       final vendorName = await getVendorName(entry.key);
       result[entry.key] = VendorInfo(
@@ -251,7 +251,7 @@ class MockAxeptioSdkPlatform
         purposes: [1, 2, 3],
       );
     }
-    
+
     return result;
   }
 
@@ -527,7 +527,7 @@ void main() {
       // Initialize SDK for GVL tests
       await sdk.initialize(
           AxeptioService.publishers, 'test-client', 'v1.0.0', null);
-      
+
       // Load GVL data for tests that depend on it
       await sdk.loadGVL();
     });
@@ -542,7 +542,7 @@ void main() {
         // Test with default version (no version specified should always work)
         final result = await sdk.loadGVL();
         expect(result, isTrue);
-        
+
         // Get current version and test loading it specifically
         final currentVersion = await sdk.getGVLVersion();
         if (currentVersion != null) {
@@ -602,7 +602,7 @@ void main() {
         // Use a mix of known vendor IDs (from real GVL) and unknown IDs
         final vendorNames = await sdk.getVendorNames([1, 2, 9999]);
         expect(vendorNames, isA<Map<int, String>>());
-        
+
         // Verify that known vendors return names and unknown don't
         if (vendorNames.isNotEmpty) {
           vendorNames.forEach((id, name) {
@@ -621,10 +621,10 @@ void main() {
       test('getVendorNames filters unknown IDs', () async {
         final vendorNames = await sdk.getVendorNames([1, 2, 9999]);
         expect(vendorNames, isA<Map<int, String>>());
-        
+
         // Verify unknown ID is filtered out
         expect(vendorNames.containsKey(9999), isFalse);
-        
+
         // Verify that any returned vendor IDs have valid names
         vendorNames.forEach((id, name) {
           expect(name, isA<String>());
@@ -634,7 +634,8 @@ void main() {
     });
 
     group('Vendor Consents with Names', () {
-      test('getVendorConsentsWithNames returns enhanced consent data', () async {
+      test('getVendorConsentsWithNames returns enhanced consent data',
+          () async {
         final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
         expect(vendorConsentsWithNames, isA<Map<int, VendorInfo>>());
         // In test environment, may be empty if no mock consent data
@@ -643,7 +644,7 @@ void main() {
 
       test('getVendorConsentsWithNames includes consent status', () async {
         final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
-        
+
         for (final entry in vendorConsentsWithNames.entries) {
           final vendorInfo = entry.value;
           expect(vendorInfo.id, equals(entry.key));
@@ -655,7 +656,7 @@ void main() {
 
       test('getVendorConsentsWithNames includes vendor names', () async {
         final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
-        
+
         // Verify that all vendors have proper names (no hardcoded expectations)
         for (final entry in vendorConsentsWithNames.entries) {
           final vendorInfo = entry.value;
@@ -665,18 +666,20 @@ void main() {
         }
       });
 
-      test('getVendorConsentsWithNames provides fallback names for unknown vendors', () async {
+      test(
+          'getVendorConsentsWithNames provides fallback names for unknown vendors',
+          () async {
         final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
-        
+
         for (final entry in vendorConsentsWithNames.entries) {
           final vendorInfo = entry.value;
           // Should never be null or empty
           expect(vendorInfo.name, isNotEmpty);
-          
+
           // All vendor names should either be from GVL or fallback format
           expect(vendorInfo.name, isA<String>());
           expect(vendorInfo.id, equals(entry.key));
-          
+
           // If it's a fallback name, it should contain "Vendor" and the ID
           if (vendorInfo.name.startsWith('Vendor ')) {
             expect(vendorInfo.name, contains(vendorInfo.id.toString()));
@@ -688,19 +691,19 @@ void main() {
     group('GVL Error Handling', () {
       test('GVL methods work without initialization', () async {
         mockPlatform.reset(); // Reset to uninitialized state
-        
+
         // These methods should still work as they are Flutter-native
         final loadResult = await sdk.loadGVL();
         expect(loadResult, isA<bool>());
-        
+
         final vendorName = await sdk.getVendorName(1);
         expect(vendorName, isA<String?>());
-        
+
         final vendorNames = await sdk.getVendorNames([1, 2]);
         expect(vendorNames, isA<Map<int, String>>());
-        
+
         await expectLater(sdk.unloadGVL(), completes);
-        
+
         // Note: clearGVL may fail without SharedPreferences in test environment
         try {
           await sdk.clearGVL();
@@ -713,7 +716,8 @@ void main() {
     group('Integration with Existing Vendor Methods', () {
       test('GVL enhances existing vendor consent data', () async {
         // Ensure SDK is initialized for this test
-        await sdk.initialize(AxeptioService.publishers, 'test-client', 'v1.0.0', null);
+        await sdk.initialize(
+            AxeptioService.publishers, 'test-client', 'v1.0.0', null);
         // Get standard vendor consents
         final vendorConsents = await sdk.getVendorConsents();
         expect(vendorConsents, isA<Map<int, bool>>());
@@ -724,12 +728,13 @@ void main() {
 
         // If vendor consent data exists, both should have same vendor IDs
         if (vendorConsents.isNotEmpty) {
-          expect(vendorConsentsWithNames.keys.toSet(), equals(vendorConsents.keys.toSet()));
+          expect(vendorConsentsWithNames.keys.toSet(),
+              equals(vendorConsents.keys.toSet()));
 
           // Consent status should match
           for (final vendorId in vendorConsents.keys) {
-            expect(vendorConsentsWithNames[vendorId]!.consented, 
-                   equals(vendorConsents[vendorId]));
+            expect(vendorConsentsWithNames[vendorId]!.consented,
+                equals(vendorConsents[vendorId]));
           }
         } else {
           // In test environment with no real consent data, expect empty results
@@ -739,7 +744,8 @@ void main() {
 
       test('GVL data is consistent with isVendorConsented', () async {
         // Ensure SDK is initialized for this test
-        await sdk.initialize(AxeptioService.publishers, 'test-client', 'v1.0.0', null);
+        await sdk.initialize(
+            AxeptioService.publishers, 'test-client', 'v1.0.0', null);
         final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();
 
         // Only test consistency if we have vendor data
@@ -747,7 +753,7 @@ void main() {
           for (final entry in vendorConsentsWithNames.entries) {
             final vendorId = entry.key;
             final vendorInfo = entry.value;
-            
+
             final isConsented = await sdk.isVendorConsented(vendorId);
             expect(vendorInfo.consented, equals(isConsented));
           }
@@ -757,9 +763,11 @@ void main() {
         }
       });
 
-      test('GVL data is consistent with consented/refused vendor lists', () async {
+      test('GVL data is consistent with consented/refused vendor lists',
+          () async {
         // Ensure SDK is initialized for this test
-        await sdk.initialize(AxeptioService.publishers, 'test-client', 'v1.0.0', null);
+        await sdk.initialize(
+            AxeptioService.publishers, 'test-client', 'v1.0.0', null);
         final consentedVendors = await sdk.getConsentedVendors();
         final refusedVendors = await sdk.getRefusedVendors();
         final vendorConsentsWithNames = await sdk.getVendorConsentsWithNames();

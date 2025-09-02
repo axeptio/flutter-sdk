@@ -15,7 +15,7 @@ void main() {
     setUp(() {
       // Create a stream controller to simulate the event channel
       eventStreamController = StreamController<dynamic>.broadcast();
-      
+
       // Mock the event channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
@@ -30,8 +30,8 @@ void main() {
 
       // Mock the EventChannel stream
       const EventChannel eventChannel = EventChannel('axeptio_sdk/events');
-      
-      // We'll directly test the handler methods since mocking EventChannel 
+
+      // We'll directly test the handler methods since mocking EventChannel
       // broadcast streams is complex in tests
       eventsHandler = EventsHandler();
     });
@@ -49,32 +49,32 @@ void main() {
       test('addEventListener adds listener to list', () {
         final listener = AxeptioEventListener();
         expect(eventsHandler.listeners.length, equals(0));
-        
+
         eventsHandler.addEventListener(listener);
-        
+
         expect(eventsHandler.listeners.length, equals(1));
         expect(eventsHandler.listeners.contains(listener), isTrue);
       });
 
       test('addEventListener does not add duplicate listeners', () {
         final listener = AxeptioEventListener();
-        
+
         eventsHandler.addEventListener(listener);
         eventsHandler.addEventListener(listener);
-        
+
         expect(eventsHandler.listeners.length, equals(1));
       });
 
       test('removeEventListener removes listener from list', () {
         final listener1 = AxeptioEventListener();
         final listener2 = AxeptioEventListener();
-        
+
         eventsHandler.addEventListener(listener1);
         eventsHandler.addEventListener(listener2);
         expect(eventsHandler.listeners.length, equals(2));
-        
+
         eventsHandler.removeEventListener(listener1);
-        
+
         expect(eventsHandler.listeners.length, equals(1));
         expect(eventsHandler.listeners.contains(listener1), isFalse);
         expect(eventsHandler.listeners.contains(listener2), isTrue);
@@ -83,13 +83,13 @@ void main() {
       test('removeEventListener handles non-existent listener gracefully', () {
         final listener1 = AxeptioEventListener();
         final listener2 = AxeptioEventListener();
-        
+
         eventsHandler.addEventListener(listener1);
         expect(eventsHandler.listeners.length, equals(1));
-        
+
         // Try to remove a listener that was never added
         eventsHandler.removeEventListener(listener2);
-        
+
         expect(eventsHandler.listeners.length, equals(1));
         expect(eventsHandler.listeners.contains(listener1), isTrue);
       });
@@ -102,12 +102,12 @@ void main() {
         listener.onPopupClosedEvent = () {
           popupClosed = true;
         };
-        
+
         eventsHandler.addEventListener(listener);
-        
+
         final event = {'type': 'onPopupClosedEvent'};
         eventsHandler.handleAxeptioEvent(event);
-        
+
         expect(popupClosed, isTrue);
       });
 
@@ -117,12 +117,12 @@ void main() {
         listener.onConsentCleared = () {
           consentCleared = true;
         };
-        
+
         eventsHandler.addEventListener(listener);
-        
+
         final event = {'type': 'onConsentCleared'};
         eventsHandler.handleAxeptioEvent(event);
-        
+
         expect(consentCleared, isTrue);
       });
 
@@ -132,9 +132,9 @@ void main() {
         listener.onGoogleConsentModeUpdate = (consents) {
           receivedConsents = consents;
         };
-        
+
         eventsHandler.addEventListener(listener);
-        
+
         final event = {
           'type': 'onGoogleConsentModeUpdate',
           'googleConsentV2': {
@@ -145,7 +145,7 @@ void main() {
           }
         };
         eventsHandler.handleAxeptioEvent(event);
-        
+
         expect(receivedConsents, isNotNull);
         expect(receivedConsents!.analyticsStorage, isTrue);
         expect(receivedConsents!.adStorage, isFalse);
@@ -156,23 +156,23 @@ void main() {
       test('handleAxeptioEvent calls all registered listeners', () {
         int callCount1 = 0;
         int callCount2 = 0;
-        
+
         final listener1 = AxeptioEventListener();
         listener1.onPopupClosedEvent = () {
           callCount1++;
         };
-        
+
         final listener2 = AxeptioEventListener();
         listener2.onPopupClosedEvent = () {
           callCount2++;
         };
-        
+
         eventsHandler.addEventListener(listener1);
         eventsHandler.addEventListener(listener2);
-        
+
         final event = {'type': 'onPopupClosedEvent'};
         eventsHandler.handleAxeptioEvent(event);
-        
+
         expect(callCount1, equals(1));
         expect(callCount2, equals(1));
       });
@@ -181,9 +181,9 @@ void main() {
         // This test captures debug print output to verify the unknown event is logged
         final listener = AxeptioEventListener();
         eventsHandler.addEventListener(listener);
-        
+
         final event = {'type': 'unknownEventType'};
-        
+
         // Should not throw an exception
         expect(() => eventsHandler.handleAxeptioEvent(event), returnsNormally);
       });
@@ -191,21 +191,21 @@ void main() {
       test('handleAxeptioEvent handles malformed event data', () {
         final listener = AxeptioEventListener();
         eventsHandler.addEventListener(listener);
-        
+
         // Event without type field - should handle gracefully
         final malformedEvent = {'data': 'test'};
-        
+
         // Should not throw exception, handles gracefully with null toString()
-        expect(() => eventsHandler.handleAxeptioEvent(malformedEvent), 
-               returnsNormally);
+        expect(() => eventsHandler.handleAxeptioEvent(malformedEvent),
+            returnsNormally);
       });
 
       test('handleAxeptioEvent handles null type gracefully', () {
         final listener = AxeptioEventListener();
         eventsHandler.addEventListener(listener);
-        
+
         final event = {'type': null};
-        
+
         // Should convert null to string and handle as unknown event
         expect(() => eventsHandler.handleAxeptioEvent(event), returnsNormally);
       });
@@ -214,19 +214,20 @@ void main() {
     group('Error Handling', () {
       test('handleDAxeptioErrorEvent prints error message', () {
         // Create a mock error object with a message property
-        final mockError = MockPlatformException('TEST_ERROR', 'Test error message');
-        
+        final mockError =
+            MockPlatformException('TEST_ERROR', 'Test error message');
+
         // Should not throw an exception
-        expect(() => eventsHandler.handleDAxeptioErrorEvent(mockError), 
-               returnsNormally);
+        expect(() => eventsHandler.handleDAxeptioErrorEvent(mockError),
+            returnsNormally);
       });
 
       test('handleDAxeptioErrorEvent handles error without message', () {
         final mockError = {};
-        
+
         // Should throw NoSuchMethodError when accessing missing 'message' property
-        expect(() => eventsHandler.handleDAxeptioErrorEvent(mockError), 
-               throwsA(isA<NoSuchMethodError>()));
+        expect(() => eventsHandler.handleDAxeptioErrorEvent(mockError),
+            throwsA(isA<NoSuchMethodError>()));
       });
     });
 
@@ -235,7 +236,7 @@ void main() {
         bool popupClosed = false;
         bool consentCleared = false;
         ConsentsV2? googleConsents;
-        
+
         final listener = AxeptioEventListener();
         listener.onPopupClosedEvent = () {
           popupClosed = true;
@@ -246,27 +247,27 @@ void main() {
         listener.onGoogleConsentModeUpdate = (consents) {
           googleConsents = consents;
         };
-        
+
         eventsHandler.addEventListener(listener);
-        
+
         // Send popup closed event
         eventsHandler.handleAxeptioEvent({'type': 'onPopupClosedEvent'});
         expect(popupClosed, isTrue);
         expect(consentCleared, isFalse);
         expect(googleConsents, isNull);
-        
+
         // Reset flags
         popupClosed = false;
-        
+
         // Send consent cleared event
         eventsHandler.handleAxeptioEvent({'type': 'onConsentCleared'});
         expect(popupClosed, isFalse);
         expect(consentCleared, isTrue);
         expect(googleConsents, isNull);
-        
+
         // Reset flags
         consentCleared = false;
-        
+
         // Send Google consent event
         eventsHandler.handleAxeptioEvent({
           'type': 'onGoogleConsentModeUpdate',
@@ -288,17 +289,17 @@ void main() {
         listener.onPopupClosedEvent = () {
           callCount++;
         };
-        
+
         // Add listener and trigger event
         eventsHandler.addEventListener(listener);
         eventsHandler.handleAxeptioEvent({'type': 'onPopupClosedEvent'});
         expect(callCount, equals(1));
-        
+
         // Remove listener and trigger event
         eventsHandler.removeEventListener(listener);
         eventsHandler.handleAxeptioEvent({'type': 'onPopupClosedEvent'});
         expect(callCount, equals(1)); // Should not increment
-        
+
         // Re-add listener and trigger event
         eventsHandler.addEventListener(listener);
         eventsHandler.handleAxeptioEvent({'type': 'onPopupClosedEvent'});
@@ -312,6 +313,6 @@ void main() {
 class MockPlatformException {
   final String code;
   final String message;
-  
+
   MockPlatformException(this.code, this.message);
 }
