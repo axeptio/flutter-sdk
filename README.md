@@ -23,14 +23,20 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 3. [App Tracking Transparency (ATT) Integration](#app-tracking-transparency-att-integration)
 4. [SDK and Mobile App Responsibilities](#sdk-and-mobile-app-responsibilities)
 5. [Retrieving and Managing Stored Consents](#retrieving-and-managing-stored-consents)
-6. [TCF Vendor Consent Management](#tcf-vendor-consent-management)
-7. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
-8. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
-9. [Clearing User Consent](#clearing-user-consent)
-10. [Event Handling and Customization](#event-handling-and-customization)
+6. [TCF (Transparency & Consent Framework) Vendor Management](#tcf-transparency--consent-framework-vendor-management)
+7. [TCF Global Vendor List (GVL) Integration](#tcf-global-vendor-list-gvl-integration)
+   - [Loading the Global Vendor List](#loading-the-global-vendor-list)
+   - [Getting Vendor Names](#getting-vendor-names)
+   - [Enhanced Consent Data with Names](#enhanced-consent-data-with-names)
+   - [Cache Management](#cache-management)
+   - [Error Handling](#error-handling)
+8. [Displaying the Consent Popup on Demand](#displaying-the-consent-popup-on-demand)
+9. [Sharing Consents with Web Views](#sharing-consents-with-web-views)
+10. [Clearing User Consent](#clearing-user-consent)
+11. [Event Handling and Customization](#event-handling-and-customization)
     - [Event Source Identification](#event-source-identification)
-11. [Testing and Development](#testing-and-development)
-12. [Local Test](#local-test)
+12. [Testing and Development](#testing-and-development)
+13. [Local Test](#local-test)
 <br><br><br>
 ## Setup and Installation   
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -44,7 +50,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^2.0.15
+  axeptio_sdk: ^2.0.18
 ```
 
 ### Android Setup
@@ -303,7 +309,7 @@ print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 > For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
 
 <br><br><br>
-## TCF Vendor Consent Management
+## TCF (Transparency & Consent Framework) Vendor Management
 
 The Axeptio SDK provides comprehensive **TCF (Transparency & Consent Framework)** vendor consent management APIs, allowing you to programmatically access and analyze user consent decisions for individual vendors.
 
@@ -549,7 +555,7 @@ The following values are used:
 This tagging is handled automatically by the native SDK components used under the hood in the Flutter module.
 <br><br><br>
 
-## Global Vendor List (GVL) Integration
+## TCF Global Vendor List (GVL) Integration
 
 The Axeptio SDK provides comprehensive **Global Vendor List (GVL) integration** for resolving TCF vendor IDs to human-readable vendor names. This feature bridges the gap between numeric vendor IDs and user-friendly vendor information.
 
