@@ -28,9 +28,6 @@ void main() {
         },
       );
 
-      // Mock the EventChannel stream
-      const EventChannel eventChannel = EventChannel('axeptio_sdk/events');
-
       // We'll directly test the handler methods since mocking EventChannel
       // broadcast streams is complex in tests
       eventsHandler = EventsHandler();

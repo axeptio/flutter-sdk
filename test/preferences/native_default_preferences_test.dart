@@ -94,30 +94,22 @@ class MockNativePreferencesPlatform
   Future<bool> isVendorConsented(int vendorId) => throw UnimplementedError();
 
   // GVL Mock Methods
-  @override
   Future<bool> loadGVL({String? gvlVersion}) => Future.value(true);
 
-  @override
   Future<void> unloadGVL() => Future.value();
 
-  @override
   Future<void> clearGVL() => Future.value();
 
-  @override
   Future<String?> getVendorName(int vendorId) => Future.value(null);
 
-  @override
   Future<Map<int, String>> getVendorNames(List<int> vendorIds) =>
       Future.value(<int, String>{});
 
-  @override
   Future<Map<int, VendorInfo>> getVendorConsentsWithNames() =>
       Future.value(<int, VendorInfo>{});
 
-  @override
   Future<bool> isGVLLoaded() => Future.value(false);
 
-  @override
   Future<String?> getGVLVersion() => Future.value(null);
 }
 
