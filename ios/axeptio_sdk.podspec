@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'axeptio_sdk'
-  s.version          = '2.0.15'
+  s.version          = '2.0.17'
   s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
   s.homepage         = 'https://github.com/axeptio/flutter-sdk'
   s.license          = { :type => 'MIT', :file => '../LICENSE' }

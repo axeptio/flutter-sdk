@@ -1,12 +1,19 @@
 ## 2.0.19
 
+### 🚨 Breaking Changes
+- Updated Android build environment:
+  - **Android Gradle Plugin:** 8.1.3  
+  - **Kotlin:** 2.1.0  
+  - **Gradle:** 8.1.3  
+  These updates require to update Flutter project's Android configuration accordingly.
+
 - Update iOS Axeptio SDK to 2.0.17
 - Update Android Axeptio SDK to 2.0.9
-- Enhanced: Application name now included in event metadata (MSK-73, MSK-74)
-- Improved: Network error handling with blocking view on iOS (MSK-98)
-- Fixed: iOS userAgent for native in-app events - WebView events now working correctly (MSK-109)
-- Fixed: Enhanced timeout mechanism on Android (MSK-102)
-- Fixed: Additional iOS improvements (MSK-111)
+- Enhanced: Application name now included in event metadata
+- Improved: Network error handling with blocking view on iOS
+- Fixed: iOS userAgent for native in-app events - WebView events now working correctly
+- Fixed: Enhanced timeout mechanism on Android
+- Fixed: Additional iOS improvements
 
 ## 2.0.18
 
