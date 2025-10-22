@@ -1,3 +1,13 @@
+## 2.0.19
+
+- Update iOS Axeptio SDK to 2.0.17
+- Update Android Axeptio SDK to 2.0.9
+- Enhanced: Application name now included in event metadata (MSK-73, MSK-74)
+- Improved: Network error handling with blocking view on iOS (MSK-98)
+- Fixed: iOS userAgent for native in-app events - WebView events now working correctly (MSK-109)
+- Fixed: Enhanced timeout mechanism on Android (MSK-102)
+- Fixed: Additional iOS improvements (MSK-111)
+
 ## 2.0.18
 
 ### ✨ New Features
@@ -63,7 +73,7 @@
 - Add comprehensive TCF vendor consent management APIs (iOS & Android).
   - `getVendorConsents()`: Get all vendor consents as Map<int, bool>
   - `getConsentedVendors()`: Get list of consented vendor IDs
-  - `getRefusedVendors()`: Get list of refused vendor IDs  
+  - `getRefusedVendors()`: Get list of refused vendor IDs
   - `isVendorConsented(vendorId)`: Check specific vendor consent status
 - Add extensive README documentation with TCF vendor management examples.
 - Add TCF vendor consent demo in example app with detailed logging.
@@ -135,7 +145,7 @@ Fix CMP first show on iOS SDK
 ## 1.2.0
 
 * First release
-  
+
 ## 1.0.0-alpha2
 
 * Second alpha
