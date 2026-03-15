@@ -9,8 +9,17 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  WebViewPlatform? savedWebViewPlatform;
+
   setUp(() {
+    savedWebViewPlatform = WebViewPlatform.instance;
     WebViewPlatform.instance = _MockWebViewPlatform();
+  });
+
+  tearDown(() {
+    if (savedWebViewPlatform != null) {
+      WebViewPlatform.instance = savedWebViewPlatform!;
+    }
   });
 
   final testUri = Uri.parse('https://static.axept.io/test.html');

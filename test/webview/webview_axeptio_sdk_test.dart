@@ -11,12 +11,21 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  WebViewPlatform? savedWebViewPlatform;
+
   group('WebViewAxeptioSdk', () {
     late WebViewAxeptioSdk sdk;
 
     setUp(() async {
+      savedWebViewPlatform = WebViewPlatform.instance;
       SharedPreferences.setMockInitialValues({});
       sdk = WebViewAxeptioSdk();
+    });
+
+    tearDown(() {
+      if (savedWebViewPlatform != null) {
+        WebViewPlatform.instance = savedWebViewPlatform!;
+      }
     });
 
     group('initialization', () {
