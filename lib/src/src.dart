@@ -9,3 +9,7 @@ export 'model/axeptio_service.dart';
 export 'model/consents_v2.dart';
 export 'model/model.dart';
 export 'preferences/native_default_preferences.dart';
+export 'webview/axeptio_consent_view.dart';
+export 'webview/consent_url_builder.dart';
+export 'webview/tcf_storage.dart';
+export 'webview/webview_axeptio_sdk.dart';

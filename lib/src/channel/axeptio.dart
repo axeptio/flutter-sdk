@@ -1,10 +1,24 @@
 import 'package:axeptio_sdk/src/events/event_listener.dart';
-import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:axeptio_sdk/src/gvl/gvl_service.dart';
+import 'package:axeptio_sdk/src/model/model.dart';
+import 'package:axeptio_sdk/src/webview/webview_axeptio_sdk.dart';
+import 'package:flutter/material.dart';
 
 import 'axeptio_sdk_platform_interface.dart';
 
 class AxeptioSdk {
+  /// Navigator key required for [showConsentScreen] and [setupUI] to work.
+  ///
+  /// Set this before calling [initialize]:
+  /// ```dart
+  /// AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
+  /// // Then pass it to your MaterialApp:
+  /// MaterialApp(navigatorKey: AxeptioSdk.navigatorKey, ...)
+  /// ```
+  static GlobalKey<NavigatorState>? get navigatorKey =>
+      WebViewAxeptioSdk.navigatorKey;
+  static set navigatorKey(GlobalKey<NavigatorState>? key) =>
+      WebViewAxeptioSdk.navigatorKey = key;
   AxeptioService? _targetService;
 
   AxeptioService? get targetService => _targetService;

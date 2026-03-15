@@ -10,7 +10,8 @@ class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('axeptio_sdk');
-  final EventsHandler _eventsHandler = EventsHandler();
+  final EventsHandler _eventsHandler = EventsHandler(
+      const EventChannel('axeptio_sdk/events').receiveBroadcastStream());
 
   @override
   Future<String?> getPlatformVersion() async {

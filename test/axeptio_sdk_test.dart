@@ -264,8 +264,8 @@ void main() {
   final AxeptioSdkPlatform initialPlatform = AxeptioSdkPlatform.instance;
 
   group('Platform Interface', () {
-    test('$MethodChannelAxeptioSdk is the default instance', () {
-      expect(initialPlatform, isInstanceOf<MethodChannelAxeptioSdk>());
+    test('WebViewAxeptioSdk is the default instance', () {
+      expect(initialPlatform, isInstanceOf<WebViewAxeptioSdk>());
     });
 
     test('getPlatformVersion', () async {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/vendor_info.dart';
@@ -18,6 +19,9 @@ class GVLService {
   static GVLService get instance => _instance ??= GVLService._();
 
   GVLService._();
+
+  @visibleForTesting
+  static void resetInstance() => _instance = null;
 
   Map<int, VendorInfo>? _cachedVendors;
   String? _cachedVersion;

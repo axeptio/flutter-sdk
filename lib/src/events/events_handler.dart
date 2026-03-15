@@ -2,18 +2,14 @@
 
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 
 import 'event_listener.dart';
 
 class EventsHandler {
-  static const EventChannel _eventChannel = EventChannel('axeptio_sdk/events');
   List<AxeptioEventListener> listeners = [];
 
-  EventsHandler() {
-    _eventChannel
-        .receiveBroadcastStream()
-        .listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
+  EventsHandler(Stream<dynamic> stream) {
+    stream.listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
   }
 
   handleAxeptioEvent(dynamic event) {

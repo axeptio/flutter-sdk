@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:axeptio_sdk/src/events/events_handler.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
@@ -13,33 +12,12 @@ void main() {
     late StreamController<dynamic> eventStreamController;
 
     setUp(() {
-      // Create a stream controller to simulate the event channel
       eventStreamController = StreamController<dynamic>.broadcast();
-
-      // Mock the event channel
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('axeptio_sdk/events'),
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'listen') {
-            return null;
-          }
-          return null;
-        },
-      );
-
-      // We'll directly test the handler methods since mocking EventChannel
-      // broadcast streams is complex in tests
-      eventsHandler = EventsHandler();
+      eventsHandler = EventsHandler(eventStreamController.stream);
     });
 
     tearDown(() {
       eventStreamController.close();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('axeptio_sdk/events'),
-        null,
-      );
     });
 
     group('Event Listener Management', () {
