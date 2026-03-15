@@ -420,7 +420,7 @@ class _MockWebViewPlatform extends WebViewPlatform {
 }
 
 class _MockCtrl extends PlatformWebViewController {
-  _MockCtrl(super.p) : super.implementation();
+  _MockCtrl(super.params) : super.implementation();
   @override
   Future<void> setJavaScriptMode(JavaScriptMode m) async {}
   @override
@@ -476,13 +476,13 @@ class _MockCtrl extends PlatformWebViewController {
 }
 
 class _MockWidget extends PlatformWebViewWidget {
-  _MockWidget(super.p) : super.implementation();
+  _MockWidget(super.params) : super.implementation();
   @override
   Widget build(BuildContext ctx) => const SizedBox.shrink();
 }
 
 class _MockCookies extends PlatformWebViewCookieManager {
-  _MockCookies(super.p) : super.implementation();
+  _MockCookies(super.params) : super.implementation();
   @override
   Future<bool> clearCookies() async => true;
   @override
@@ -490,7 +490,7 @@ class _MockCookies extends PlatformWebViewCookieManager {
 }
 
 class _MockDelegate extends PlatformNavigationDelegate {
-  _MockDelegate(super.p) : super.implementation();
+  _MockDelegate(super.params) : super.implementation();
   @override
   Future<void> setOnNavigationRequest(NavigationRequestCallback f) async {}
   @override

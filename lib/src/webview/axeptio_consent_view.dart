@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -49,6 +50,13 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       )
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) => _onPageFinished(),
+        onNavigationRequest: (request) {
+          final host = Uri.tryParse(request.url)?.host ?? '';
+          if (host == 'static.axept.io') {
+            return NavigationDecision.navigate;
+          }
+          return NavigationDecision.prevent;
+        },
       ))
       ..loadRequest(widget.consentUrl);
   }
@@ -91,7 +99,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       }
 
       if (name == 'app:cookies:ready') {
-        _handleCookiesReady(payload);
+        unawaited(_handleCookiesReady(payload));
       } else if (name == 'cookies:close') {
         widget.onJsEvent(name, payload);
         widget.onClose();
@@ -101,7 +109,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
     } catch (_) {}
   }
 
-  void _handleCookiesReady(Map<String, dynamic>? payload) {
+  Future<void> _handleCookiesReady(Map<String, dynamic>? payload) async {
     if (payload == null) {
       widget.onClose();
       return;
@@ -112,7 +120,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       return;
     }
     if (widget.showConsentManager) {
-      _controller
+      await _controller
           .runJavaScript("window.axeptioSDK?.requestShow?.('consentManager')");
       return;
     }
