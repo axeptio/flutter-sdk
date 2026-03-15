@@ -30,6 +30,12 @@ void main() {
 
       test('initialize stores configuration', () async {
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', 'tok');
+        expect(await sdk.axeptioToken, 'tok');
+      });
+
+      test('axeptioToken returns null when no init token and storage empty',
+          () async {
+        await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
         expect(await sdk.axeptioToken, isNull);
       });
 
@@ -96,6 +102,31 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(AxeptioConsentView), findsOneWidget);
+
+        WebViewAxeptioSdk.navigatorKey = null;
+      });
+
+      testWidgets('consentUrl contains showConsentManager=true',
+          (tester) async {
+        WebViewPlatform.instance = _MockWebViewPlatform();
+        final navKey = GlobalKey<NavigatorState>();
+        WebViewAxeptioSdk.navigatorKey = navKey;
+
+        await sdk.initialize(
+            AxeptioService.publishers, 'client-id', 'version', null);
+
+        await tester.pumpWidget(MaterialApp(
+          navigatorKey: navKey,
+          home: const Scaffold(body: Text('home')),
+        ));
+        await tester.pumpAndSettle();
+
+        await sdk.showConsentScreen();
+        await tester.pumpAndSettle();
+
+        final view =
+            tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
+        expect(view.consentUrl.queryParameters['showConsentManager'], 'true');
 
         WebViewAxeptioSdk.navigatorKey = null;
       });

@@ -27,7 +27,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   Future<String?> getPlatformVersion() async => null;
 
   @override
-  Future<String?> get axeptioToken async => _storage?.axeptioToken;
+  Future<String?> get axeptioToken async => _storage?.axeptioToken ?? _token;
 
   @override
   Future<void> initialize(AxeptioService targetService, String clientId,
@@ -68,6 +68,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       clientId: clientId,
       cookiesVersion: cookiesVersion,
       token: _storage?.axeptioToken ?? _token,
+      showConsentManager: true,
     );
 
     key.currentState!.push(

@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+/// Duration in days for the Axeptio user cookie consent window.
+const int _axUserCookiesDurationDays = 190;
 
 const String _polyfillScript = r'''
 window.webkit = window.webkit || {};
@@ -69,7 +73,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   Future<void> _injectLocalStorage() async {
     final items = <String, String>{
       '_ax_app_sdk_mode': 'true',
-      '_ax_user_cookies_duration': '190',
+      '_ax_user_cookies_duration': _axUserCookiesDurationDays.toString(),
       if (widget.attDenied) '_ax_app_att_denied': 'true',
       if (widget.storedTcString != null) '_ax_tcstring': widget.storedTcString!,
     };
@@ -106,7 +110,11 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       } else {
         widget.onJsEvent(name, payload);
       }
-    } catch (_) {}
+    } catch (e) {
+      if (kDebugMode) {
+        print('AxeptioConsentView: failed to parse JS message: $e');
+      }
+    }
   }
 
   Future<void> _handleCookiesReady(Map<String, dynamic>? payload) async {
