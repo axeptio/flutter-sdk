@@ -8,6 +8,11 @@ import 'event_listener.dart';
 class EventsHandler {
   List<AxeptioEventListener> listeners = [];
 
+  /// Creates an [EventsHandler].
+  ///
+  /// If [stream] is provided, events are received from it automatically.
+  /// When omitted (WebView implementation), events are dispatched directly
+  /// via [handleAxeptioEvent] — no platform channel subscription is made.
   EventsHandler([Stream<dynamic>? stream]) {
     stream?.listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
   }

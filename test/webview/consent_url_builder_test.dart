@@ -108,6 +108,12 @@ void main() {
       expect(uri.queryParameters.containsKey('axeptio_token'), isFalse);
     });
 
+    test('removes existing axeptio_token from url when token is null', () {
+      final uri = ConsentUrlBuilder.appendToken(
+          'https://example.com?axeptio_token=old', 'cid', 'cv', null);
+      expect(uri.queryParameters.containsKey('axeptio_token'), isFalse);
+    });
+
     test('preserves existing query params', () {
       final uri = ConsentUrlBuilder.appendToken(
           'https://example.com?foo=bar', 'cid', 'cv', 'tok');

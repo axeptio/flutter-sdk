@@ -30,7 +30,11 @@ class ConsentUrlBuilder {
     final params = Map<String, String>.from(uri.queryParameters);
     params['clientId'] = clientId;
     params['cookiesVersion'] = cookiesVersion;
-    if (token != null) params['axeptio_token'] = token;
+    if (token != null) {
+      params['axeptio_token'] = token;
+    } else {
+      params.remove('axeptio_token');
+    }
     return uri.replace(queryParameters: params);
   }
 }
