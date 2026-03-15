@@ -50,7 +50,22 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^2.0.19
+  axeptio_sdk: ^3.0.0
+```
+
+### Navigator Key Setup
+The SDK presents its consent UI by pushing a route onto your app's navigator. You must provide a
+`GlobalKey<NavigatorState>` before calling `initialize`:
+
+```dart
+// 1. Declare the key (top-level or in your app widget):
+AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
+
+// 2. Pass it to MaterialApp:
+MaterialApp(
+  navigatorKey: AxeptioSdk.navigatorKey,
+  // ...
+)
 ```
 
 ### Android Setup
@@ -63,77 +78,8 @@ android {
     }
 }
 ```
-##### Add Maven Repository and Credentials
-In order to download and include the Axeptio SDK, you'll need to configure the Maven repository and authentication credentials in your `android/build.gradle` file. Follow these steps:
-1. Open the `android/build.gradle` file in your Flutter project.
-2. In the `repositories block`, add the Axeptio Maven repository URL and the required credentials for authentication.
 
-Here is the necessary configuration to add:
-```gradle
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/axeptio/axeptio-android-sdk")
-            credentials {
-                username = System.getenv("GITHUB_USERNAME") ?: project.findProperty("github.username") as String? ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("github.token") as String? ?: ""
-            }
-        }
-    }
-}
-```
-##### GitHub Authentication & Security Setup
-
-⚠️ **SECURITY CRITICAL**: Never hardcode credentials in your build files or commit them to version control.
-
-**Step 1: Generate GitHub Token**
-1. Visit GitHub and navigate to **Settings > Developer settings > Personal access tokens**.
-2. Click **Generate new token** and select permissions (minimum: `read:packages`).
-3. Copy the generated token immediately (you won't see it again).
-
-**Step 2: Configure Environment Variables**
-Set up your credentials using **environment variables** (recommended) or **gradle.properties**:
-
-**Option A: Environment Variables (Recommended)**
-```bash
-export GITHUB_USERNAME=your_github_username
-export GITHUB_TOKEN=your_generated_token
-```
-
-**Option B: gradle.properties (Alternative)**
-Create `~/.gradle/gradle.properties` or `android/gradle.properties`:
-```properties
-github.username=your_github_username
-github.token=your_generated_token
-```
-
-**Step 3: Update .gitignore**
-Ensure your `.gitignore` includes:
-```gitignore
-# Gradle credentials
-gradle.properties
-local.properties
-```
-
-> **🔒 Security Best Practices:**
-> - Never commit credentials to version control
-> - Rotate tokens regularly (quarterly recommended)
-> - Use minimal required permissions
-> - Consider using CI/CD environment variables for builds
-
-##### Sync Gradle
-Once you've added the repository and credentials, sync your Gradle files by either running:
-```bash
-flutter pub get
-```
-Or manually through Android Studio by clicking **File > Sync Project** with Gradle Files.
-
-This will allow your project to fetch the necessary dependencies from the Axeptio Maven repository.
-
-> **🏭 Production Deployment Notice:**
-> For production builds, ensure you have configured CI/CD environment variables and never include credentials in your app bundle. Consider using build flavors for different environments.
+No additional Maven repository or credentials are required — the SDK is published on pub.dev.
 
 ### iOS Setup
 ##### Minimum iOS Version

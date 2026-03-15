@@ -303,7 +303,7 @@ void main() {
 
     group('VendorInfo equality', () {
       test('two identical VendorInfo are equal', () {
-        final v1 = VendorInfo(
+        const v1 = VendorInfo(
           id: 1,
           name: 'Test',
           consented: true,
@@ -316,7 +316,7 @@ void main() {
           usesNonCookieAccess: false,
           policyUrl: 'https://example.com',
         );
-        final v2 = VendorInfo(
+        const v2 = VendorInfo(
           id: 1,
           name: 'Test',
           consented: true,

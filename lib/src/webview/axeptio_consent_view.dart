@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -16,6 +15,7 @@ class AxeptioConsentView extends StatefulWidget {
   final Uri consentUrl;
   final bool attDenied;
   final String? storedTcString;
+  final bool showConsentManager;
   final void Function(String name, Map<String, dynamic>? payload) onJsEvent;
   final void Function() onClose;
 
@@ -26,6 +26,7 @@ class AxeptioConsentView extends StatefulWidget {
     required this.onClose,
     this.attDenied = false,
     this.storedTcString,
+    this.showConsentManager = false,
   });
 
   @override
@@ -65,7 +66,8 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       if (widget.storedTcString != null) '_ax_tcstring': widget.storedTcString!,
     };
     final script = items.entries
-        .map((e) => "localStorage.setItem('${e.key}', '${e.value}');")
+        .map((e) =>
+            "localStorage.setItem(${jsonEncode(e.key)}, ${jsonEncode(e.value)});")
         .join('\n');
     await _controller.runJavaScript(script);
   }
@@ -107,6 +109,11 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
     final subscription = payload['subscription'];
     if (subscription == false) {
       widget.onClose();
+      return;
+    }
+    if (widget.showConsentManager) {
+      _controller
+          .runJavaScript("window.axeptioSDK?.requestShow?.('consentManager')");
       return;
     }
     final showCmp = payload['showCmp'] as bool? ?? false;

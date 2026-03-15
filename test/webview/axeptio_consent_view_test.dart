@@ -148,6 +148,26 @@ void main() {
       expect(closeCount, 0);
     });
 
+    testWidgets(
+        'app:cookies:ready with showConsentManager==true bypasses showCmp check',
+        (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: stateKey,
+          consentUrl: testUri,
+          onJsEvent: (name, _) => jsEvents.add(name),
+          onClose: () => closeCount++,
+          showConsentManager: true,
+        ),
+      ));
+      stateKey.currentState!.simulateJsMessage(jsonEncode({
+        'name': 'app:cookies:ready',
+        'payload': jsonEncode({'subscription': null, 'showCmp': false})
+      }));
+      // Should NOT close — showConsentManager forces the CMP to show
+      expect(closeCount, 0);
+    });
+
     testWidgets('app:cookies:ready with null payload calls onClose',
         (tester) async {
       await buildWidget(tester);

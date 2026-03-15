@@ -1,17 +1,13 @@
-import 'dart:async';
-
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/events/events_handler.dart';
-import 'package:axeptio_sdk/src/model/consents_v2.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/consent_url_builder.dart';
 import 'package:axeptio_sdk/src/webview/tcf_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class WebViewAxeptioSdk implements AxeptioSdkPlatform {
+class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   static GlobalKey<NavigatorState>? navigatorKey;
 
   String? _clientId;
@@ -21,12 +17,10 @@ class WebViewAxeptioSdk implements AxeptioSdkPlatform {
   bool _attDenied = false;
   TcfStorage? _storage;
 
-  final StreamController<dynamic> _eventController =
-      StreamController<dynamic>.broadcast();
   late final EventsHandler _eventsHandler;
 
-  WebViewAxeptioSdk() {
-    _eventsHandler = EventsHandler(_eventController.stream);
+  WebViewAxeptioSdk() : super() {
+    _eventsHandler = EventsHandler();
   }
 
   @override
@@ -82,7 +76,8 @@ class WebViewAxeptioSdk implements AxeptioSdkPlatform {
           consentUrl: url,
           attDenied: _attDenied,
           storedTcString: _storage?.tcString,
-          onJsEvent: handleJsEvent,
+          showConsentManager: true,
+          onJsEvent: (name, payload) => handleJsEvent(name, payload),
           onClose: () => key.currentState?.pop(),
         ),
         fullscreenDialog: true,
@@ -160,19 +155,19 @@ class WebViewAxeptioSdk implements AxeptioSdkPlatform {
   }
 
   @visibleForTesting
-  void handleJsEvent(String name, Map<String, dynamic>? payload) {
+  Future<void> handleJsEvent(String name, Map<String, dynamic>? payload) async {
     switch (name) {
       case 'iabtcf':
-        _storage?.writeIabTcfFields(payload);
+        await _storage?.writeIabTcfFields(payload);
         break;
       case 'consent:saved':
-        _storage?.writeConsentSaved(payload);
+        await _storage?.writeConsentSaved(payload);
         break;
       case 'axeptio:cookies':
-        _storage?.writeCookies(payload);
+        await _storage?.writeCookies(payload);
         break;
       case 'cookies:complete':
-        _storage?.writeScope(payload);
+        await _storage?.writeScope(payload);
         break;
       case 'cookies:close':
         for (final listener in _eventsHandler.listeners) {

@@ -13,7 +13,8 @@ class TcfStorage {
 
   String? get tcString => _prefs.getString('IABTCF_TCString');
 
-  String? get axeptioToken => _prefs.getString('_ax_token');
+  String? get axeptioToken =>
+      _prefs.getString('AX_CLIENT_TOKEN') ?? _prefs.getString('_ax_token');
 
   Future<void> writeIabTcfFields(Map<String, dynamic>? fields) async {
     if (fields == null) return;
@@ -25,7 +26,8 @@ class TcfStorage {
   Future<void> writeConsentSaved(Map<String, dynamic>? payload) async {
     if (payload == null) return;
     if (payload['axeptio_token'] != null) {
-      await _prefs.setString('_ax_token', payload['axeptio_token'].toString());
+      await _prefs.setString(
+          'AX_CLIENT_TOKEN', payload['axeptio_token'].toString());
     }
     if (payload['axeptio_cookies'] != null) {
       await _prefs.setString(
@@ -60,6 +62,7 @@ class TcfStorage {
     final keys = [
       ...NativeDefaultPreferences.brandKeys,
       ...NativeDefaultPreferences.tcfKeys,
+      'AX_CLIENT_TOKEN',
       '_ax_token',
       'widget_scope',
       'vendor_consent_summary',
@@ -74,7 +77,7 @@ class TcfStorage {
     final keys = [
       ...NativeDefaultPreferences.brandKeys,
       ...NativeDefaultPreferences.tcfKeys,
-      '_ax_token',
+      'AX_CLIENT_TOKEN',
       'widget_scope',
     ];
     for (final key in keys) {

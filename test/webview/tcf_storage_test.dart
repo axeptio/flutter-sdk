@@ -40,11 +40,18 @@ void main() {
         expect(storage.axeptioToken, isNull);
       });
 
-      test('returns stored token', () async {
-        SharedPreferences.setMockInitialValues({'_ax_token': 'tok-123'});
+      test('returns stored token from AX_CLIENT_TOKEN key', () async {
+        SharedPreferences.setMockInitialValues({'AX_CLIENT_TOKEN': 'tok-123'});
         final prefs = await SharedPreferences.getInstance();
         final s = TcfStorage(prefs);
         expect(s.axeptioToken, 'tok-123');
+      });
+
+      test('falls back to legacy _ax_token key for migration', () async {
+        SharedPreferences.setMockInitialValues({'_ax_token': 'legacy-tok'});
+        final prefs = await SharedPreferences.getInstance();
+        final s = TcfStorage(prefs);
+        expect(s.axeptioToken, 'legacy-tok');
       });
     });
 
@@ -89,7 +96,7 @@ void main() {
     });
 
     group('writeConsentSaved', () {
-      test('stores axeptio_token', () async {
+      test('stores axeptio_token under AX_CLIENT_TOKEN key', () async {
         await storage.writeConsentSaved({'axeptio_token': 'my-token'});
         expect(storage.axeptioToken, 'my-token');
       });
@@ -178,7 +185,7 @@ void main() {
         await storage.writeConsentSaved({'axeptio_token': 'tok'});
         final all = storage.getAllData();
         expect(all['IABTCF_TCString'], 'CPXx');
-        expect(all['_ax_token'], 'tok');
+        expect(all['AX_CLIENT_TOKEN'], 'tok');
       });
     });
 

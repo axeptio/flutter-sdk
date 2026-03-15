@@ -8,8 +8,8 @@ import 'event_listener.dart';
 class EventsHandler {
   List<AxeptioEventListener> listeners = [];
 
-  EventsHandler(Stream<dynamic> stream) {
-    stream.listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
+  EventsHandler([Stream<dynamic>? stream]) {
+    stream?.listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
   }
 
   handleAxeptioEvent(dynamic event) {

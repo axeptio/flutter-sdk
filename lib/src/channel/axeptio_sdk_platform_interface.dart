@@ -13,7 +13,7 @@ abstract class AxeptioSdkPlatform extends PlatformInterface {
 
   /// The default instance of [AxeptioSdkPlatform] to use.
   ///
-  /// Defaults to [MethodChannelAxeptioSdk].
+  /// Defaults to [WebViewAxeptioSdk].
   static AxeptioSdkPlatform get instance => _instance;
 
   /// Platform-specific implementations should set this with their own

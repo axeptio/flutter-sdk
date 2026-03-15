@@ -1,14 +1,4 @@
 import Foundation
 
-import AxeptioSDK
-
-class ModelHelper {
-    static func dictionary(from consents: GoogleConsentV2) -> [String: Bool] {
-        return [
-            "analyticsStorage": consents.analyticsStorage == .granted,
-            "adStorage": consents.adStorage == .granted,
-            "adUserData": consents.adUserData == .granted,
-            "adPersonalization": consents.adPersonalization == .granted
-        ]
-    }
-}
+/// Stub — no longer used after native SDK removal.
+class ModelHelper {}

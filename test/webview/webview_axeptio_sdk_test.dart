@@ -6,7 +6,6 @@ import 'package:axeptio_sdk/src/webview/webview_axeptio_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 void main() {
@@ -146,7 +145,7 @@ void main() {
 
       test('clears stored data', () async {
         SharedPreferences.setMockInitialValues(
-            {'IABTCF_TCString': 'CPXx', '_ax_token': 'tok'});
+            {'IABTCF_TCString': 'CPXx', 'AX_CLIENT_TOKEN': 'tok'});
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
 
         await sdk.clearConsent();
@@ -311,7 +310,7 @@ void main() {
         listener.onPopupClosedEvent = () => closed = true;
         sdk.addEventListener(listener);
 
-        sdk.handleJsEvent('cookies:close', null);
+        await sdk.handleJsEvent('cookies:close', null);
 
         expect(closed, isTrue);
       });
@@ -324,7 +323,7 @@ void main() {
         listener.onGoogleConsentModeUpdate = (c) => received = c;
         sdk.addEventListener(listener);
 
-        sdk.handleJsEvent('google:consent-mode-v2-update', {
+        await sdk.handleJsEvent('google:consent-mode-v2-update', {
           'analytics_storage': true,
           'ad_storage': false,
           'ad_user_data': true,
@@ -342,7 +341,7 @@ void main() {
         SharedPreferences.setMockInitialValues({});
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
 
-        sdk.handleJsEvent('iabtcf', {'IABTCF_TCString': 'CPXxTest'});
+        await sdk.handleJsEvent('iabtcf', {'IABTCF_TCString': 'CPXxTest'});
 
         final data = await sdk.getConsentSavedData();
         expect(data?['IABTCF_TCString'], 'CPXxTest');
@@ -351,7 +350,8 @@ void main() {
       test('consent:saved event writes token', () async {
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
 
-        sdk.handleJsEvent('consent:saved', {'axeptio_token': 'new-token'});
+        await sdk
+            .handleJsEvent('consent:saved', {'axeptio_token': 'new-token'});
 
         expect(await sdk.axeptioToken, 'new-token');
       });
@@ -359,7 +359,8 @@ void main() {
       test('axeptio:cookies event writes cookies', () async {
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
 
-        sdk.handleJsEvent('axeptio:cookies', {'axeptio_cookies': '{"a":1}'});
+        await sdk
+            .handleJsEvent('axeptio:cookies', {'axeptio_cookies': '{"a":1}'});
 
         final data = await sdk.getConsentSavedData();
         expect(data?['axeptio_cookies'], '{"a":1}');
@@ -368,7 +369,7 @@ void main() {
       test('cookies:complete event writes scope', () async {
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
 
-        sdk.handleJsEvent('cookies:complete', {'scope': 'persistent'});
+        await sdk.handleJsEvent('cookies:complete', {'scope': 'persistent'});
 
         final data = await sdk.getConsentSavedData();
         expect(data?['widget_scope'], 'persistent');
@@ -377,7 +378,7 @@ void main() {
       test('unknown events are silently ignored', () async {
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
 
-        expect(() => sdk.handleJsEvent('unknown:event', null), returnsNormally);
+        await expectLater(sdk.handleJsEvent('unknown:event', null), completes);
       });
 
       test('google consent with null payload is ignored', () async {
@@ -388,7 +389,7 @@ void main() {
         listener.onGoogleConsentModeUpdate = (c) => received = c;
         sdk.addEventListener(listener);
 
-        sdk.handleJsEvent('google:consent-mode-v2-update', null);
+        await sdk.handleJsEvent('google:consent-mode-v2-update', null);
 
         expect(received, isNull);
       });
