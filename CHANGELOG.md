@@ -1,3 +1,12 @@
+## 3.0.0-beta.1
+
+### 🔧 Fixes
+
+- Inject localStorage values in `onPageStarted` (before page scripts run) instead of `onPageFinished`
+- `appendAxeptioTokenURL` now only appends `axeptio_token`, not `clientId`/`cookiesVersion`
+- `showConsentScreen` now awaits until the consent screen is dismissed
+- `AxeptioSdk.navigatorKey` setter rejects `null` (throws `ArgumentError`)
+
 ## 3.0.0
 
 ### 🚨 Breaking Changes
