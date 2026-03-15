@@ -250,9 +250,7 @@ print('Brand keys: ${NativeDefaultPreferences.brandKeys}');
 print('TCF keys: ${NativeDefaultPreferences.tcfKeys}');
 print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 ```
-> ⚠️ **Note for Android:** On Android, the SDK stores consent data in native preferences.
-> Using `SharedPreferences.getInstance()` may return `null` if the consent popup was not accepted or if the storage is not shared with Flutter.
-> For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
+> ℹ️ **Note:** Consent data is stored via Flutter's `shared_preferences` and is directly accessible using `getConsentSavedData()`.
 
 <br><br><br>
 ## TCF (Transparency & Consent Framework) Vendor Management
@@ -638,7 +636,7 @@ The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliabili
 ### Current Test Coverage
 - **Coverage**: 97.6% (lines covered)
 - **Target**: 95% coverage requirement (current: 97.6%)
-- **Tests**: 85 comprehensive tests
+- **Tests**: 302 comprehensive tests
 - **Status**: ✅ Coverage meets target
 
 [![Test Coverage](https://img.shields.io/badge/coverage-97.6%25-brightgreen)](TESTING.md)

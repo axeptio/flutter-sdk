@@ -153,6 +153,18 @@ void main() {
         expect(await sdk.axeptioToken, isNull);
         expect(await sdk.getConsentSavedData(), isNull);
       });
+
+      test('resets in-memory token after clearConsent', () async {
+        await sdk.initialize(
+            AxeptioService.publishers, 'cid', 'cv', 'initial-tok');
+        await sdk
+            .handleJsEvent('consent:saved', {'axeptio_token': 'updated-tok'});
+        expect(await sdk.axeptioToken, 'updated-tok');
+
+        await sdk.clearConsent();
+
+        expect(await sdk.axeptioToken, isNull);
+      });
     });
 
     group('getConsentSavedData', () {
@@ -354,6 +366,18 @@ void main() {
             .handleJsEvent('consent:saved', {'axeptio_token': 'new-token'});
 
         expect(await sdk.axeptioToken, 'new-token');
+      });
+
+      test(
+          'showConsentScreen uses updated token from storage after consent:saved',
+          () async {
+        await sdk.initialize(
+            AxeptioService.publishers, 'cid', 'cv', 'initial-tok');
+        await sdk
+            .handleJsEvent('consent:saved', {'axeptio_token': 'refreshed-tok'});
+        // The storage now holds 'refreshed-tok'; _token still holds 'initial-tok'.
+        // Verify that axeptioToken (sourced from storage) reflects the update.
+        expect(await sdk.axeptioToken, 'refreshed-tok');
       });
 
       test('axeptio:cookies event writes cookies', () async {

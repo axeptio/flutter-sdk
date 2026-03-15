@@ -12,7 +12,7 @@ class EventsHandler {
   ///
   /// If [stream] is provided, events are received from it automatically.
   /// When omitted (WebView implementation), events are dispatched directly
-  /// via [handleAxeptioEvent] — no platform channel subscription is made.
+  /// via listener callbacks by the caller — no platform channel subscription is made.
   EventsHandler([Stream<dynamic>? stream]) {
     stream?.listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
   }
@@ -22,13 +22,13 @@ class EventsHandler {
 
     switch (eventType) {
       case 'onPopupClosedEvent':
-        for (var listener in listeners) {
+        for (final listener in List.of(listeners)) {
           listener.onPopupClosedEvent();
         }
         break;
 
       case 'onConsentCleared':
-        for (var listener in listeners) {
+        for (final listener in List.of(listeners)) {
           listener.onConsentCleared();
         }
         break;
@@ -36,7 +36,7 @@ class EventsHandler {
       case 'onGoogleConsentModeUpdate':
         final ConsentsV2 consents =
             ConsentsV2.fromDictionary(event["googleConsentV2"]);
-        for (var listener in listeners) {
+        for (final listener in List.of(listeners)) {
           listener.onGoogleConsentModeUpdate(consents);
         }
         break;

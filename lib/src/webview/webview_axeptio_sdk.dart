@@ -67,7 +67,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       service: service,
       clientId: clientId,
       cookiesVersion: cookiesVersion,
-      token: _token,
+      token: _storage?.axeptioToken ?? _token,
     );
 
     key.currentState!.push(
@@ -88,7 +88,8 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   @override
   Future<void> clearConsent() async {
     await _storage?.clearAll();
-    for (final listener in _eventsHandler.listeners) {
+    _token = null;
+    for (final listener in List.of(_eventsHandler.listeners)) {
       listener.onConsentCleared();
     }
   }
@@ -170,7 +171,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
         await _storage?.writeScope(payload);
         break;
       case 'cookies:close':
-        for (final listener in _eventsHandler.listeners) {
+        for (final listener in List.of(_eventsHandler.listeners)) {
           listener.onPopupClosedEvent();
         }
         break;
@@ -188,7 +189,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       payload['ad_user_data'] == true,
       payload['ad_personalization'] == true,
     );
-    for (final listener in _eventsHandler.listeners) {
+    for (final listener in List.of(_eventsHandler.listeners)) {
       listener.onGoogleConsentModeUpdate(consents);
     }
   }

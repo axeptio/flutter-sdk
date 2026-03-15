@@ -187,6 +187,14 @@ void main() {
         expect(all['IABTCF_TCString'], 'CPXx');
         expect(all['AX_CLIENT_TOKEN'], 'tok');
       });
+
+      test('includes legacy _ax_token when only that key is present', () async {
+        SharedPreferences.setMockInitialValues({'_ax_token': 'legacy-tok'});
+        final prefs = await SharedPreferences.getInstance();
+        final s = TcfStorage(prefs);
+        final all = s.getAllData();
+        expect(all['_ax_token'], 'legacy-tok');
+      });
     });
 
     group('getVendorConsents', () {

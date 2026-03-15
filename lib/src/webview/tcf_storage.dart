@@ -78,6 +78,7 @@ class TcfStorage {
       ...NativeDefaultPreferences.brandKeys,
       ...NativeDefaultPreferences.tcfKeys,
       'AX_CLIENT_TOKEN',
+      '_ax_token',
       'widget_scope',
     ];
     for (final key in keys) {

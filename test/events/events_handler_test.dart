@@ -258,6 +258,24 @@ void main() {
         expect(googleConsents, isNotNull);
       });
 
+      test(
+          'listener that removes itself during onPopupClosedEvent does not cause ConcurrentModificationError',
+          () {
+        final listener = AxeptioEventListener();
+        listener.onPopupClosedEvent = () {
+          eventsHandler.removeEventListener(listener);
+        };
+
+        eventsHandler.addEventListener(listener);
+
+        expect(
+          () =>
+              eventsHandler.handleAxeptioEvent({'type': 'onPopupClosedEvent'}),
+          returnsNormally,
+        );
+        expect(eventsHandler.listeners, isEmpty);
+      });
+
       test('listeners can be removed and re-added dynamically', () {
         int callCount = 0;
         final listener = AxeptioEventListener();
