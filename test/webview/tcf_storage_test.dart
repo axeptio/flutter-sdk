@@ -128,6 +128,16 @@ void main() {
         final all = storage.getAllData();
         expect(all.containsKey('axeptio_cookies'), isFalse);
       });
+
+      test('clears legacy _ax_token when writing new token', () async {
+        SharedPreferences.setMockInitialValues({'_ax_token': 'legacy-tok'});
+        final prefs = await SharedPreferences.getInstance();
+        final s = TcfStorage(prefs);
+        await s.writeConsentSaved({'axeptio_token': 'new-tok'});
+        final all = s.getAllData();
+        expect(all.containsKey('_ax_token'), isFalse);
+        expect(s.axeptioToken, 'new-tok');
+      });
     });
 
     group('writeCookies', () {
@@ -173,6 +183,14 @@ void main() {
         expect(storage.tcString, isNull);
         expect(storage.axeptioToken, isNull);
       });
+
+      test('clears AX_POPUP_ON_GOING key', () async {
+        SharedPreferences.setMockInitialValues({'AX_POPUP_ON_GOING': true});
+        final prefs = await SharedPreferences.getInstance();
+        final s = TcfStorage(prefs);
+        await s.clearAll();
+        expect(s.getAllData().containsKey('AX_POPUP_ON_GOING'), isFalse);
+      });
     });
 
     group('getAllData', () {
@@ -194,6 +212,13 @@ void main() {
         final s = TcfStorage(prefs);
         final all = s.getAllData();
         expect(all['_ax_token'], 'legacy-tok');
+      });
+
+      test('includes AX_POPUP_ON_GOING when set', () async {
+        SharedPreferences.setMockInitialValues({'AX_POPUP_ON_GOING': true});
+        final prefs = await SharedPreferences.getInstance();
+        final s = TcfStorage(prefs);
+        expect(s.getAllData()['AX_POPUP_ON_GOING'], isTrue);
       });
     });
 

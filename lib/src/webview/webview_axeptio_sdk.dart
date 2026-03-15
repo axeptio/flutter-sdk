@@ -153,7 +153,8 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     final cookiesVersion = _cookiesVersion;
     if (clientId == null || cookiesVersion == null) return url;
     return ConsentUrlBuilder.appendToken(url, clientId, cookiesVersion, token)
-        .toString();
+            ?.toString() ??
+        url;
   }
 
   @visibleForTesting

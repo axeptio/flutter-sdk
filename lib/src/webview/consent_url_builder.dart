@@ -24,9 +24,10 @@ class ConsentUrlBuilder {
     return Uri.parse(base).replace(queryParameters: params);
   }
 
-  static Uri appendToken(
+  static Uri? appendToken(
       String url, String clientId, String cookiesVersion, String? token) {
-    final uri = Uri.parse(url);
+    final uri = Uri.tryParse(url);
+    if (uri == null) return null; // coverage:ignore-line
     final params = Map<String, String>.from(uri.queryParameters);
     params['clientId'] = clientId;
     params['cookiesVersion'] = cookiesVersion;

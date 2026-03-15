@@ -91,39 +91,39 @@ void main() {
   group('ConsentUrlBuilder.appendToken', () {
     test('appends clientId and cookiesVersion to URL', () {
       final uri = ConsentUrlBuilder.appendToken(
-          'https://example.com', 'cid', 'cv', null);
+          'https://example.com', 'cid', 'cv', null)!;
       expect(uri.queryParameters['clientId'], 'cid');
       expect(uri.queryParameters['cookiesVersion'], 'cv');
     });
 
     test('appends token when provided', () {
       final uri = ConsentUrlBuilder.appendToken(
-          'https://example.com', 'cid', 'cv', 'tok');
+          'https://example.com', 'cid', 'cv', 'tok')!;
       expect(uri.queryParameters['axeptio_token'], 'tok');
     });
 
     test('omits token param when null', () {
       final uri = ConsentUrlBuilder.appendToken(
-          'https://example.com', 'cid', 'cv', null);
+          'https://example.com', 'cid', 'cv', null)!;
       expect(uri.queryParameters.containsKey('axeptio_token'), isFalse);
     });
 
     test('removes existing axeptio_token from url when token is null', () {
       final uri = ConsentUrlBuilder.appendToken(
-          'https://example.com?axeptio_token=old', 'cid', 'cv', null);
+          'https://example.com?axeptio_token=old', 'cid', 'cv', null)!;
       expect(uri.queryParameters.containsKey('axeptio_token'), isFalse);
     });
 
     test('preserves existing query params', () {
       final uri = ConsentUrlBuilder.appendToken(
-          'https://example.com?foo=bar', 'cid', 'cv', 'tok');
+          'https://example.com?foo=bar', 'cid', 'cv', 'tok')!;
       expect(uri.queryParameters['foo'], 'bar');
       expect(uri.queryParameters['clientId'], 'cid');
     });
 
     test('preserves host and path', () {
       final uri = ConsentUrlBuilder.appendToken(
-          'https://mysite.com/path/page', 'cid', 'cv', null);
+          'https://mysite.com/path/page', 'cid', 'cv', null)!;
       expect(uri.host, 'mysite.com');
       expect(uri.path, '/path/page');
     });
@@ -131,7 +131,7 @@ void main() {
     test('overrides existing clientId if present', () {
       final uri = ConsentUrlBuilder.appendToken(
           'https://example.com?clientId=old', 'new-cid', 'cv', null);
-      expect(uri.queryParameters['clientId'], 'new-cid');
+      expect(uri!.queryParameters['clientId'], 'new-cid');
     });
   });
 }

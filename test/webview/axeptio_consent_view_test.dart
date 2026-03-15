@@ -10,9 +10,17 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   WebViewPlatform? savedWebViewPlatform;
+  WebViewPlatform? originalWebViewPlatform;
 
   setUpAll(() {
+    originalWebViewPlatform = WebViewPlatform.instance;
     WebViewPlatform.instance = _MockWebViewPlatform();
+  });
+
+  tearDownAll(() {
+    if (originalWebViewPlatform != null) {
+      WebViewPlatform.instance = originalWebViewPlatform!;
+    }
   });
 
   setUp(() {

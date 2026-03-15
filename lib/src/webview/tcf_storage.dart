@@ -28,6 +28,7 @@ class TcfStorage {
     if (payload['axeptio_token'] != null) {
       await _prefs.setString(
           'AX_CLIENT_TOKEN', payload['axeptio_token'].toString());
+      await _prefs.remove('_ax_token');
     }
     if (payload['axeptio_cookies'] != null) {
       await _prefs.setString(
@@ -60,9 +61,7 @@ class TcfStorage {
 
   Future<void> clearAll() async {
     final keys = [
-      ...NativeDefaultPreferences.brandKeys,
-      ...NativeDefaultPreferences.tcfKeys,
-      'AX_CLIENT_TOKEN',
+      ...NativeDefaultPreferences.allKeys,
       '_ax_token',
       'widget_scope',
       'vendor_consent_summary',
@@ -75,9 +74,7 @@ class TcfStorage {
   Map<String, dynamic> getAllData() {
     final result = <String, dynamic>{};
     final keys = [
-      ...NativeDefaultPreferences.brandKeys,
-      ...NativeDefaultPreferences.tcfKeys,
-      'AX_CLIENT_TOKEN',
+      ...NativeDefaultPreferences.allKeys,
       '_ax_token',
       'widget_scope',
     ];
