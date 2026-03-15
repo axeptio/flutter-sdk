@@ -1,20 +1,19 @@
 import 'package:axeptio_sdk/src/events/events.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
+import 'package:axeptio_sdk/src/webview/webview_axeptio_sdk.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'axeptio_sdk_method_channel.dart';
-
-abstract interface class AxeptioSdkPlatform extends PlatformInterface {
+abstract class AxeptioSdkPlatform extends PlatformInterface {
   /// Constructs a AxeptioSdkPlatform.
   AxeptioSdkPlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static AxeptioSdkPlatform _instance = MethodChannelAxeptioSdk();
+  static AxeptioSdkPlatform _instance = WebViewAxeptioSdk();
 
   /// The default instance of [AxeptioSdkPlatform] to use.
   ///
-  /// Defaults to [MethodChannelAxeptioSdk].
+  /// Defaults to [WebViewAxeptioSdk].
   static AxeptioSdkPlatform get instance => _instance;
 
   /// Platform-specific implementations should set this with their own

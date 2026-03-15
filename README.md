@@ -38,7 +38,7 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 12. [Testing and Development](#testing-and-development)
 13. [Local Test](#local-test)
 <br><br><br>
-## Setup and Installation   
+## Setup and Installation
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
 ```bash
 flutter pub add axeptio_sdk
@@ -50,7 +50,22 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^2.0.18
+  axeptio_sdk: ^3.0.0
+```
+
+### Navigator Key Setup
+The SDK presents its consent UI by pushing a route onto your app's navigator. You must provide a
+`GlobalKey<NavigatorState>` before calling `initialize`:
+
+```dart
+// 1. Declare the key (top-level or in your app widget):
+AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
+
+// 2. Pass it to MaterialApp:
+MaterialApp(
+  navigatorKey: AxeptioSdk.navigatorKey,
+  // ...
+)
 ```
 
 ### Android Setup
@@ -63,77 +78,8 @@ android {
     }
 }
 ```
-##### Add Maven Repository and Credentials
-In order to download and include the Axeptio SDK, you'll need to configure the Maven repository and authentication credentials in your `android/build.gradle` file. Follow these steps:
-1. Open the `android/build.gradle` file in your Flutter project.
-2. In the `repositories block`, add the Axeptio Maven repository URL and the required credentials for authentication.
 
-Here is the necessary configuration to add:
-```gradle
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/axeptio/axeptio-android-sdk")
-            credentials {
-                username = System.getenv("GITHUB_USERNAME") ?: project.findProperty("github.username") as String? ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("github.token") as String? ?: ""
-            }
-        }
-    }
-}
-```
-##### GitHub Authentication & Security Setup
-
-⚠️ **SECURITY CRITICAL**: Never hardcode credentials in your build files or commit them to version control.
-
-**Step 1: Generate GitHub Token**
-1. Visit GitHub and navigate to **Settings > Developer settings > Personal access tokens**.
-2. Click **Generate new token** and select permissions (minimum: `read:packages`).
-3. Copy the generated token immediately (you won't see it again).
-
-**Step 2: Configure Environment Variables**
-Set up your credentials using **environment variables** (recommended) or **gradle.properties**:
-
-**Option A: Environment Variables (Recommended)**
-```bash
-export GITHUB_USERNAME=your_github_username
-export GITHUB_TOKEN=your_generated_token
-```
-
-**Option B: gradle.properties (Alternative)**
-Create `~/.gradle/gradle.properties` or `android/gradle.properties`:
-```properties
-github.username=your_github_username
-github.token=your_generated_token
-```
-
-**Step 3: Update .gitignore**
-Ensure your `.gitignore` includes:
-```gitignore
-# Gradle credentials
-gradle.properties
-local.properties
-```
-
-> **🔒 Security Best Practices:**
-> - Never commit credentials to version control
-> - Rotate tokens regularly (quarterly recommended)  
-> - Use minimal required permissions
-> - Consider using CI/CD environment variables for builds
-
-##### Sync Gradle
-Once you've added the repository and credentials, sync your Gradle files by either running:
-```bash
-flutter pub get
-```
-Or manually through Android Studio by clicking **File > Sync Project** with Gradle Files.
-
-This will allow your project to fetch the necessary dependencies from the Axeptio Maven repository.
-
-> **🏭 Production Deployment Notice:**
-> For production builds, ensure you have configured CI/CD environment variables and never include credentials in your app bundle. Consider using build flavors for different environments.
+No additional Maven repository or credentials are required — the SDK is published on pub.dev.
 
 ### iOS Setup
 ##### Minimum iOS Version
@@ -190,7 +136,7 @@ In your iOS project, add the following key to `Info.plist` to explain why the ap
 flutter pub add app_tracking_transparency
 ```
 3. **Request Tracking Authorization:**
-Use the **AppTrackingTransparency** plugin to request permission before initializing the **Axeptio SDK's** consent UI. The flow checks the user’s status and takes appropriate actions based on their choice. 
+Use the **AppTrackingTransparency** plugin to request permission before initializing the **Axeptio SDK's** consent UI. The flow checks the user’s status and takes appropriate actions based on their choice.
 ```dart
 try {
   TrackingStatus status = await AppTrackingTransparency.trackingAuthorizationStatus;
@@ -219,24 +165,24 @@ The Axeptio SDK and your mobile application each have distinct responsibilities 
 
 #### Mobile App Responsibilities:
 
-1. **Implementing ATT Flow**  
+1. **Implementing ATT Flow**
    Your app must handle the App Tracking Transparency (ATT) permission request and manage the display of the ATT prompt at the appropriate time relative to the Axeptio CMP.
 
-2. **Privacy Declaration**  
+2. **Privacy Declaration**
    The app must declare data collection practices accurately in App Store privacy labels.
 
-3. **Handling SDK Events**  
+3. **Handling SDK Events**
    The app should listen for events triggered by the SDK and adjust its behavior based on user consent status.
 
 #### Axeptio SDK Responsibilities:
 
-1. **Consent Management UI**  
+1. **Consent Management UI**
    The SDK is responsible for displaying the consent management interface.
 
-2. **Storing and Managing User Consent**  
+2. **Storing and Managing User Consent**
    It stores and manages consent choices across sessions.
 
-3. **API Integration**  
+3. **API Integration**
    The SDK communicates user consent status through its API endpoints.
 
 **Note:** The SDK does not manage ATT permissions. You must handle this separately as shown above.
@@ -275,7 +221,7 @@ final allVendors = await NativeDefaultPreferences.getDefaultPreference('axeptio_
 final authorizedVendors = await NativeDefaultPreferences.getDefaultPreference('axeptio_authorized_vendors');
 ```
 
-##### TCF Keys  
+##### TCF Keys
 ```dart
 // Access TCF (Transparency & Consent Framework) data
 final tcString = await NativeDefaultPreferences.getDefaultPreference('IABTCF_TCString');
@@ -304,9 +250,7 @@ print('Brand keys: ${NativeDefaultPreferences.brandKeys}');
 print('TCF keys: ${NativeDefaultPreferences.tcfKeys}');
 print('All supported keys: ${NativeDefaultPreferences.allKeys}');
 ```
-> ⚠️ **Note for Android:** On Android, the SDK stores consent data in native preferences. 
-> Using `SharedPreferences.getInstance()` may return `null` if the consent popup was not accepted or if the storage is not shared with Flutter.
-> For reliable results, use `NativeDefaultPreferences.getDefaultPreference()` instead.
+> ℹ️ **Note:** Consent data is stored via Flutter's `shared_preferences` and is directly accessible using `getConsentSavedData()`.
 
 <br><br><br>
 ## TCF (Transparency & Consent Framework) Vendor Management
@@ -383,7 +327,7 @@ print('Apple consent: ${appleConsent ? "✅ Granted" : "❌ Refused"}');
 Future<void> loadFeatureBasedOnConsent() async {
   // Check if advertising vendor has consent
   bool adConsentGranted = await axeptioSdk.isVendorConsented(50);
-  
+
   if (adConsentGranted) {
     // Load advertising SDK
     await initializeAdvertisingSDK();
@@ -400,22 +344,22 @@ Future<void> analyzeVendorConsents() async {
   Map<int, bool> allConsents = await axeptioSdk.getVendorConsents();
   List<int> consented = await axeptioSdk.getConsentedVendors();
   List<int> refused = await axeptioSdk.getRefusedVendors();
-  
+
   // Calculate consent statistics
   double consentRate = consented.length / allConsents.length;
-  
+
   print('📊 Consent Analytics:');
   print('Total vendors: ${allConsents.length}');
   print('Consented: ${consented.length}');
   print('Refused: ${refused.length}');
   print('Consent rate: ${(consentRate * 100).toStringAsFixed(1)}%');
-  
+
   // Log specific vendor categories
   List<int> adTechVendors = [1, 2, 50, 100]; // Example ad tech vendor IDs
   List<int> consentedAdTech = adTechVendors.where(
     (id) => consented.contains(id)
   ).toList();
-  
+
   print('Ad Tech vendors consented: $consentedAdTech');
 }
 ```
@@ -427,15 +371,15 @@ Widget buildVendorConsentList() {
     future: axeptioSdk.getVendorConsents(),
     builder: (context, snapshot) {
       if (!snapshot.hasData) return CircularProgressIndicator();
-      
+
       final vendorConsents = snapshot.data!;
-      
+
       return ListView.builder(
         itemCount: vendorConsents.length,
         itemBuilder: (context, index) {
           final vendorId = vendorConsents.keys.elementAt(index);
           final isConsented = vendorConsents[vendorId]!;
-          
+
           return ListTile(
             title: Text('Vendor $vendorId'),
             trailing: Icon(
@@ -460,7 +404,7 @@ Future<void> safeVendorConsentCheck() async {
   try {
     // APIs return empty collections on error (never null)
     Map<int, bool> consents = await axeptioSdk.getVendorConsents();
-    
+
     if (consents.isEmpty) {
       print('No vendor consent data available');
       // Handle case where no consent data exists
@@ -479,7 +423,7 @@ Future<void> safeVendorConsentCheck() async {
 | Method | iOS | Android |
 |--------|-----|---------|
 | `getVendorConsents()` | ✅ Available | ✅ Available |
-| `getConsentedVendors()` | ✅ Available | ✅ Available |  
+| `getConsentedVendors()` | ✅ Available | ✅ Available |
 | `getRefusedVendors()` | ✅ Available | ✅ Available |
 | `isVendorConsented()` | ✅ Available | ✅ Available |
 
@@ -498,11 +442,13 @@ This is useful if you want to show the popup at a specific moment based on app f
 For **publishers**, the SDK provides a feature to share the user's consent status with web views by appending the **Axeptio token** as a query parameter.
 ```dart
 final token = await axeptioSdk.axeptioToken;
-final url = await axeptioSdk.appendAxeptioTokenURL(  
-  "https://myurl.com",  
-  token,  
-); 
-// Will return: https://myurl.com?axeptio_token=[token]
+if (token != null) {
+  final url = await axeptioSdk.appendAxeptioTokenURL(
+    "https://myurl.com",
+    token,
+  );
+  // Will return: https://myurl.com?axeptio_token=[token]
+}
 ```
 This feature ensures that consent status is properly communicated across different parts of the application, including web content.
 <br><br><br>
@@ -559,13 +505,13 @@ This tagging is handled automatically by the native SDK components used under th
 
 The Axeptio SDK provides comprehensive **Global Vendor List (GVL) integration** for resolving TCF vendor IDs to human-readable vendor names. This feature bridges the gap between numeric vendor IDs and user-friendly vendor information.
 
-> 📱 **Platform Support**: Available on **both iOS and Android** platforms.  
+> 📱 **Platform Support**: Available on **both iOS and Android** platforms.
 > 🌐 **Data Source**: Fetches from the official IAB Global Vendor List API
 
 ### Key Features
 
 - **🔄 Automatic Caching**: 7-day intelligent caching with background refresh
-- **⚡ High Performance**: Optimized memory usage and fast lookups  
+- **⚡ High Performance**: Optimized memory usage and fast lookups
 - **🌐 Offline Support**: Graceful fallback when network unavailable
 - **🎯 Flexible APIs**: Individual and bulk vendor name resolution
 - **🛡️ Error Handling**: Robust error handling with fallback mechanisms
@@ -648,7 +594,7 @@ Control GVL caching behavior for optimal performance:
 final isLoaded = await axeptioSdk.isGVLLoaded();
 print('GVL loaded: $isLoaded');
 
-// Get current GVL version  
+// Get current GVL version
 final version = await axeptioSdk.getGVLVersion();
 print('Current GVL version: ${version ?? "Not loaded"}');
 
@@ -671,7 +617,7 @@ Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
         return <int, String>{}; // Return empty map on failure
       }
     }
-    
+
     return await axeptioSdk.getVendorNames(vendorIds);
   } catch (e) {
     print('Error getting vendor names: $e');
@@ -687,15 +633,15 @@ Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
 
 ## Testing and Development
 
-The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions. 
+The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions.
 
 ### Current Test Coverage
-- **Coverage**: 58.9% (122/207 lines covered)
-- **Target**: 95% coverage requirement 
-- **Tests**: 85 comprehensive tests
-- **Status**: ⚠️ Coverage below target - improvement in progress
+- **Coverage**: 97.6% (lines covered)
+- **Target**: 95% coverage requirement (current: 97.6%)
+- **Tests**: 302 comprehensive tests
+- **Status**: ✅ Coverage meets target
 
-[![Test Coverage](https://img.shields.io/badge/coverage-58.9%25-orange)](TESTING.md)
+[![Test Coverage](https://img.shields.io/badge/coverage-97.6%25-brightgreen)](TESTING.md)
 
 ### Quick Testing Commands
 
@@ -715,7 +661,7 @@ flutter test test/preferences/
 ### Test Structure
 Our test suite is organized into logical components:
 - **Core SDK Tests**: Initialization, UI management, consent handling
-- **Method Channel Tests**: Platform communication and vendor consent APIs  
+- **Method Channel Tests**: Platform communication and vendor consent APIs
 - **Event System Tests**: Event listeners and callback handling
 - **Model Tests**: Data validation and type conversion
 - **Native Preferences Tests**: Cross-platform preference access
@@ -741,7 +687,7 @@ For detailed testing information, patterns, and coverage improvement strategies,
 - Checkout the master branch.
 
 ### Change native SDK version
-#### Android 
+#### Android
 In `android/build.gradle`, update the dependencies:
 ```gradle
 dependencies {
@@ -765,7 +711,7 @@ Pod::Spec.new do |s|
   s.platform = :ios, '15.0'
 ```
 
-### ⚙️Configure widget in sample app 
+### ⚙️Configure widget in sample app
 To configure the widget, add the project ID and version name in `example/lib/main.dart`:
 ```dart
   Future<void> initSDK() async {

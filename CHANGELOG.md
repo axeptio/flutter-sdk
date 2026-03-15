@@ -1,3 +1,20 @@
+## 3.0.0
+
+### 🚨 Breaking Changes
+
+- **`navigatorKey` is now required** for the consent UI to function. Set it before calling
+  `initialize`:
+  ```dart
+  AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
+  // Pass it to MaterialApp:
+  MaterialApp(navigatorKey: AxeptioSdk.navigatorKey, ...)
+  ```
+- Native iOS and Android Axeptio SDKs have been **removed**. Consent is now managed entirely
+  through a pure Flutter WebView implementation. No Maven credentials or CocoaPods setup is
+  required.
+- The `_ax_token` SharedPreferences key is replaced by `AX_CLIENT_TOKEN`. Existing stored tokens
+  are read transparently during migration.
+
 ## 2.0.18
 
 ### ✨ New Features
@@ -63,7 +80,7 @@
 - Add comprehensive TCF vendor consent management APIs (iOS & Android).
   - `getVendorConsents()`: Get all vendor consents as Map<int, bool>
   - `getConsentedVendors()`: Get list of consented vendor IDs
-  - `getRefusedVendors()`: Get list of refused vendor IDs  
+  - `getRefusedVendors()`: Get list of refused vendor IDs
   - `isVendorConsented(vendorId)`: Check specific vendor consent status
 - Add extensive README documentation with TCF vendor management examples.
 - Add TCF vendor consent demo in example app with detailed logging.
@@ -135,7 +152,7 @@ Fix CMP first show on iOS SDK
 ## 1.2.0
 
 * First release
-  
+
 ## 1.0.0-alpha2
 
 * Second alpha

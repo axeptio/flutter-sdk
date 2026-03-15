@@ -6,11 +6,20 @@ import 'package:flutter/services.dart';
 import 'axeptio_sdk_platform_interface.dart';
 
 /// An implementation of [AxeptioSdkPlatform] that uses method channels.
+///
+/// Deprecated: native SDK support was removed in v3. The native plugins are
+/// now stubs and most methods will throw [MissingPluginException] at runtime.
+/// Use [WebViewAxeptioSdk] (the default) instead.
+@Deprecated(
+  'Native SDK support was removed in v3; method channel calls will throw. '
+  'Use WebViewAxeptioSdk (the default implementation) instead.',
+)
 class MethodChannelAxeptioSdk implements AxeptioSdkPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('axeptio_sdk');
-  final EventsHandler _eventsHandler = EventsHandler();
+  final EventsHandler _eventsHandler = EventsHandler(
+      const EventChannel('axeptio_sdk/events').receiveBroadcastStream());
 
   @override
   Future<String?> getPlatformVersion() async {
