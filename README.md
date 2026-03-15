@@ -442,11 +442,13 @@ This is useful if you want to show the popup at a specific moment based on app f
 For **publishers**, the SDK provides a feature to share the user's consent status with web views by appending the **Axeptio token** as a query parameter.
 ```dart
 final token = await axeptioSdk.axeptioToken;
-final url = await axeptioSdk.appendAxeptioTokenURL(
-  "https://myurl.com",
-  token,
-);
-// Will return: https://myurl.com?axeptio_token=[token]
+if (token != null) {
+  final url = await axeptioSdk.appendAxeptioTokenURL(
+    "https://myurl.com",
+    token,
+  );
+  // Will return: https://myurl.com?axeptio_token=[token]
+}
 ```
 This feature ensures that consent status is properly communicated across different parts of the application, including web content.
 <br><br><br>
