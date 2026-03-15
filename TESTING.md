@@ -5,9 +5,9 @@ This document provides comprehensive guidance for testing the Axeptio Flutter SD
 ## 📊 Test Coverage Requirements
 
 ### Current Status
-- **Current Coverage**: 97.6%
+- **Current Coverage**: 95.7%
 - **Target Coverage**: 95% (as specified in [CLAUDE.md](CLAUDE.md))
-- **Total Tests**: 301 comprehensive tests
+- **Total Tests**: 311 comprehensive tests
 - **Status**: ✅ **Coverage Meets Target**
 
 ### Coverage by Component

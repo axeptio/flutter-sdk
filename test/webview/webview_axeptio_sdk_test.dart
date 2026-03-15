@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/model/axeptio_service.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
@@ -117,7 +119,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await sdk.showConsentScreen();
+        unawaited(sdk.showConsentScreen());
         await tester.pumpAndSettle();
 
         expect(find.byType(AxeptioConsentView), findsOneWidget);
@@ -140,7 +142,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await sdk.showConsentScreen();
+        unawaited(sdk.showConsentScreen());
         await tester.pumpAndSettle();
 
         final view =
@@ -167,7 +169,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await sdk.setupUI();
+        unawaited(sdk.setupUI());
         await tester.pumpAndSettle();
 
         expect(find.byType(AxeptioConsentView), findsOneWidget);
@@ -337,21 +339,24 @@ void main() {
     });
 
     group('appendAxeptioTokenURL', () {
-      test('returns original url when not initialized', () async {
-        final result =
-            await sdk.appendAxeptioTokenURL('https://example.com', 'tok');
-        expect(result, 'https://example.com');
-      });
-
-      test('appends params when initialized', () async {
+      test('appends only axeptio_token without clientId or cookiesVersion',
+          () async {
         await sdk.initialize(
             AxeptioService.publishers, 'my-cid', 'my-cv', null);
         final result =
             await sdk.appendAxeptioTokenURL('https://example.com', 'tok');
         expect(result, isNotNull);
         final uri = Uri.parse(result!);
-        expect(uri.queryParameters['clientId'], 'my-cid');
-        expect(uri.queryParameters['cookiesVersion'], 'my-cv');
+        expect(uri.queryParameters['axeptio_token'], 'tok');
+        expect(uri.queryParameters.containsKey('clientId'), isFalse);
+        expect(uri.queryParameters.containsKey('cookiesVersion'), isFalse);
+      });
+
+      test('works without initialization', () async {
+        final result =
+            await sdk.appendAxeptioTokenURL('https://example.com', 'tok');
+        expect(result, isNotNull);
+        final uri = Uri.parse(result!);
         expect(uri.queryParameters['axeptio_token'], 'tok');
       });
     });
@@ -418,16 +423,33 @@ void main() {
         expect(await sdk.axeptioToken, 'new-token');
       });
 
-      test(
+      testWidgets(
           'showConsentScreen uses updated token from storage after consent:saved',
-          () async {
+          (tester) async {
+        WebViewPlatform.instance = _MockWebViewPlatform();
+        final navKey = GlobalKey<NavigatorState>();
+        WebViewAxeptioSdk.navigatorKey = navKey;
+
         await sdk.initialize(
             AxeptioService.publishers, 'cid', 'cv', 'initial-tok');
         await sdk
             .handleJsEvent('consent:saved', {'axeptio_token': 'refreshed-tok'});
-        // The storage now holds 'refreshed-tok'; _token still holds 'initial-tok'.
-        // Verify that axeptioToken (sourced from storage) reflects the update.
-        expect(await sdk.axeptioToken, 'refreshed-tok');
+
+        await tester.pumpWidget(MaterialApp(
+          navigatorKey: navKey,
+          home: const Scaffold(body: Text('home')),
+        ));
+        await tester.pumpAndSettle();
+
+        unawaited(sdk.showConsentScreen());
+        await tester.pumpAndSettle();
+
+        final view =
+            tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
+        expect(
+            view.consentUrl.queryParameters['axeptio_token'], 'refreshed-tok');
+
+        WebViewAxeptioSdk.navigatorKey = null;
       });
 
       test('axeptio:cookies event writes cookies', () async {

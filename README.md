@@ -58,14 +58,13 @@ The SDK presents its consent UI by pushing a route onto your app's navigator. Yo
 `GlobalKey<NavigatorState>` before calling `initialize`:
 
 ```dart
-// 1. Declare the key (top-level or in your app widget):
-AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
-
-// 2. Pass it to MaterialApp:
-MaterialApp(
-  navigatorKey: AxeptioSdk.navigatorKey,
-  // ...
-)
+void main() {
+  AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
+  runApp(MaterialApp(
+    navigatorKey: AxeptioSdk.navigatorKey,
+    // ...
+  ));
+}
 ```
 
 ### Android Setup
@@ -636,12 +635,12 @@ Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
 The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions.
 
 ### Current Test Coverage
-- **Coverage**: 97.6% (lines covered)
-- **Target**: 95% coverage requirement (current: 97.6%)
-- **Tests**: 302 comprehensive tests
+- **Coverage**: 95.7% (lines covered)
+- **Target**: 95% coverage requirement (current: 95.7%)
+- **Tests**: 311 comprehensive tests
 - **Status**: ✅ Coverage meets target
 
-[![Test Coverage](https://img.shields.io/badge/coverage-97.6%25-brightgreen)](TESTING.md)
+[![Test Coverage](https://img.shields.io/badge/coverage-95.7%25-brightgreen)](TESTING.md)
 
 ### Quick Testing Commands
 

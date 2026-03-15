@@ -17,8 +17,11 @@ class AxeptioSdk {
   /// ```
   static GlobalKey<NavigatorState>? get navigatorKey =>
       WebViewAxeptioSdk.navigatorKey;
-  static set navigatorKey(GlobalKey<NavigatorState>? key) =>
-      WebViewAxeptioSdk.navigatorKey = key;
+  static set navigatorKey(GlobalKey<NavigatorState>? key) {
+    if (key == null) throw ArgumentError.notNull('navigatorKey');
+    WebViewAxeptioSdk.navigatorKey = key;
+  }
+
   AxeptioService? _targetService;
 
   AxeptioService? get targetService => _targetService;

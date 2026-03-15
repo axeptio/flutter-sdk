@@ -71,7 +71,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       showConsentManager: true,
     );
 
-    key.currentState!.push(
+    await key.currentState!.push(
       MaterialPageRoute(
         builder: (_) => AxeptioConsentView(
           consentUrl: url,
@@ -149,12 +149,11 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
 
   @override
   Future<String?> appendAxeptioTokenURL(String url, String token) async {
-    final clientId = _clientId;
-    final cookiesVersion = _cookiesVersion;
-    if (clientId == null || cookiesVersion == null) return url;
-    return ConsentUrlBuilder.appendToken(url, clientId, cookiesVersion, token)
-            ?.toString() ??
-        url;
+    final uri = Uri.tryParse(url);
+    if (uri == null) return url;
+    final params = Map<String, String>.from(uri.queryParameters);
+    params['axeptio_token'] = token;
+    return uri.replace(queryParameters: params).toString();
   }
 
   @visibleForTesting

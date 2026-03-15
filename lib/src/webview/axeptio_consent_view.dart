@@ -53,7 +53,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onMessageReceived: _onMessage,
       )
       ..setNavigationDelegate(NavigationDelegate(
-        onPageFinished: (_) => _onPageFinished(),
+        onPageStarted: (_) => _onPageFinished(),
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
           if (uri?.scheme == 'https' && uri?.host == 'static.axept.io') {
