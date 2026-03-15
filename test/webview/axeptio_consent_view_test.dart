@@ -11,15 +11,17 @@ void main() {
 
   WebViewPlatform? savedWebViewPlatform;
 
+  setUpAll(() {
+    WebViewPlatform.instance = _MockWebViewPlatform();
+  });
+
   setUp(() {
     savedWebViewPlatform = WebViewPlatform.instance;
     WebViewPlatform.instance = _MockWebViewPlatform();
   });
 
   tearDown(() {
-    if (savedWebViewPlatform != null) {
-      WebViewPlatform.instance = savedWebViewPlatform!;
-    }
+    WebViewPlatform.instance = savedWebViewPlatform!;
   });
 
   final testUri = Uri.parse('https://static.axept.io/test.html');

@@ -13,6 +13,10 @@ void main() {
 
   WebViewPlatform? savedWebViewPlatform;
 
+  setUpAll(() {
+    WebViewPlatform.instance = _MockWebViewPlatform();
+  });
+
   group('WebViewAxeptioSdk', () {
     late WebViewAxeptioSdk sdk;
 
@@ -23,9 +27,7 @@ void main() {
     });
 
     tearDown(() {
-      if (savedWebViewPlatform != null) {
-        WebViewPlatform.instance = savedWebViewPlatform!;
-      }
+      WebViewPlatform.instance = savedWebViewPlatform!;
     });
 
     group('initialization', () {
