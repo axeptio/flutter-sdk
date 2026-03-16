@@ -53,6 +53,10 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onMessageReceived: _onMessage,
       )
       ..setNavigationDelegate(NavigationDelegate(
+        // onPageStarted fires before the page's scripts execute, ensuring
+        // localStorage values (_ax_app_att_denied etc.) and the webkit polyfill
+        // are in place before app/index.js reads them synchronously on startup.
+        // onPageFinished is too late: init() has already run by then.
         onPageStarted: (_) => _onPageFinished(),
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
