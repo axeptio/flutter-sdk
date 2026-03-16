@@ -24,6 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: master
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -49,44 +50,12 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install semantic-release dependencies
-        run: |
-          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec conventional-changelog-conventionalcommits
+        run: npm ci
 
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-      - name: Create semantic-release config
-        run: |
-          cat > .releaserc.json << 'EOF'
-          {
-            "branches": ["master"],
-            "plugins": [
-              ["@semantic-release/commit-analyzer", {
-                "preset": "conventionalcommits"
-              }],
-              ["@semantic-release/release-notes-generator", {
-                "preset": "conventionalcommits"
-              }],
-              ["@semantic-release/changelog", {
-                "changelogFile": "CHANGELOG.md"
-              }],
-              ["@semantic-release/exec", {
-                "prepareCmd": "sed -i 's/version: .*/version: ${nextRelease.version}/' pubspec.yaml"
-              }],
-              ["@semantic-release/git", {
-                "assets": ["CHANGELOG.md", "pubspec.yaml"],
-                "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-              }],
-              ["@semantic-release/github", {
-                "successComment": false,
-                "failComment": false,
-                "releasedLabels": false
-              }]
-            ]
-          }
-          EOF
 
       - name: Run semantic release
         env:
@@ -96,13 +65,13 @@ jobs:
             echo "Manual release type specified: ${{ github.event.inputs.release_type }}"
             case "${{ github.event.inputs.release_type }}" in
               "patch")
-                npx semantic-release --no-ci --debug --force-release patch
+                npx semantic-release --no-ci --debug --release-as patch
                 ;;
               "minor")
-                npx semantic-release --no-ci --debug --force-release minor
+                npx semantic-release --no-ci --debug --release-as minor
                 ;;
               "major")
-                npx semantic-release --no-ci --debug --force-release major
+                npx semantic-release --no-ci --debug --release-as major
                 ;;
             esac
           else

@@ -45,8 +45,7 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install semantic-release dependencies
-        run: |
-          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec conventional-changelog-conventionalcommits
+        run: npm ci
 
       - name: Calculate next version
         id: next-version
@@ -84,7 +83,14 @@ jobs:
           # Extract next version from output or calculate manually
           if echo "$NEXT_VERSION_OUTPUT" | grep -q "The next release version is"; then
             NEXT_VERSION=$(echo "$NEXT_VERSION_OUTPUT" | grep "The next release version is" | sed 's/.*The next release version is //' | head -1)
-          else
+            # Validate the extracted version matches expected semver-beta format
+            if ! echo "$NEXT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
+              echo "❌ Extracted version '$NEXT_VERSION' does not match expected format X.Y.Z-beta.N"
+              echo "The semantic-release output format may have changed. Falling back to manual calculation."
+              NEXT_VERSION=""
+            fi
+          fi
+          if [ -z "$NEXT_VERSION" ]; then
             # Fallback: increment patch version and add beta
             IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
             MAJOR="${VERSION_PARTS[0]}"
@@ -164,6 +170,7 @@ jobs:
 
           git add pubspec.yaml
           git commit -m "chore: bump version to $BETA_VERSION [skip ci]" || echo "No changes to commit"
+          git push origin develop
 
       - name: Create and push beta tag
         run: |
@@ -195,11 +202,6 @@ jobs:
           flutter: true
           skipTests: true
           tagName: beta
-
-      - name: Reset version in pubspec.yaml
-        run: |
-          # Reset to original version to avoid conflicts
-          git checkout HEAD~1 -- pubspec.yaml || echo "Could not reset pubspec.yaml"
 
       - name: Summary
         run: |

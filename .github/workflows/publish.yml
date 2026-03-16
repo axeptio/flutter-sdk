@@ -1,23 +1,26 @@
 name: Publish to pub.dev
 
-# This workflow publishes to pub.dev when a GitHub release is created
+# This workflow publishes to pub.dev when a GitHub release is published,
+# or can be triggered manually via workflow_dispatch as a fallback.
+#
 # Key improvements:
 # 1. Version extracted from GitHub release tag (not pubspec.yaml)
 # 2. pubspec.yaml updated dynamically from tag
 # 3. Validates version doesn't already exist on pub.dev
-# 4. Only triggered by releases, not manual dispatch
 #
 # Process:
 # 1. Create GitHub release with version tag (e.g., v2.0.16)
-# 2. This workflow triggers automatically
+# 2. This workflow triggers automatically on release published event
 # 3. Extracts version from tag, updates pubspec.yaml
 # 4. Validates and publishes to pub.dev
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag (e.g., v2.0.16)'
+        description: 'Release tag (e.g., v2.0.16) — only needed for manual dispatch'
         required: true
         type: string
 
@@ -39,12 +42,24 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: master
-          flutter-version: 3.29.3
+          channel: 'stable'
+          flutter-version: '3.29.3'
           cache: false
+
+      - name: Resolve release tag
+        id: resolve-tag
+        run: |
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="${{ inputs.release_tag }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved release tag: $TAG"
+
       - name: Validate release tag exists
         run: |
-          TAG="${{ inputs.release_tag }}"
+          TAG="${{ steps.resolve-tag.outputs.tag }}"
           if ! git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "❌ Release tag $TAG does not exist!"
             echo "Please create the GitHub release first before running this workflow."
@@ -55,7 +70,7 @@ jobs:
       - name: Extract version from release tag
         id: extract-version
         run: |
-          TAG_VERSION="${{ inputs.release_tag }}"
+          TAG_VERSION="${{ steps.resolve-tag.outputs.tag }}"
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -169,7 +184,7 @@ jobs:
             echo "✅ Version **v$VERSION** published successfully to pub.dev!"
             echo ""
             echo "### Release Information"
-            echo "- **Tag**: ${{ inputs.release_tag }}"
+            echo "- **Tag**: ${{ steps.resolve-tag.outputs.tag }}"
             echo "- **Version**: $VERSION"
             echo "- **Triggered by**: Manual Workflow Dispatch"
             echo ""
