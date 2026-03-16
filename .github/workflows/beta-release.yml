@@ -83,15 +83,15 @@ jobs:
           # Extract next version from output or calculate manually
           if echo "$NEXT_VERSION_OUTPUT" | grep -q "The next release version is"; then
             NEXT_VERSION=$(echo "$NEXT_VERSION_OUTPUT" | grep "The next release version is" | sed 's/.*The next release version is //' | head -1)
-            # Validate the extracted version matches expected semver-beta format
+            # Fail immediately if extracted string doesn't match expected semver-beta format —
+            # this means semantic-release changed its output format and the fallback is unreliable.
             if ! echo "$NEXT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
               echo "❌ Extracted version '$NEXT_VERSION' does not match expected format X.Y.Z-beta.N"
-              echo "The semantic-release output format may have changed. Falling back to manual calculation."
-              NEXT_VERSION=""
+              echo "semantic-release output format may have changed. Update the version extraction logic before retrying."
+              exit 1
             fi
-          fi
-          if [ -z "$NEXT_VERSION" ]; then
-            # Fallback: increment patch version and add beta
+          else
+            # semantic-release did not emit a version (e.g. no releasable commits) — use fallback
             IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
             MAJOR="${VERSION_PARTS[0]}"
             MINOR="${VERSION_PARTS[1]}"

@@ -186,7 +186,7 @@ jobs:
             echo "### Release Information"
             echo "- **Tag**: ${{ steps.resolve-tag.outputs.tag }}"
             echo "- **Version**: $VERSION"
-            echo "- **Triggered by**: Manual Workflow Dispatch"
+            echo "- **Triggered by**: ${{ github.event_name }}"
             echo ""
             echo "### For Users"
             echo '```yaml'
