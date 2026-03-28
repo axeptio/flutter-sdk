@@ -527,10 +527,10 @@ void main() {
           AxeptioService.publishers, 'test-client', 'v1.0.0', null);
 
       // Load GVL data for tests that depend on it
-      // In test environment without mock HTTP, loadGVL may throw
+      // In test environment without mock HTTP, loadGVL may throw AxeptioException
       try {
         await sdk.loadGVL();
-      } catch (_) {
+      } on AxeptioException {
         // Expected in test environment without HTTP mocking
       }
     });

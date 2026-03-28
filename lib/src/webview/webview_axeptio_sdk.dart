@@ -6,7 +6,6 @@ import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/consent_url_builder.dart';
 import 'package:axeptio_sdk/src/webview/tcf_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class WebViewAxeptioSdk extends AxeptioSdkPlatform {
@@ -91,18 +90,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
           showConsentManager: true,
           onJsEvent: (name, payload) => handleJsEvent(name, payload),
           onClose: () => key.currentState?.pop(),
-          onError: (AxeptioException error) {
-            for (final listener in List.of(_eventsHandler.listeners)) {
-              try {
-                listener.onError(error);
-              } catch (listenerError) {
-                if (kDebugMode) {
-                  print(
-                      'Error in AxeptioEventListener.onError: $listenerError');
-                }
-              }
-            }
-          },
+          onError: (error) => _eventsHandler.handleDAxeptioErrorEvent(error),
         ),
         fullscreenDialog: true,
       ),

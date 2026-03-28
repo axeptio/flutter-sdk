@@ -160,6 +160,11 @@ class GVLService {
           error: error, name: 'GVLService');
       throw AxeptioConsentException('Failed to parse cached GVL data',
           cause: error);
+    } on TypeError catch (error) {
+      developer.log('Error loading from cache',
+          error: error, name: 'GVLService');
+      throw AxeptioConsentException('Failed to parse cached GVL data structure',
+          cause: error);
     } on AxeptioException {
       rethrow;
     } catch (error) {
