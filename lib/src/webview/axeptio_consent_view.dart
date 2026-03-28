@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -24,6 +25,7 @@ class AxeptioConsentView extends StatefulWidget {
   final bool showConsentManager;
   final void Function(String name, Map<String, dynamic>? payload) onJsEvent;
   final void Function() onClose;
+  final void Function(AxeptioException error)? onError;
 
   const AxeptioConsentView({
     super.key,
@@ -33,6 +35,7 @@ class AxeptioConsentView extends StatefulWidget {
     this.attDenied = false,
     this.storedTcString,
     this.showConsentManager = false,
+    this.onError,
   });
 
   @override
@@ -66,6 +69,28 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
             return NavigationDecision.navigate;
           }
           return NavigationDecision.prevent;
+        },
+        onWebResourceError: (WebResourceError error) {
+          if (error.isForMainFrame ?? false) {
+            widget.onError?.call(
+              AxeptioNetworkException(
+                'WebView failed to load: ${error.description}',
+                cause: error,
+              ),
+            );
+          }
+        },
+        onHttpError: (HttpResponseError error) {
+          final statusCode = error.response?.statusCode;
+          if (statusCode != null && statusCode >= 400) {
+            widget.onError?.call(
+              AxeptioNetworkException(
+                'WebView HTTP error: $statusCode',
+                statusCode: statusCode,
+                cause: error,
+              ),
+            );
+          }
         },
       ))
       ..loadRequest(widget.consentUrl);

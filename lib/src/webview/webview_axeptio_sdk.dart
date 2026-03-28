@@ -90,6 +90,11 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
           showConsentManager: true,
           onJsEvent: (name, payload) => handleJsEvent(name, payload),
           onClose: () => key.currentState?.pop(),
+          onError: (AxeptioException error) {
+            for (final listener in List.of(_eventsHandler.listeners)) {
+              listener.onError(error);
+            }
+          },
         ),
         fullscreenDialog: true,
       ),

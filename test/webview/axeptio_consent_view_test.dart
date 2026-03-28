@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +77,20 @@ void main() {
       ));
       expect(w!.attDenied, isFalse);
       expect(w!.storedTcString, isNull);
+      expect(w!.onError, isNull);
+    });
+
+    testWidgets('accepts onError parameter', (tester) async {
+      final errors = <AxeptioException>[];
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (e) => errors.add(e),
+        ),
+      ));
+      expect(find.byType(AxeptioConsentView), findsOneWidget);
     });
   });
 

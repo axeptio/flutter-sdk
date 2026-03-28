@@ -135,6 +135,42 @@ void main() {
         WebViewAxeptioSdk.navigatorKey = null;
       });
 
+      testWidgets('passes onError that routes to listeners', (tester) async {
+        WebViewPlatform.instance = _MockWebViewPlatform();
+        final navKey = GlobalKey<NavigatorState>();
+        WebViewAxeptioSdk.navigatorKey = navKey;
+
+        await sdk.initialize(
+            AxeptioService.publishers, 'client-id', 'version', null);
+
+        final errors = <AxeptioException>[];
+        final listener = AxeptioEventListener();
+        listener.onError = (e) => errors.add(e);
+        sdk.addEventListener(listener);
+
+        await tester.pumpWidget(MaterialApp(
+          navigatorKey: navKey,
+          home: const Scaffold(body: Text('home')),
+        ));
+        await tester.pumpAndSettle();
+
+        unawaited(sdk.showConsentScreen());
+        await tester.pumpAndSettle();
+
+        final view =
+            tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
+        expect(view.onError, isNotNull);
+
+        // Simulate calling onError to verify it routes to listeners
+        view.onError!(
+            const AxeptioNetworkException('test error', statusCode: 500));
+        expect(errors, hasLength(1));
+        expect(errors.first, isA<AxeptioNetworkException>());
+        expect((errors.first as AxeptioNetworkException).statusCode, 500);
+
+        WebViewAxeptioSdk.navigatorKey = null;
+      });
+
       testWidgets('consentUrl contains showConsentManager=true',
           (tester) async {
         WebViewPlatform.instance = _MockWebViewPlatform();
