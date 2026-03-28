@@ -220,6 +220,11 @@ class GVLService {
           error: error, name: 'GVLService');
       throw AxeptioConsentException('Failed to parse GVL response',
           cause: error);
+    } on TypeError catch (error) {
+      developer.log('Error fetching from remote',
+          error: error, name: 'GVLService');
+      throw AxeptioConsentException('Failed to parse GVL response structure',
+          cause: error);
     } catch (error) {
       developer.log('Error fetching from remote',
           error: error, name: 'GVLService');

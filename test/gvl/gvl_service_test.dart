@@ -236,7 +236,7 @@ void main() {
             () => service.loadGVL(gvlVersion: '3'),
             () => mockClient,
           ),
-          throwsA(isA<AxeptioNetworkException>()),
+          throwsA(isA<AxeptioConsentException>()),
         );
       });
 

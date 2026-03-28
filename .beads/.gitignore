@@ -45,6 +45,9 @@ dolt-server.log
 dolt-server.lock
 dolt-server.port
 
+# Machine-specific credential/encryption key
+.beads-credential-key
+
 # Corrupt backup directories (created by bd doctor --fix recovery)
 *.corrupt.backup/
 

@@ -51,10 +51,17 @@ class EventsHandler {
   }
 
   handleDAxeptioErrorEvent(dynamic error) {
-    final exception =
-        error is AxeptioException ? error : AxeptioException(error.toString());
+    final exception = error is AxeptioException
+        ? error
+        : AxeptioException(error.toString(), cause: error);
     for (final listener in List.of(listeners)) {
-      listener.onError(exception);
+      try {
+        listener.onError(exception);
+      } catch (listenerError) {
+        if (kDebugMode) {
+          print('Error in AxeptioEventListener.onError: $listenerError');
+        }
+      }
     }
   }
 
