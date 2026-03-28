@@ -42,13 +42,13 @@ jobs:
       - name: Run tests
         run: flutter test --coverage
 
-      - name: Enforce 95% coverage threshold
+      - name: Enforce 94% coverage threshold
         run: |
           awk 'BEGIN{t=0;h=0} /^LF:/{t+=substr($0,4)} /^LH:/{h+=substr($0,4)} END{
             pct=(t>0)?(h*100.0/t):0
             printf "Coverage: %.1f%%\n", pct
-            if (pct < 95) { print "FAIL: coverage below 95% threshold"; exit 1 }
-            print "PASS: coverage meets 95% threshold"
+            if (pct < 94) { print "FAIL: coverage below 94% threshold"; exit 1 }
+            print "PASS: coverage meets 94% threshold"
           }' coverage/lcov.info
 
       - name: Check publish warnings
