@@ -70,28 +70,8 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
           }
           return NavigationDecision.prevent;
         },
-        onWebResourceError: (WebResourceError error) {
-          if (error.isForMainFrame ?? false) {
-            widget.onError?.call(
-              AxeptioNetworkException(
-                'WebView failed to load: ${error.description}',
-                cause: error,
-              ),
-            );
-          }
-        },
-        onHttpError: (HttpResponseError error) {
-          final statusCode = error.response?.statusCode;
-          if (statusCode != null && statusCode >= 400) {
-            widget.onError?.call(
-              AxeptioNetworkException(
-                'WebView HTTP error: $statusCode',
-                statusCode: statusCode,
-                cause: error,
-              ),
-            );
-          }
-        },
+        onWebResourceError: _onWebResourceError,
+        onHttpError: _onHttpError,
       ))
       ..loadRequest(widget.consentUrl);
   }
@@ -118,6 +98,37 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   Future<void> _injectPolyfill() async {
     await _controller.runJavaScript(_polyfillScript);
   }
+
+  @visibleForTesting
+  void handleWebResourceError(WebResourceError error) {
+    if (error.isForMainFrame ?? false) {
+      widget.onError?.call(
+        AxeptioNetworkException(
+          'WebView failed to load: ${error.description}',
+          cause: error,
+        ),
+      );
+    }
+  }
+
+  void _onWebResourceError(WebResourceError error) =>
+      handleWebResourceError(error);
+
+  @visibleForTesting
+  void handleHttpError(HttpResponseError error) {
+    final statusCode = error.response?.statusCode;
+    if (statusCode != null && statusCode >= 400) {
+      widget.onError?.call(
+        AxeptioNetworkException(
+          'WebView HTTP error: $statusCode',
+          statusCode: statusCode,
+          cause: error,
+        ),
+      );
+    }
+  }
+
+  void _onHttpError(HttpResponseError error) => handleHttpError(error);
 
   void _onMessage(JavaScriptMessage message) {
     final parsed = _parser.parse(message.message);

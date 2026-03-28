@@ -234,6 +234,100 @@ void main() {
       expect(jsEvents, isEmpty);
     });
   });
+
+  group('AxeptioConsentViewState error handling', () {
+    late GlobalKey<AxeptioConsentViewState> stateKey;
+    late List<AxeptioException> errors;
+
+    setUp(() {
+      stateKey = GlobalKey<AxeptioConsentViewState>();
+      errors = [];
+    });
+
+    Future<void> buildWidgetWithOnError(WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: stateKey,
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (e) => errors.add(e),
+        ),
+      ));
+    }
+
+    testWidgets('handleWebResourceError fires onError for main frame errors',
+        (tester) async {
+      await buildWidgetWithOnError(tester);
+      final state = stateKey.currentState!;
+      state.handleWebResourceError(WebResourceError(
+        errorCode: -2,
+        description: 'net::ERR_FAILED',
+        isForMainFrame: true,
+        errorType: WebResourceErrorType.connect,
+      ));
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<AxeptioNetworkException>());
+      expect(errors.first.message, contains('net::ERR_FAILED'));
+    });
+
+    testWidgets('handleWebResourceError ignores non-main-frame errors',
+        (tester) async {
+      await buildWidgetWithOnError(tester);
+      final state = stateKey.currentState!;
+      state.handleWebResourceError(WebResourceError(
+        errorCode: -2,
+        description: 'sub-resource failed',
+        isForMainFrame: false,
+        errorType: WebResourceErrorType.connect,
+      ));
+      expect(errors, isEmpty);
+    });
+
+    testWidgets('handleHttpError fires onError for status >= 400',
+        (tester) async {
+      await buildWidgetWithOnError(tester);
+      final state = stateKey.currentState!;
+      state.handleHttpError(HttpResponseError(
+        response: WebResourceResponse(uri: null, statusCode: 500),
+      ));
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<AxeptioNetworkException>());
+      expect((errors.first as AxeptioNetworkException).statusCode, 500);
+    });
+
+    testWidgets('handleHttpError ignores status < 400', (tester) async {
+      await buildWidgetWithOnError(tester);
+      final state = stateKey.currentState!;
+      state.handleHttpError(HttpResponseError(
+        response: WebResourceResponse(uri: null, statusCode: 301),
+      ));
+      expect(errors, isEmpty);
+    });
+
+    testWidgets('handleWebResourceError does nothing without onError',
+        (tester) async {
+      final keyNoError = GlobalKey<AxeptioConsentViewState>();
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: keyNoError,
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+        ),
+      ));
+      // Should not throw even without onError callback
+      expect(
+        () => keyNoError.currentState!.handleWebResourceError(WebResourceError(
+          errorCode: -2,
+          description: 'error',
+          isForMainFrame: true,
+          errorType: WebResourceErrorType.connect,
+        )),
+        returnsNormally,
+      );
+    });
+  });
 }
 
 // Minimal mock WebView platform
