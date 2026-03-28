@@ -196,5 +196,141 @@ void main() {
         );
       });
     });
+
+    group('schema validation', () {
+      late List<String> warnings;
+      late JsBridgeMessageParser validatingParser;
+
+      setUp(() {
+        warnings = [];
+        validatingParser = JsBridgeMessageParser(
+          onValidationWarning: (eventName, warning) {
+            warnings.add('$eventName: $warning');
+          },
+        );
+      });
+
+      test('no warning for valid iabtcf event with payload', () {
+        final raw = jsonEncode({
+          'name': 'iabtcf',
+          'payload': {'IABTCF_TCString': 'CPXxRfAPXxRfA'},
+        });
+        validatingParser.parse(raw);
+        expect(warnings, isEmpty);
+      });
+
+      test('warns when iabtcf has null payload', () {
+        final raw = jsonEncode({'name': 'iabtcf'});
+        final result = validatingParser.parse(raw);
+        expect(result, isNotNull);
+        expect(warnings, hasLength(1));
+        expect(warnings.first, contains('iabtcf'));
+        expect(warnings.first, contains('Expected payload'));
+      });
+
+      test('warns when consent:saved has null payload', () {
+        final raw = jsonEncode({'name': 'consent:saved'});
+        validatingParser.parse(raw);
+        expect(warnings, hasLength(1));
+        expect(warnings.first, contains('consent:saved'));
+      });
+
+      test('warns when axeptio:cookies has null payload', () {
+        final raw = jsonEncode({'name': 'axeptio:cookies'});
+        validatingParser.parse(raw);
+        expect(warnings, hasLength(1));
+      });
+
+      test('warns when cookies:complete has null payload', () {
+        final raw = jsonEncode({'name': 'cookies:complete'});
+        validatingParser.parse(raw);
+        expect(warnings, hasLength(1));
+      });
+
+      test('warns when google consent mode has null payload', () {
+        final raw = jsonEncode({'name': 'google:consent-mode-v2-update'});
+        validatingParser.parse(raw);
+        expect(warnings, hasLength(1));
+      });
+
+      test('warns when google consent mode missing expected fields', () {
+        final raw = jsonEncode({
+          'name': 'google:consent-mode-v2-update',
+          'payload': {'analytics_storage': true},
+        });
+        validatingParser.parse(raw);
+        expect(warnings, hasLength(1));
+        expect(warnings.first, contains('ad_storage'));
+      });
+
+      test('no warning for valid google consent mode', () {
+        final raw = jsonEncode({
+          'name': 'google:consent-mode-v2-update',
+          'payload': {
+            'analytics_storage': true,
+            'ad_storage': false,
+            'ad_user_data': true,
+            'ad_personalization': false,
+          },
+        });
+        validatingParser.parse(raw);
+        expect(warnings, isEmpty);
+      });
+
+      test('no warning for cookies:close without payload', () {
+        final raw = jsonEncode({'name': 'cookies:close'});
+        validatingParser.parse(raw);
+        expect(warnings, isEmpty);
+      });
+
+      test('no warning for app:cookies:ready with null payload', () {
+        final raw = jsonEncode({'name': 'app:cookies:ready'});
+        validatingParser.parse(raw);
+        expect(warnings, isEmpty);
+      });
+
+      test('no warning for app:cookies:ready with valid fields', () {
+        final raw = jsonEncode({
+          'name': 'app:cookies:ready',
+          'payload': {'subscription': true, 'showCmp': true},
+        });
+        validatingParser.parse(raw);
+        expect(warnings, isEmpty);
+      });
+
+      test('warns when app:cookies:ready payload missing expected fields', () {
+        final raw = jsonEncode({
+          'name': 'app:cookies:ready',
+          'payload': {'unrelated': 'field'},
+        });
+        validatingParser.parse(raw);
+        expect(warnings, hasLength(1));
+        expect(warnings.first, contains('subscription'));
+      });
+
+      test('no warning for unknown event types', () {
+        final raw = jsonEncode({
+          'name': 'unknown:custom:event',
+          'payload': {'anything': 'goes'},
+        });
+        validatingParser.parse(raw);
+        expect(warnings, isEmpty);
+      });
+
+      test('no warning when onValidationWarning is null', () {
+        final defaultParser = JsBridgeMessageParser();
+        final raw = jsonEncode({'name': 'iabtcf'});
+        final result = defaultParser.parse(raw);
+        expect(result, isNotNull);
+      });
+
+      test('message still returned even when validation warns', () {
+        final raw = jsonEncode({'name': 'iabtcf'});
+        final result = validatingParser.parse(raw);
+        expect(result, isNotNull);
+        expect(result!.name, 'iabtcf');
+        expect(warnings, isNotEmpty);
+      });
+    });
   });
 }
