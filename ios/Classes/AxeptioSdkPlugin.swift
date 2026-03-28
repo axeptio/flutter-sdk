@@ -8,11 +8,6 @@ public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
     let channel = FlutterMethodChannel(name: "axeptio_sdk", binaryMessenger: registrar.messenger())
     let instance = AxeptioSdkPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
-
-    let eventStreamHandler = AxeptioEventStreamHandler()
-    let eventChannel = FlutterEventChannel(
-      name: "axeptio_sdk/events", binaryMessenger: registrar.messenger())
-    eventChannel.setStreamHandler(eventStreamHandler)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
