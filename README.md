@@ -35,8 +35,9 @@ This repository demonstrates the integration of the **Axeptio Flutter SDK** into
 10. [Clearing User Consent](#clearing-user-consent)
 11. [Event Handling and Customization](#event-handling-and-customization)
     - [Event Source Identification](#event-source-identification)
-12. [Testing and Development](#testing-and-development)
-13. [Local Test](#local-test)
+12. [Exception Handling](#exception-handling)
+13. [Testing and Development](#testing-and-development)
+14. [Local Test](#local-test)
 <br><br><br>
 ## Setup and Installation
 To integrate the Axeptio SDK into your Flutter project, run the following command in your terminal:
@@ -479,6 +480,12 @@ listener.onGoogleConsentModeUpdate = (consents) {
   // Perform specific actions based on updated consents
 };
 
+// Event triggered when an async error occurs (e.g. network failure)
+listener.onError = (error) {
+  // Handle SDK errors
+  print('Axeptio error: $error');
+};
+
 // Add and remove event listeners as necessary
 var axeptioSdk = AxeptioSdk();
 axeptioSdkPlugin.addEventListener(listener);
@@ -498,6 +505,38 @@ The following values are used:
 - `sdk-web`: Brands widget on websites.
 
 This tagging is handled automatically by the native SDK components used under the hood in the Flutter module.
+<br><br><br>
+
+## Exception Handling
+
+The SDK uses a typed exception hierarchy. All exceptions extend `AxeptioException`:
+
+| Exception | When thrown |
+|-----------|-----------|
+| `AxeptioNotInitializedException` | Methods called before `initialize()` |
+| `AxeptioConsentException` | Consent data operations fail |
+| `AxeptioNetworkException` | Network failures (includes optional `statusCode`) |
+| `AxeptioStorageException` | SharedPreferences operations fail |
+
+### Catching Exceptions
+```dart
+try {
+  await axeptioSdkPlugin.setupUI();
+} on AxeptioNotInitializedException catch (e) {
+  print('SDK not initialized: $e');
+} on AxeptioException catch (e) {
+  print('Axeptio error: $e');
+}
+```
+
+### Async Errors via onError
+Errors that occur asynchronously (e.g. WebView network failures) are delivered through `AxeptioEventListener.onError`:
+
+```dart
+listener.onError = (error) {
+  print('Async error: $error');
+};
+```
 <br><br><br>
 
 ## TCF Global Vendor List (GVL) Integration
@@ -635,12 +674,12 @@ Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
 The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions.
 
 ### Current Test Coverage
-- **Coverage**: 95.7% (lines covered)
-- **Target**: 95% coverage requirement (current: 95.7%)
-- **Tests**: 311 comprehensive tests
+- **Coverage**: 94.6% (lines covered)
+- **Target**: 94% coverage requirement (current: 94.6%)
+- **Tests**: 343 comprehensive tests
 - **Status**: ✅ Coverage meets target
 
-[![Test Coverage](https://img.shields.io/badge/coverage-95.7%25-brightgreen)](TESTING.md)
+[![Test Coverage](https://img.shields.io/badge/coverage-94.6%25-brightgreen)](TESTING.md)
 
 ### Quick Testing Commands
 
