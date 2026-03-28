@@ -1,5 +1,5 @@
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
-import 'package:flutter/foundation.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 
 /// Provides access to native platform preferences for consent data.
 ///
@@ -98,10 +98,7 @@ class NativeDefaultPreferences {
 
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('NativeDefaultPreferences: Error getting preference $key: $e');
-      }
-      return null;
+      throw AxeptioStorageException('Error getting preference $key', cause: e);
     }
   }
 
@@ -137,10 +134,8 @@ class NativeDefaultPreferences {
 
       return result.isNotEmpty ? result : null;
     } catch (e) {
-      if (kDebugMode) {
-        print('NativeDefaultPreferences: Error getting preferences $keys: $e');
-      }
-      return null;
+      throw AxeptioStorageException('Error getting preferences $keys',
+          cause: e);
     }
   }
 
@@ -162,10 +157,7 @@ class NativeDefaultPreferences {
     try {
       return await AxeptioSdkPlatform.instance.getConsentSavedData();
     } catch (e) {
-      if (kDebugMode) {
-        print('NativeDefaultPreferences: Error getting all preferences: $e');
-      }
-      return null;
+      throw AxeptioStorageException('Error getting all preferences', cause: e);
     }
   }
 

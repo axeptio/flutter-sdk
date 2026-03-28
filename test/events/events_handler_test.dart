@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:axeptio_sdk/src/events/events_handler.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
 
 void main() {
@@ -187,22 +188,55 @@ void main() {
     });
 
     group('Error Handling', () {
-      test('handleDAxeptioErrorEvent prints error message', () {
-        // Create a mock error object with a message property
+      test('handleDAxeptioErrorEvent routes to listeners onError', () {
+        AxeptioException? received;
+        final listener = AxeptioEventListener();
+        listener.onError = (error) => received = error;
+        eventsHandler.addEventListener(listener);
+
         final mockError =
             MockPlatformException('TEST_ERROR', 'Test error message');
 
-        // Should not throw an exception
-        expect(() => eventsHandler.handleDAxeptioErrorEvent(mockError),
-            returnsNormally);
+        eventsHandler.handleDAxeptioErrorEvent(mockError);
+
+        expect(received, isNotNull);
+        expect(received!.message, contains('MockPlatformException'));
       });
 
-      test('handleDAxeptioErrorEvent handles error without message', () {
-        final mockError = {};
+      test('handleDAxeptioErrorEvent passes AxeptioException directly', () {
+        AxeptioException? received;
+        final listener = AxeptioEventListener();
+        listener.onError = (error) => received = error;
+        eventsHandler.addEventListener(listener);
 
-        // Should throw NoSuchMethodError when accessing missing 'message' property
-        expect(() => eventsHandler.handleDAxeptioErrorEvent(mockError),
-            throwsA(isA<NoSuchMethodError>()));
+        const axError =
+            AxeptioNetworkException('network fail', statusCode: 503);
+        eventsHandler.handleDAxeptioErrorEvent(axError);
+
+        expect(received, isA<AxeptioNetworkException>());
+        expect((received as AxeptioNetworkException).statusCode, 503);
+      });
+
+      test('handleDAxeptioErrorEvent routes to all listeners', () {
+        int callCount = 0;
+        final listener1 = AxeptioEventListener();
+        listener1.onError = (_) => callCount++;
+        final listener2 = AxeptioEventListener();
+        listener2.onError = (_) => callCount++;
+        eventsHandler.addEventListener(listener1);
+        eventsHandler.addEventListener(listener2);
+
+        eventsHandler.handleDAxeptioErrorEvent(const AxeptioException('test'));
+
+        expect(callCount, 2);
+      });
+
+      test('handleDAxeptioErrorEvent does nothing with no listeners', () {
+        // Should not throw
+        expect(
+            () => eventsHandler
+                .handleDAxeptioErrorEvent(const AxeptioException('test')),
+            returnsNormally);
       });
     });
 

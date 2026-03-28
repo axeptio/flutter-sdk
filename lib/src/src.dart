@@ -2,6 +2,7 @@ export 'channel/axeptio.dart';
 export 'channel/axeptio_sdk_platform_interface.dart';
 export 'channel/channel.dart';
 export 'events/event_listener.dart';
+export 'exceptions/exceptions.dart';
 export 'events/events.dart';
 export 'events/events_handler.dart';
 export 'model/axeptio_service.dart';

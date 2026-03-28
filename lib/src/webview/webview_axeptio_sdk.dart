@@ -1,6 +1,7 @@
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/events/events_handler.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/consent_url_builder.dart';
@@ -42,7 +43,10 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   @override
   Future<void> setupUI() async {
     final storage = _storage;
-    if (storage == null) return;
+    if (storage == null) {
+      throw const AxeptioNotInitializedException(
+          'SDK not initialized. Call initialize() before setupUI().');
+    }
     if (storage.tcString == null || storage.tcString!.isEmpty) {
       await showConsentScreen();
     }
@@ -55,13 +59,19 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
 
   @override
   Future<void> showConsentScreen() async {
-    final key = navigatorKey;
-    if (key == null || key.currentState == null) return;
-
     final clientId = _clientId;
     final cookiesVersion = _cookiesVersion;
     final service = _targetService;
-    if (clientId == null || cookiesVersion == null || service == null) return;
+    if (clientId == null || cookiesVersion == null || service == null) {
+      throw const AxeptioNotInitializedException();
+    }
+
+    final key = navigatorKey;
+    if (key == null || key.currentState == null) {
+      throw const AxeptioException(
+          'navigatorKey is not set or has no active state. '
+          'Set AxeptioSdk.navigatorKey before calling showConsentScreen().');
+    }
 
     final url = ConsentUrlBuilder.build(
       service: service,

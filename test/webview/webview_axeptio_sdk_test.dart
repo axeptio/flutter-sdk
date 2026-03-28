@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:axeptio_sdk/src/events/event_listener.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/axeptio_service.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
@@ -68,8 +69,11 @@ void main() {
     });
 
     group('setupUI', () {
-      test('does nothing when storage is null (not initialized)', () async {
-        await expectLater(sdk.setupUI(), completes);
+      test(
+          'throws AxeptioNotInitializedException when storage is null (not initialized)',
+          () async {
+        await expectLater(
+            sdk.setupUI(), throwsA(isA<AxeptioNotInitializedException>()));
       });
 
       test('does nothing when tcString already exists', () async {
@@ -87,21 +91,25 @@ void main() {
     });
 
     group('showConsentScreen', () {
-      test('does nothing when navigatorKey is null', () async {
+      test('throws AxeptioException when navigatorKey is null', () async {
         WebViewAxeptioSdk.navigatorKey = null;
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
-        await expectLater(sdk.showConsentScreen(), completes);
+        await expectLater(
+            sdk.showConsentScreen(), throwsA(isA<AxeptioException>()));
       });
 
-      test('does nothing when navigator state is null', () async {
+      test('throws AxeptioException when navigator state is null', () async {
         WebViewAxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
-        await expectLater(sdk.showConsentScreen(), completes);
+        await expectLater(
+            sdk.showConsentScreen(), throwsA(isA<AxeptioException>()));
       });
 
-      test('does nothing when not initialized', () async {
+      test('throws AxeptioNotInitializedException when not initialized',
+          () async {
         WebViewAxeptioSdk.navigatorKey = null;
-        await expectLater(sdk.showConsentScreen(), completes);
+        await expectLater(sdk.showConsentScreen(),
+            throwsA(isA<AxeptioNotInitializedException>()));
       });
 
       testWidgets('pushes AxeptioConsentView with valid navigator',
