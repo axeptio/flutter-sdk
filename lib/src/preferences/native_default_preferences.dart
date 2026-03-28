@@ -1,5 +1,5 @@
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
-import 'package:flutter/foundation.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 
 /// Provides access to native platform preferences for consent data.
 ///
@@ -70,6 +70,8 @@ class NativeDefaultPreferences {
   ///
   /// Returns the preference value as a String, or null if not found.
   ///
+  /// Throws [AxeptioStorageException] if the platform call fails.
+  ///
   /// Example:
   /// ```dart
   /// final tcString = await NativeDefaultPreferences.getDefaultPreference('IABTCF_TCString');
@@ -98,10 +100,7 @@ class NativeDefaultPreferences {
 
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('NativeDefaultPreferences: Error getting preference $key: $e');
-      }
-      return null;
+      throw AxeptioStorageException('Error getting preference $key', cause: e);
     }
   }
 
@@ -109,6 +108,8 @@ class NativeDefaultPreferences {
   ///
   /// This method efficiently fetches multiple preferences in a single operation.
   /// Returns a Map with the requested keys and their values, or null if no data found.
+  ///
+  /// Throws [AxeptioStorageException] if the platform call fails.
   ///
   /// Example:
   /// ```dart
@@ -137,10 +138,8 @@ class NativeDefaultPreferences {
 
       return result.isNotEmpty ? result : null;
     } catch (e) {
-      if (kDebugMode) {
-        print('NativeDefaultPreferences: Error getting preferences $keys: $e');
-      }
-      return null;
+      throw AxeptioStorageException('Error getting preferences $keys',
+          cause: e);
     }
   }
 
@@ -150,6 +149,8 @@ class NativeDefaultPreferences {
   /// stored in native storage. Useful for debugging or comprehensive data access.
   ///
   /// Returns a Map containing all available preferences, or null if no data found.
+  ///
+  /// Throws [AxeptioStorageException] if the platform call fails.
   ///
   /// Example:
   /// ```dart
@@ -162,10 +163,7 @@ class NativeDefaultPreferences {
     try {
       return await AxeptioSdkPlatform.instance.getConsentSavedData();
     } catch (e) {
-      if (kDebugMode) {
-        print('NativeDefaultPreferences: Error getting all preferences: $e');
-      }
-      return null;
+      throw AxeptioStorageException('Error getting all preferences', cause: e);
     }
   }
 

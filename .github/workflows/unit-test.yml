@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - master
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -41,12 +42,21 @@ jobs:
       - name: Run tests
         run: flutter test --coverage
 
+      - name: Enforce 94% coverage threshold
+        run: |
+          awk 'BEGIN{t=0;h=0} /^LF:/{t+=substr($0,4)} /^LH:/{h+=substr($0,4)} END{
+            pct=(t>0)?(h*100.0/t):0
+            printf "Coverage: %.1f%%\n", pct
+            if (pct < 94) { print "FAIL: coverage below 94% threshold"; exit 1 }
+            print "PASS: coverage meets 94% threshold"
+          }' coverage/lcov.info
+
       - name: Check publish warnings
         run: dart pub publish --dry-run
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info

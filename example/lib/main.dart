@@ -19,6 +19,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
+  AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
 
   runApp(const MyApp());
 }
@@ -205,6 +206,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: AxeptioSdk.navigatorKey,
       home: HomePage(
         axeptioSdk: _axeptioSdkPlugin,
         onAdBtnPressed: _onAdBtnPressed,

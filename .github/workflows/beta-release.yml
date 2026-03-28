@@ -42,11 +42,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Install semantic-release dependencies
-        run: |
-          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec conventional-changelog-conventionalcommits
+        run: npm ci
 
       - name: Calculate next version
         id: next-version
@@ -84,8 +83,15 @@ jobs:
           # Extract next version from output or calculate manually
           if echo "$NEXT_VERSION_OUTPUT" | grep -q "The next release version is"; then
             NEXT_VERSION=$(echo "$NEXT_VERSION_OUTPUT" | grep "The next release version is" | sed 's/.*The next release version is //' | head -1)
+            # Fail immediately if extracted string doesn't match expected semver-beta format —
+            # this means semantic-release changed its output format and the fallback is unreliable.
+            if ! echo "$NEXT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
+              echo "❌ Extracted version '$NEXT_VERSION' does not match expected format X.Y.Z-beta.N"
+              echo "semantic-release output format may have changed. Update the version extraction logic before retrying."
+              exit 1
+            fi
           else
-            # Fallback: increment patch version and add beta
+            # semantic-release did not emit a version (e.g. no releasable commits) — use fallback
             IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
             MAJOR="${VERSION_PARTS[0]}"
             MINOR="${VERSION_PARTS[1]}"
@@ -164,6 +170,7 @@ jobs:
 
           git add pubspec.yaml
           git commit -m "chore: bump version to $BETA_VERSION [skip ci]" || echo "No changes to commit"
+          git push origin develop
 
       - name: Create and push beta tag
         run: |
@@ -195,11 +202,6 @@ jobs:
           flutter: true
           skipTests: true
           tagName: beta
-
-      - name: Reset version in pubspec.yaml
-        run: |
-          # Reset to original version to avoid conflicts
-          git checkout HEAD~1 -- pubspec.yaml || echo "Could not reset pubspec.yaml"
 
       - name: Summary
         run: |

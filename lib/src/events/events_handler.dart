@@ -1,19 +1,21 @@
 // ignore_for_file: avoid_print
 
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 
 import 'event_listener.dart';
 
 class EventsHandler {
-  static const EventChannel _eventChannel = EventChannel('axeptio_sdk/events');
   List<AxeptioEventListener> listeners = [];
 
-  EventsHandler() {
-    _eventChannel
-        .receiveBroadcastStream()
-        .listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
+  /// Creates an [EventsHandler].
+  ///
+  /// If [stream] is provided, events are received from it automatically.
+  /// When omitted (WebView implementation), events are dispatched directly
+  /// via listener callbacks by the caller — no platform channel subscription is made.
+  EventsHandler([Stream<dynamic>? stream]) {
+    stream?.listen(handleAxeptioEvent, onError: handleDAxeptioErrorEvent);
   }
 
   handleAxeptioEvent(dynamic event) {
@@ -21,13 +23,13 @@ class EventsHandler {
 
     switch (eventType) {
       case 'onPopupClosedEvent':
-        for (var listener in listeners) {
+        for (final listener in List.of(listeners)) {
           listener.onPopupClosedEvent();
         }
         break;
 
       case 'onConsentCleared':
-        for (var listener in listeners) {
+        for (final listener in List.of(listeners)) {
           listener.onConsentCleared();
         }
         break;
@@ -35,7 +37,7 @@ class EventsHandler {
       case 'onGoogleConsentModeUpdate':
         final ConsentsV2 consents =
             ConsentsV2.fromDictionary(event["googleConsentV2"]);
-        for (var listener in listeners) {
+        for (final listener in List.of(listeners)) {
           listener.onGoogleConsentModeUpdate(consents);
         }
         break;
@@ -48,8 +50,20 @@ class EventsHandler {
     }
   }
 
-  handleDAxeptioErrorEvent(dynamic error) =>
-      print('Received error: ${error.message}');
+  handleDAxeptioErrorEvent(dynamic error) {
+    final exception = error is AxeptioException
+        ? error
+        : AxeptioException(error.toString(), cause: error);
+    for (final listener in List.of(listeners)) {
+      try {
+        listener.onError(exception);
+      } catch (listenerError) {
+        if (kDebugMode) {
+          print('Error in AxeptioEventListener.onError: $listenerError');
+        }
+      }
+    }
+  }
 
   addEventListener(AxeptioEventListener listener) {
     if (!listeners.contains(listener)) {

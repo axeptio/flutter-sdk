@@ -1,19 +1,28 @@
-## 2.0.19
+## 3.0.0-beta.1
+
+### 🔧 Fixes
+
+- Inject localStorage values in `onPageStarted` (before page scripts run) instead of `onPageFinished`
+- `appendAxeptioTokenURL` now only appends `axeptio_token`, not `clientId`/`cookiesVersion`
+- `showConsentScreen` now awaits until the consent screen is dismissed
+- `AxeptioSdk.navigatorKey` setter rejects `null` (throws `ArgumentError`)
+
+## 3.0.0
 
 ### 🚨 Breaking Changes
-- Updated Android build environment:
-  - **Android Gradle Plugin:** 8.1.3  
-  - **Kotlin:** 2.1.0  
-  - **Gradle:** 8.1.3  
-  These updates require to update Flutter project's Android configuration accordingly.
 
-- Update iOS Axeptio SDK to 2.0.17
-- Update Android Axeptio SDK to 2.0.9
-- Enhanced: Application name now included in event metadata
-- Improved: Network error handling with blocking view on iOS
-- Fixed: iOS userAgent for native in-app events - WebView events now working correctly
-- Fixed: Enhanced timeout mechanism on Android
-- Fixed: Additional iOS improvements
+- **`navigatorKey` is now required** for the consent UI to function. Set it before calling
+  `initialize`:
+  ```dart
+  AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
+  // Pass it to MaterialApp:
+  MaterialApp(navigatorKey: AxeptioSdk.navigatorKey, ...)
+  ```
+- Native iOS and Android Axeptio SDKs have been **removed**. Consent is now managed entirely
+  through a pure Flutter WebView implementation. No Maven credentials or CocoaPods setup is
+  required.
+- The `_ax_token` SharedPreferences key is replaced by `AX_CLIENT_TOKEN`. Existing stored tokens
+  are read transparently during migration.
 
 ## 2.0.18
 

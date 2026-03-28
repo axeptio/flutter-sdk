@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../exceptions/axeptio_exceptions.dart';
 import '../model/vendor_info.dart';
 
 /// Flutter-native Global Vendor List (GVL) service
@@ -18,6 +21,9 @@ class GVLService {
   static GVLService get instance => _instance ??= GVLService._();
 
   GVLService._();
+
+  @visibleForTesting
+  static void resetInstance() => _instance = null;
 
   Map<int, VendorInfo>? _cachedVendors;
   String? _cachedVersion;
@@ -36,9 +42,6 @@ class GVLService {
 
       // Fetch from remote
       return await _fetchFromRemote(gvlVersion);
-    } catch (error) {
-      developer.log('Error loading GVL', error: error, name: 'GVLService');
-      return false;
     } finally {
       _isLoading = false;
     }
@@ -152,10 +155,23 @@ class GVLService {
           'Loaded ${_cachedVendors?.length ?? 0} vendors from cache (v$_cachedVersion)',
           name: 'GVLService');
       return true;
+    } on FormatException catch (error) {
+      developer.log('Error loading from cache',
+          error: error, name: 'GVLService');
+      throw AxeptioConsentException('Failed to parse cached GVL data',
+          cause: error);
+    } on TypeError catch (error) {
+      developer.log('Error loading from cache',
+          error: error, name: 'GVLService');
+      throw AxeptioConsentException('Failed to parse cached GVL data structure',
+          cause: error);
+    } on AxeptioException {
+      rethrow;
     } catch (error) {
       developer.log('Error loading from cache',
           error: error, name: 'GVLService');
-      return false;
+      throw AxeptioStorageException('Failed to load GVL from cache',
+          cause: error);
     }
   }
 
@@ -180,7 +196,9 @@ class GVLService {
       if (response.statusCode != 200) {
         developer.log('HTTP ${response.statusCode} - ${response.reasonPhrase}',
             name: 'GVLService');
-        return false;
+        throw AxeptioNetworkException(
+            'Failed to fetch GVL: HTTP ${response.statusCode}',
+            statusCode: response.statusCode);
       }
 
       final Map<String, dynamic> gvlData = json.decode(response.body);
@@ -196,10 +214,26 @@ class GVLService {
           'Loaded ${_cachedVendors?.length ?? 0} vendors from remote (v$_cachedVersion)',
           name: 'GVLService');
       return true;
+    } on AxeptioException {
+      rethrow;
+    } on SocketException catch (error) {
+      developer.log('Error fetching from remote',
+          error: error, name: 'GVLService');
+      throw AxeptioNetworkException('Network error fetching GVL', cause: error);
+    } on FormatException catch (error) {
+      developer.log('Error fetching from remote',
+          error: error, name: 'GVLService');
+      throw AxeptioConsentException('Failed to parse GVL response',
+          cause: error);
+    } on TypeError catch (error) {
+      developer.log('Error fetching from remote',
+          error: error, name: 'GVLService');
+      throw AxeptioConsentException('Failed to parse GVL response structure',
+          cause: error);
     } catch (error) {
       developer.log('Error fetching from remote',
           error: error, name: 'GVLService');
-      return false;
+      throw AxeptioNetworkException('Failed to fetch GVL', cause: error);
     }
   }
 
@@ -207,42 +241,35 @@ class GVLService {
   Map<int, VendorInfo> _parseVendorList(Map<String, dynamic> gvlData) {
     final vendors = <int, VendorInfo>{};
 
-    try {
-      final vendorsData = gvlData['vendors'] as Map<String, dynamic>?;
-      if (vendorsData == null) return vendors;
+    final vendorsData = gvlData['vendors'] as Map<String, dynamic>?;
+    if (vendorsData == null) return vendors;
 
-      for (final entry in vendorsData.entries) {
-        final vendorId = int.tryParse(entry.key);
-        if (vendorId == null) continue;
+    for (final entry in vendorsData.entries) {
+      final vendorId = int.tryParse(entry.key);
+      if (vendorId == null) continue;
 
-        final vendorData = entry.value as Map<String, dynamic>;
+      final vendorData = entry.value as Map<String, dynamic>;
 
-        vendors[vendorId] = VendorInfo(
-          id: vendorId,
-          name: vendorData['name']?.toString() ?? 'Vendor $vendorId',
-          consented: false, // Default, will be updated with actual consent
-          description: vendorData['description']?.toString(),
-          purposes:
-              (vendorData['purposes'] as List<dynamic>?)?.cast<int>() ?? [],
-          legitimateInterestPurposes:
-              (vendorData['legIntPurposes'] as List<dynamic>?)?.cast<int>() ??
-                  [],
-          specialFeatures:
-              (vendorData['specialFeatures'] as List<dynamic>?)?.cast<int>() ??
-                  [],
-          specialPurposes:
-              (vendorData['specialPurposes'] as List<dynamic>?)?.cast<int>() ??
-                  [],
-          cookieMaxAgeSeconds: vendorData['cookieMaxAgeSeconds'] as int?,
-          usesCookies: vendorData['usesCookies'] as bool? ?? false,
-          usesNonCookieAccess:
-              vendorData['usesNonCookieAccess'] as bool? ?? false,
-          policyUrl: vendorData['policyUrl']?.toString(),
-        );
-      }
-    } catch (error) {
-      developer.log('Error parsing vendor list',
-          error: error, name: 'GVLService');
+      vendors[vendorId] = VendorInfo(
+        id: vendorId,
+        name: vendorData['name']?.toString() ?? 'Vendor $vendorId',
+        consented: false, // Default, will be updated with actual consent
+        description: vendorData['description']?.toString(),
+        purposes: (vendorData['purposes'] as List<dynamic>?)?.cast<int>() ?? [],
+        legitimateInterestPurposes:
+            (vendorData['legIntPurposes'] as List<dynamic>?)?.cast<int>() ?? [],
+        specialFeatures:
+            (vendorData['specialFeatures'] as List<dynamic>?)?.cast<int>() ??
+                [],
+        specialPurposes:
+            (vendorData['specialPurposes'] as List<dynamic>?)?.cast<int>() ??
+                [],
+        cookieMaxAgeSeconds: vendorData['cookieMaxAgeSeconds'] as int?,
+        usesCookies: vendorData['usesCookies'] as bool? ?? false,
+        usesNonCookieAccess:
+            vendorData['usesNonCookieAccess'] as bool? ?? false,
+        policyUrl: vendorData['policyUrl']?.toString(),
+      );
     }
 
     return vendors;
