@@ -70,6 +70,8 @@ class NativeDefaultPreferences {
   ///
   /// Returns the preference value as a String, or null if not found.
   ///
+  /// Throws [AxeptioStorageException] if the platform call fails.
+  ///
   /// Example:
   /// ```dart
   /// final tcString = await NativeDefaultPreferences.getDefaultPreference('IABTCF_TCString');
@@ -106,6 +108,8 @@ class NativeDefaultPreferences {
   ///
   /// This method efficiently fetches multiple preferences in a single operation.
   /// Returns a Map with the requested keys and their values, or null if no data found.
+  ///
+  /// Throws [AxeptioStorageException] if the platform call fails.
   ///
   /// Example:
   /// ```dart
@@ -145,6 +149,8 @@ class NativeDefaultPreferences {
   /// stored in native storage. Useful for debugging or comprehensive data access.
   ///
   /// Returns a Map containing all available preferences, or null if no data found.
+  ///
+  /// Throws [AxeptioStorageException] if the platform call fails.
   ///
   /// Example:
   /// ```dart

@@ -41,9 +41,10 @@ class JsBridgeMessageParser {
       if (payloadRaw is String && payloadRaw.isNotEmpty) {
         try {
           payload = jsonDecode(payloadRaw) as Map<String, dynamic>?;
-        } catch (_) {
+        } catch (e) {
           developer.log(
             'Failed to parse payload string for event: $name',
+            error: e,
             name: 'JsBridgeMessageParser',
           );
         }
