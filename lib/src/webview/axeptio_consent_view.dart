@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import 'js_bridge_message_parser.dart';
 
 /// Duration in days for the Axeptio user cookie consent window.
 const int _axUserCookiesDurationDays = 190;
@@ -41,6 +42,7 @@ class AxeptioConsentView extends StatefulWidget {
 /// Public state class to allow testing of message handling logic.
 @visibleForTesting
 class AxeptioConsentViewState extends State<AxeptioConsentView> {
+  final _parser = JsBridgeMessageParser();
   late final WebViewController _controller;
 
   @override
@@ -93,31 +95,19 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   void _onMessage(JavaScriptMessage message) {
-    try {
-      final decoded = jsonDecode(message.message) as Map<String, dynamic>;
-      final name = decoded['name'] as String?;
-      if (name == null) return;
+    final parsed = _parser.parse(message.message);
+    if (parsed == null) return;
 
-      final payloadRaw = decoded['payload'];
-      Map<String, dynamic>? payload;
-      if (payloadRaw is String && payloadRaw.isNotEmpty) {
-        payload = jsonDecode(payloadRaw) as Map<String, dynamic>?;
-      } else if (payloadRaw is Map) {
-        payload = Map<String, dynamic>.from(payloadRaw);
-      }
+    final name = parsed.name;
+    final payload = parsed.payload;
 
-      if (name == 'app:cookies:ready') {
-        unawaited(_handleCookiesReady(payload));
-      } else if (name == 'cookies:close') {
-        widget.onJsEvent(name, payload);
-        widget.onClose();
-      } else {
-        widget.onJsEvent(name, payload);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('AxeptioConsentView: failed to parse JS message: $e');
-      }
+    if (name == 'app:cookies:ready') {
+      unawaited(_handleCookiesReady(payload));
+    } else if (name == 'cookies:close') {
+      widget.onJsEvent(name, payload);
+      widget.onClose();
+    } else {
+      widget.onJsEvent(name, payload);
     }
   }
 
