@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "flutter_sdk",
+  "project_id": "53167fdf-6e09-431f-9a3a-2c7062f90c9f"
+}

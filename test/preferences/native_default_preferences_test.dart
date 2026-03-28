@@ -1,4 +1,5 @@
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/preferences/native_default_preferences.dart';
 import 'package:axeptio_sdk/src/model/axeptio_service.dart';
 import 'package:axeptio_sdk/src/model/vendor_info.dart';
@@ -245,13 +246,13 @@ void main() {
         expect(result, isNull);
       });
 
-      test('handles platform exceptions gracefully', () async {
+      test('throws AxeptioStorageException on platform error', () async {
         mockPlatform.setShouldThrowError(true);
 
-        final result =
-            await NativeDefaultPreferences.getDefaultPreference('test_key');
-
-        expect(result, isNull);
+        expect(
+          () => NativeDefaultPreferences.getDefaultPreference('test_key'),
+          throwsA(isA<AxeptioStorageException>()),
+        );
       });
 
       test('works with real preference keys', () async {
@@ -338,13 +339,14 @@ void main() {
         expect(result, isNull);
       });
 
-      test('handles platform exceptions gracefully', () async {
+      test('throws AxeptioStorageException on platform error', () async {
         mockPlatform.setShouldThrowError(true);
 
-        final result = await NativeDefaultPreferences.getDefaultPreferences(
-            ['key1', 'key2']);
-
-        expect(result, isNull);
+        expect(
+          () =>
+              NativeDefaultPreferences.getDefaultPreferences(['key1', 'key2']),
+          throwsA(isA<AxeptioStorageException>()),
+        );
       });
 
       test('works with TCF and brand keys', () async {
@@ -394,13 +396,13 @@ void main() {
         expect(result, isNull);
       });
 
-      test('handles platform exceptions gracefully', () async {
+      test('throws AxeptioStorageException on platform error', () async {
         mockPlatform.setShouldThrowError(true);
 
-        final result =
-            await NativeDefaultPreferences.getAllDefaultPreferences();
-
-        expect(result, isNull);
+        expect(
+          () => NativeDefaultPreferences.getAllDefaultPreferences(),
+          throwsA(isA<AxeptioStorageException>()),
+        );
       });
 
       test('returned map is independent from internal data', () async {

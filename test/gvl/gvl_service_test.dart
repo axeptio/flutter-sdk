@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/gvl/gvl_service.dart';
 import 'package:axeptio_sdk/src/model/vendor_info.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -78,20 +80,42 @@ void main() {
         GVLService.resetInstance();
         service = GVLService.instance;
 
-        // Without mock HTTP, remote fetch will fail → returns false
-        final result = await service.loadGVL();
-
-        expect(result, isFalse);
+        // Without mock HTTP, remote fetch will throw
+        expect(
+            () => service.loadGVL(), throwsA(isA<AxeptioNetworkException>()));
       });
 
-      test('returns false when cache keys are missing', () async {
+      test('throws when cache keys are missing and remote fails', () async {
         SharedPreferences.setMockInitialValues({'gvl_data': 'some data'});
         GVLService.resetInstance();
         service = GVLService.instance;
 
-        final result = await service.loadGVL();
+        final mockClient =
+            MockClient((_) async => http.Response('Not Found', 404));
 
-        expect(result, isFalse);
+        expect(
+          () => http.runWithClient(
+            () => service.loadGVL(),
+            () => mockClient,
+          ),
+          throwsA(isA<AxeptioNetworkException>()),
+        );
+      });
+
+      test('throws AxeptioConsentException on corrupt cache data', () async {
+        final nowMs = DateTime.now().millisecondsSinceEpoch;
+        SharedPreferences.setMockInitialValues({
+          'gvl_data': 'not valid json{{{',
+          'gvl_version': '3',
+          'gvl_timestamp': nowMs,
+        });
+        GVLService.resetInstance();
+        service = GVLService.instance;
+
+        expect(
+          () => service.loadGVL(),
+          throwsA(isA<AxeptioConsentException>()),
+        );
       });
     });
 
@@ -115,28 +139,56 @@ void main() {
         expect(prefs.getInt('gvl_timestamp'), isNotNull);
       });
 
-      test('returns false on non-200 HTTP status', () async {
+      test('throws AxeptioNetworkException on non-200 HTTP status', () async {
         final mockClient =
             MockClient((_) async => http.Response('Not Found', 404));
 
-        final result = await http.runWithClient(
-          () => service.loadGVL(gvlVersion: 'bad'),
-          () => mockClient,
+        expect(
+          () => http.runWithClient(
+            () => service.loadGVL(gvlVersion: 'bad'),
+            () => mockClient,
+          ),
+          throwsA(isA<AxeptioNetworkException>()),
         );
-
-        expect(result, isFalse);
       });
 
-      test('returns false when HTTP throws', () async {
+      test('throws AxeptioNetworkException when HTTP throws', () async {
         final mockClient =
             MockClient((_) async => throw Exception('Network error'));
 
-        final result = await http.runWithClient(
-          () => service.loadGVL(),
-          () => mockClient,
+        expect(
+          () => http.runWithClient(
+            () => service.loadGVL(),
+            () => mockClient,
+          ),
+          throwsA(isA<AxeptioNetworkException>()),
         );
+      });
 
-        expect(result, isFalse);
+      test('throws AxeptioNetworkException on SocketException', () async {
+        final mockClient = MockClient(
+            (_) async => throw const SocketException('Connection refused'));
+
+        expect(
+          () => http.runWithClient(
+            () => service.loadGVL(gvlVersion: '3'),
+            () => mockClient,
+          ),
+          throwsA(isA<AxeptioNetworkException>()),
+        );
+      });
+
+      test('throws AxeptioConsentException on invalid response JSON', () async {
+        final mockClient =
+            MockClient((_) async => http.Response('not json{{{', 200));
+
+        expect(
+          () => http.runWithClient(
+            () => service.loadGVL(gvlVersion: '3'),
+            () => mockClient,
+          ),
+          throwsA(isA<AxeptioConsentException>()),
+        );
       });
 
       test('returns false when concurrent load is in progress', () async {
@@ -174,17 +226,18 @@ void main() {
         expect(vendor.policyUrl, 'https://example.com/privacy');
       });
 
-      test('handles malformed vendors JSON gracefully', () async {
+      test('throws on malformed vendors JSON', () async {
         final badJson = jsonEncode({'vendors': 'not_a_map'});
         final mockClient = MockClient((_) async => http.Response(badJson, 200));
 
-        final result = await http.runWithClient(
-          () => service.loadGVL(gvlVersion: '3'),
-          () => mockClient,
+        // _parseVendorList will throw a TypeError when casting
+        expect(
+          () => http.runWithClient(
+            () => service.loadGVL(gvlVersion: '3'),
+            () => mockClient,
+          ),
+          throwsA(isA<AxeptioConsentException>()),
         );
-
-        // Service should not crash; vendors might be empty
-        expect(result, isTrue);
       });
 
       test('uses tcfPolicyVersion as fallback version', () async {

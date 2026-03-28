@@ -1,4 +1,5 @@
 import 'package:axeptio_sdk/src/events/event_listener.dart';
+import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,6 +15,7 @@ void main() {
       expect(listener.onPopupClosedEvent, isA<Function>());
       expect(listener.onConsentCleared, isA<Function>());
       expect(listener.onGoogleConsentModeUpdate, isA<Function>());
+      expect(listener.onError, isA<Function>());
     });
 
     test('onPopupClosedEvent can be called', () {
@@ -149,6 +151,23 @@ void main() {
           () => listener
               .onGoogleConsentModeUpdate(ConsentsV2(true, true, true, true)),
           returnsNormally);
+    });
+
+    test('onError default no-op does not throw', () {
+      expect(() => listener.onError(const AxeptioException('test')),
+          returnsNormally);
+    });
+
+    test('onError can be assigned and invoked', () {
+      AxeptioException? received;
+      listener.onError = (error) => received = error;
+
+      const exception = AxeptioNetworkException('test error', statusCode: 500);
+      listener.onError(exception);
+
+      expect(received, isNotNull);
+      expect(received, isA<AxeptioNetworkException>());
+      expect((received as AxeptioNetworkException).statusCode, 500);
     });
 
     test('callbacks can be set to null and reassigned', () {
