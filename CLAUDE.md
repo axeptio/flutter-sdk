@@ -15,14 +15,30 @@
 - DO NOT bypass tests
 - ALWAYS check test coverage before committing
 - ALWAYS add tests for new functionality
+- Go fix failing CI tests without being told how
+- **Simplicity firt**: Make every change as simple as possible. Impact minimal code.
+- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
+
+# Plan Mode
+- ALWAYS enter plan mode for ANY non-trivial task (+3 steps or architectural decision)
+- Use plan mode for verification steps, not just building
+- Write detailed specs upfront to reduce ambiguity
+- ALWAYS check the context window is appropriate for the execution
+- ALWAYS plan to use beads for execution orchestration
+
+# Self Improvement
+- After ANY correction from the user: update the `tasks/lessons.md`with the patterns
+- Offload research, exploration and parallel analysis to subagents
+- One task per subagent for focused execution
 
 ## SDK Version Management
-- ALWAYS check that this repo is using the latest iOS APP SDK (axeptio/axeptio-ios-sdk-sources and axeptio/axeptio-ios-sdk)
-- ALWAYS check that this repos is using the latest Android APP SDK (axeptio/axeptio-android-sdk-sources, axeptio/axeptio-android-sdk)
 - ALWAYS ensure that the README.md is up to date as it's documentation for app developper to integrate the SDK
-- ALWAYS ensure the example/ app is up to date in accordance with latest changes
+- ALWAYS ensure the example/ app is UP TO DATE in accordance with latest changes
 
 ## Testing Requirements and Workflow
+- NEVER mark a task complete without proving it works
+- Ask yourself: "would a staff engineer approve this?"
+- ALWAYS run tests, check logs, demonstrate correctness
 
 ### Critical Testing Standards
 - **Coverage Requirement**: 95% minimum test coverage (current: 58.9% - needs improvement)
