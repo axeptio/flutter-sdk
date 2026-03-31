@@ -89,7 +89,7 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
             switch call.method {
             case "runJavaScript":
                 if let js = call.arguments as? String {
-                    self?.webView.evaluateJavaScript(js) { _, error in
+                    self.webView.evaluateJavaScript(js) { _, error in
                         if let error = error {
                             result(FlutterError(code: "JS_ERROR", message: error.localizedDescription, details: nil))
                         } else {
