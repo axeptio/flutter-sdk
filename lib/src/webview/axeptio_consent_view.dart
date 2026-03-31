@@ -47,6 +47,7 @@ class AxeptioConsentView extends StatefulWidget {
 class AxeptioConsentViewState extends State<AxeptioConsentView> {
   final _parser = JsBridgeMessageParser();
   late final WebViewController _controller;
+  bool _injected = false;
 
   @override
   void initState() {
@@ -58,11 +59,11 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onMessageReceived: _onMessage,
       )
       ..setNavigationDelegate(NavigationDelegate(
-        // onPageStarted fires before the page's scripts execute, ensuring
-        // localStorage values (_ax_app_att_denied etc.) and the webkit polyfill
-        // are in place before app/index.js reads them synchronously on startup.
-        // onPageFinished is too late: init() has already run by then.
-        onPageStarted: (_) => _onPageFinished(),
+        // Attempt injection at onPageStarted (before index.js reads
+        // localStorage) and retry at onPageFinished if the JS context
+        // was not yet available.
+        onPageStarted: (_) => _injectScripts(),
+        onPageFinished: (_) => _injectScripts(),
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
           if (uri?.scheme == 'https' && uri?.host == 'static.axept.io') {
@@ -76,9 +77,23 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       ..loadRequest(widget.consentUrl);
   }
 
-  Future<void> _onPageFinished() async {
-    await _injectLocalStorage();
-    await _injectPolyfill();
+  Future<void> _injectScripts() async {
+    if (_injected) return;
+    try {
+      await _injectLocalStorage();
+    } on Exception {
+      // localStorage injection may fail at onPageStarted when the JS context
+      // is not yet ready.  This is expected — the values will be absent but
+      // the consent flow can still complete.
+    }
+    try {
+      await _injectPolyfill();
+      _injected = true;
+    } on Exception catch (e) {
+      widget.onError?.call(
+        AxeptioWebViewException('Failed to inject polyfill: $e', cause: e),
+      );
+    }
   }
 
   Future<void> _injectLocalStorage() async {
@@ -169,7 +184,10 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   @visibleForTesting
-  Future<void> simulatePageFinished() => _onPageFinished();
+  Future<void> simulatePageFinished() async {
+    _injected = false;
+    await _injectScripts();
+  }
 
   @visibleForTesting
   void simulateJsMessage(String rawJson) =>

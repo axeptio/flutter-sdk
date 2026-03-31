@@ -305,6 +305,72 @@ void main() {
       expect(errors, isEmpty);
     });
 
+    testWidgets(
+        'simulatePageFinished tolerates localStorage failure and injects polyfill',
+        (tester) async {
+      final errors = <AxeptioException>[];
+      final keyErr = GlobalKey<AxeptioConsentViewState>();
+      // Throws on first runJavaScript call (localStorage), second (polyfill) succeeds
+      WebViewPlatform.instance = _ThrowingJsPlatform(throwCount: 1);
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: keyErr,
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (e) => errors.add(e),
+        ),
+      ));
+      await expectLater(keyErr.currentState!.simulatePageFinished(), completes);
+      // localStorage failure is silently tolerated, polyfill succeeds
+      expect(errors, isEmpty);
+    });
+
+    testWidgets(
+        'simulatePageFinished reports error when polyfill injection fails',
+        (tester) async {
+      final errors = <AxeptioException>[];
+      final keyErr = GlobalKey<AxeptioConsentViewState>();
+      // Both localStorage and polyfill calls throw
+      WebViewPlatform.instance = _ThrowingJsPlatform(throwCount: 2);
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: keyErr,
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (e) => errors.add(e),
+        ),
+      ));
+      await keyErr.currentState!.simulatePageFinished();
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<AxeptioWebViewException>());
+      expect(errors.first.message, contains('polyfill'));
+    });
+
+    testWidgets('simulatePageFinished succeeds on retry after initial failure',
+        (tester) async {
+      final errors = <AxeptioException>[];
+      final keyErr = GlobalKey<AxeptioConsentViewState>();
+      // Both calls throw — simulates onPageStarted where JS context isn't ready
+      WebViewPlatform.instance = _ThrowingJsPlatform(throwCount: 2);
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: keyErr,
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (e) => errors.add(e),
+        ),
+      ));
+      // First attempt: polyfill fails
+      await keyErr.currentState!.simulatePageFinished();
+      expect(errors, hasLength(1));
+      // Second attempt: succeeds (throwCount exhausted)
+      await keyErr.currentState!.simulatePageFinished();
+      expect(errors, hasLength(1)); // no new errors
+    });
+
     testWidgets('handleWebResourceError does nothing without onError',
         (tester) async {
       final keyNoError = GlobalKey<AxeptioConsentViewState>();
@@ -455,6 +521,32 @@ class _MockCookieManager extends PlatformWebViewCookieManager {
 
   @override
   Future<void> setCookie(WebViewCookie cookie) async {}
+}
+
+/// A mock platform where [runJavaScript] throws for the first [throwCount] calls.
+class _ThrowingJsPlatform extends _MockWebViewPlatform {
+  final int throwCount;
+  _ThrowingJsPlatform({required this.throwCount});
+
+  @override
+  PlatformWebViewController createPlatformWebViewController(
+      PlatformWebViewControllerCreationParams params) {
+    return _ThrowingJsController(params, throwCount: throwCount);
+  }
+}
+
+class _ThrowingJsController extends _MockWebViewController {
+  int _remaining;
+  _ThrowingJsController(super.params, {required int throwCount})
+      : _remaining = throwCount;
+
+  @override
+  Future<void> runJavaScript(String javaScript) async {
+    if (_remaining > 0) {
+      _remaining--;
+      throw Exception('JS context not ready');
+    }
+  }
 }
 
 class _MockNavigationDelegate extends PlatformNavigationDelegate {
