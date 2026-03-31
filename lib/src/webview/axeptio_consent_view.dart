@@ -40,7 +40,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   @override
   void initState() {
     super.initState();
-    if (defaultTargetPlatform != TargetPlatform.iOS) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onError?.call(
           const AxeptioWebViewException(
@@ -89,8 +89,8 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   void _handleEvent(String name, dynamic payloadRaw) {
-    // The native side sends payload as a JSON string (from the web page).
-    // Parse it into a Map if possible.
+    // The native side may send payload as a JSON string or a structured
+    // Map/List, depending on how the JS bridge serializes the data.
     Map<String, dynamic>? payload;
     if (payloadRaw is String && payloadRaw.isNotEmpty) {
       try {
@@ -155,7 +155,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   Widget _buildWebView() {
-    if (defaultTargetPlatform != TargetPlatform.iOS) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
       return const Center(child: Text('Consent webview not available'));
     }
     return UiKitView(

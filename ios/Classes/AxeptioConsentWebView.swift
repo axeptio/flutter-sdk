@@ -32,26 +32,27 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
             localStorageItems["_ax_tcstring"] = tcString
         }
         for (key, value) in localStorageItems {
-            if let data = try? JSONSerialization.data(withJSONObject: [key: value]),
-               let json = String(data: data, encoding: .utf8) {
-                contentController.addUserScript(WKUserScript(
-                    source: "Object.assign(window.localStorage, \(json));",
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: true
-                ))
-            }
+            let stringValue = "\(value)"
+            let escaped = stringValue.replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "'", with: "\\'")
+            contentController.addUserScript(WKUserScript(
+                source: "window.localStorage.setItem('\(key)', '\(escaped)');",
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            ))
         }
 
         // 2. axeptioAppSdk polyfill at document end (before deferred scripts)
         let polyfill = """
-        var axeptioAppSdk = {
-            onEvent: function (name, payload) {
+        window.axeptioAppSdk = window.axeptioAppSdk || {};
+        if (typeof window.axeptioAppSdk.onEvent !== 'function') {
+            window.axeptioAppSdk.onEvent = function (name, payload) {
                 var handler = window.webkit.messageHandlers.axeptioSdk;
                 if (handler) {
                     handler.postMessage({name: name, payload: payload});
                 }
-            }
-        };
+            };
+        }
         """
         contentController.addUserScript(WKUserScript(
             source: polyfill,
@@ -105,6 +106,11 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
         // 5. Load the consent URL
         if let urlString = args["url"] as? String, let url = URL(string: urlString) {
             webView.load(URLRequest(url: url))
+        } else {
+            channel.invokeMethod("onError", arguments: [
+                "type": "argument",
+                "message": "Missing or invalid URL argument",
+            ])
         }
     }
 
