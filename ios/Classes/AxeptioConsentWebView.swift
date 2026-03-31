@@ -52,6 +52,7 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
         // 3. Configure WKWebView
         let config = WKWebViewConfiguration()
         config.userContentController = contentController
+        config.websiteDataStore = .nonPersistent()
         webView = WKWebView(frame: frame, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
