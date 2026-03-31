@@ -40,10 +40,11 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
 
   void _onPlatformViewCreated(int viewId) {
     _channel = MethodChannel('axeptio/consent_webview_$viewId');
-    _channel!.setMethodCallHandler(_handleNativeCall);
+    _channel!.setMethodCallHandler(handleNativeCall);
   }
 
-  Future<dynamic> _handleNativeCall(MethodCall call) async {
+  @visibleForTesting
+  Future<dynamic> handleNativeCall(MethodCall call) async {
     switch (call.method) {
       case 'onJsEvent':
         final args = call.arguments as Map;
