@@ -10,11 +10,18 @@ import 'js_bridge_message_parser.dart';
 /// Duration in days for the Axeptio user cookie consent window.
 const int _axUserCookiesDurationDays = 190;
 
+/// Bridges the Axeptio web page's `window.axeptioAppSdk.onEvent()` calls to
+/// the Flutter JS channel (`window.axeptioSdk`), which is registered by
+/// `addJavaScriptChannel('axeptioSdk')` at document start.
 const String _polyfillScript = r'''
-window.webkit = window.webkit || {};
-window.webkit.messageHandlers = window.webkit.messageHandlers || {};
-window.webkit.messageHandlers.axeptioSdk = {
-  postMessage: function(data) { axeptioSdk.postMessage(JSON.stringify(data)); }
+window.axeptioAppSdk = {
+  onEvent: function(event, payload) {
+    if (window.axeptioSdk) {
+      window.axeptioSdk.postMessage(JSON.stringify({ name: event, payload: payload }));
+    } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.axeptioSdk) {
+      window.webkit.messageHandlers.axeptioSdk.postMessage(JSON.stringify({ name: event, payload: payload }));
+    }
+  }
 };
 ''';
 
@@ -59,9 +66,6 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onMessageReceived: _onMessage,
       )
       ..setNavigationDelegate(NavigationDelegate(
-        // Attempt injection at onPageStarted (before index.js reads
-        // localStorage) and retry at onPageFinished if the JS context
-        // was not yet available.
         onPageStarted: (_) => _injectScripts(),
         onPageFinished: (_) => _injectScripts(),
         onNavigationRequest: (request) {
@@ -83,8 +87,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       await _injectLocalStorage();
     } on Exception {
       // localStorage injection may fail at onPageStarted when the JS context
-      // is not yet ready.  This is expected — the values will be absent but
-      // the consent flow can still complete.
+      // is not yet ready.  This is expected — onPageFinished will retry.
     }
     try {
       await _injectPolyfill();
