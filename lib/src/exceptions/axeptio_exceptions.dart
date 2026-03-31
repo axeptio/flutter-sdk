@@ -37,6 +37,14 @@ class AxeptioNetworkException extends AxeptioException {
       'AxeptioNetworkException: $message${statusCode != null ? ' (HTTP $statusCode)' : ''}';
 }
 
+/// Thrown for WebView-related failures (JS injection, navigation, unsupported platform).
+class AxeptioWebViewException extends AxeptioException {
+  const AxeptioWebViewException(super.message, {super.cause});
+
+  @override
+  String toString() => 'AxeptioWebViewException: $message';
+}
+
 /// Thrown when SharedPreferences operations fail.
 class AxeptioStorageException extends AxeptioException {
   const AxeptioStorageException(super.message, {super.cause});

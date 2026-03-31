@@ -404,6 +404,38 @@ void main() {
         expect(vendor1, isNot(equals(vendor2)));
       });
 
+      test('objects with different optional fields are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 755,
+          name: 'Google LLC',
+          consented: true,
+          purposes: [1],
+          legitimateInterestPurposes: [2],
+          specialFeatures: [1],
+          specialPurposes: [1],
+          cookieMaxAgeSeconds: 3600,
+          usesCookies: true,
+          usesNonCookieAccess: false,
+          policyUrl: 'https://example.com/policy',
+        );
+
+        const vendor2 = VendorInfo(
+          id: 755,
+          name: 'Google LLC',
+          consented: true,
+          purposes: [1],
+          legitimateInterestPurposes: [3],
+          specialFeatures: [2],
+          specialPurposes: [2],
+          cookieMaxAgeSeconds: 7200,
+          usesCookies: false,
+          usesNonCookieAccess: true,
+          policyUrl: 'https://other.com/policy',
+        );
+
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
       test('objects with same null descriptions are equal', () {
         const vendor1 = VendorInfo(
           id: 123,

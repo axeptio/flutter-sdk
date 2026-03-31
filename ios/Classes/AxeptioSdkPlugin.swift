@@ -1,13 +1,15 @@
 import Flutter
 import UIKit
 
-/// Stub plugin — consent is handled by the Flutter WebView layer.
 public class AxeptioSdkPlugin: NSObject, FlutterPlugin {
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "axeptio_sdk", binaryMessenger: registrar.messenger())
     let instance = AxeptioSdkPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
+
+    let factory = AxeptioConsentWebViewFactory(messenger: registrar.messenger())
+    registrar.register(factory, withId: "axeptio/consent_webview")
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

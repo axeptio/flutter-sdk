@@ -106,6 +106,29 @@ void main() {
     });
   });
 
+  group('AxeptioWebViewException', () {
+    test('constructs with message', () {
+      const e = AxeptioWebViewException('js fail');
+      expect(e.message, 'js fail');
+    });
+
+    test('toString uses own prefix', () {
+      const e = AxeptioWebViewException('test');
+      expect(e.toString(), 'AxeptioWebViewException: test');
+    });
+
+    test('supports cause chaining', () {
+      final cause = Exception('js context not ready');
+      final e = AxeptioWebViewException('fail', cause: cause);
+      expect(e.cause, cause);
+    });
+
+    test('is an AxeptioException', () {
+      const e = AxeptioWebViewException('test');
+      expect(e, isA<AxeptioException>());
+    });
+  });
+
   group('AxeptioStorageException', () {
     test('constructs with message', () {
       const e = AxeptioStorageException('storage fail');

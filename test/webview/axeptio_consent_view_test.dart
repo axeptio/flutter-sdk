@@ -3,40 +3,16 @@ import 'dart:convert';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  WebViewPlatform? savedWebViewPlatform;
-  WebViewPlatform? originalWebViewPlatform;
-
-  setUpAll(() {
-    originalWebViewPlatform = WebViewPlatform.instance;
-    WebViewPlatform.instance = _MockWebViewPlatform();
-  });
-
-  tearDownAll(() {
-    if (originalWebViewPlatform != null) {
-      WebViewPlatform.instance = originalWebViewPlatform!;
-    }
-  });
-
-  setUp(() {
-    savedWebViewPlatform = WebViewPlatform.instance;
-    WebViewPlatform.instance = _MockWebViewPlatform();
-  });
-
-  tearDown(() {
-    WebViewPlatform.instance = savedWebViewPlatform!;
-  });
-
   final testUri = Uri.parse('https://static.axept.io/test.html');
 
   group('AxeptioConsentView widget', () {
-    testWidgets('renders Scaffold with WebViewWidget', (tester) async {
+    testWidgets('renders Scaffold', (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: AxeptioConsentView(
           consentUrl: testUri,
@@ -46,7 +22,6 @@ void main() {
       ));
 
       expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(WebViewWidget), findsOneWidget);
     });
 
     testWidgets('accepts attDenied and storedTcString parameters',
@@ -54,59 +29,60 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: AxeptioConsentView(
           consentUrl: testUri,
+          attDenied: true,
+          storedTcString: 'CPXx',
           onJsEvent: (_, __) {},
           onClose: () {},
-          attDenied: true,
-          storedTcString: 'CPXxRfAP',
         ),
       ));
-      expect(find.byType(AxeptioConsentView), findsOneWidget);
+
+      expect(find.byType(Scaffold), findsOneWidget);
     });
 
     testWidgets('has correct default values', (tester) async {
-      AxeptioConsentView? w;
-      await tester.pumpWidget(MaterialApp(
-        home: Builder(builder: (ctx) {
-          w = AxeptioConsentView(
-            consentUrl: testUri,
-            onJsEvent: (_, __) {},
-            onClose: () {},
-          );
-          return w!;
-        }),
-      ));
-      expect(w!.attDenied, isFalse);
-      expect(w!.storedTcString, isNull);
-      expect(w!.onError, isNull);
-    });
-
-    testWidgets('accepts onError parameter', (tester) async {
-      final errors = <AxeptioException>[];
       await tester.pumpWidget(MaterialApp(
         home: AxeptioConsentView(
           consentUrl: testUri,
           onJsEvent: (_, __) {},
           onClose: () {},
-          onError: (e) => errors.add(e),
         ),
       ));
-      expect(find.byType(AxeptioConsentView), findsOneWidget);
+
+      final widget =
+          tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
+      expect(widget.attDenied, false);
+      expect(widget.storedTcString, isNull);
+      expect(widget.showConsentManager, false);
+      expect(widget.onError, isNull);
+    });
+
+    testWidgets('accepts onError parameter', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (_) {},
+        ),
+      ));
+
+      expect(find.byType(Scaffold), findsOneWidget);
     });
   });
 
-  group('AxeptioConsentViewState JS message handling', () {
+  group('AxeptioConsentViewState event handling', () {
     late GlobalKey<AxeptioConsentViewState> stateKey;
     late List<String> jsEvents;
     late int closeCount;
 
-    setUp(() {
+    Future<void> buildWidget(WidgetTester tester,
+        {bool attDenied = false,
+        String? storedTcString,
+        bool showConsentManager = false}) async {
       stateKey = GlobalKey<AxeptioConsentViewState>();
       jsEvents = [];
       closeCount = 0;
-    });
 
-    Future<void> buildWidget(WidgetTester tester,
-        {bool attDenied = false, String? storedTcString}) async {
       await tester.pumpWidget(MaterialApp(
         home: AxeptioConsentView(
           key: stateKey,
@@ -115,39 +91,20 @@ void main() {
           onClose: () => closeCount++,
           attDenied: attDenied,
           storedTcString: storedTcString,
+          showConsentManager: showConsentManager,
         ),
       ));
     }
 
-    testWidgets('simulatePageFinished runs without error', (tester) async {
-      await buildWidget(tester);
-      await expectLater(
-          stateKey.currentState!.simulatePageFinished(), completes);
-    });
-
-    testWidgets('simulatePageFinished with attDenied', (tester) async {
-      await buildWidget(tester, attDenied: true);
-      await expectLater(
-          stateKey.currentState!.simulatePageFinished(), completes);
-    });
-
-    testWidgets('simulatePageFinished with storedTcString', (tester) async {
-      await buildWidget(tester, storedTcString: 'CPXx');
-      await expectLater(
-          stateKey.currentState!.simulatePageFinished(), completes);
-    });
-
     testWidgets('unknown event fires onJsEvent callback', (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(
-          jsonEncode({'name': 'some:event', 'payload': null}));
+      stateKey.currentState!.simulateJsEvent('some:event', null);
       expect(jsEvents, contains('some:event'));
     });
 
     testWidgets('cookies:close fires onJsEvent and onClose', (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(
-          jsonEncode({'name': 'cookies:close', 'payload': null}));
+      stateKey.currentState!.simulateJsEvent('cookies:close', null);
       expect(jsEvents, contains('cookies:close'));
       expect(closeCount, 1);
     });
@@ -155,335 +112,197 @@ void main() {
     testWidgets('app:cookies:ready with subscription==false calls onClose',
         (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(jsonEncode({
-        'name': 'app:cookies:ready',
-        'payload': jsonEncode({'subscription': false, 'showCmp': true})
-      }));
+      stateKey.currentState!.simulateJsEvent('app:cookies:ready',
+          jsonEncode({'subscription': false, 'showCmp': true}));
+      await tester.pump();
       expect(closeCount, 1);
     });
 
     testWidgets('app:cookies:ready with showCmp==false calls onClose',
         (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(jsonEncode({
-        'name': 'app:cookies:ready',
-        'payload': jsonEncode({'subscription': null, 'showCmp': false})
-      }));
+      stateKey.currentState!.simulateJsEvent('app:cookies:ready',
+          jsonEncode({'subscription': true, 'showCmp': false}));
+      await tester.pump();
       expect(closeCount, 1);
     });
 
     testWidgets('app:cookies:ready with showCmp==true does NOT close',
         (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(jsonEncode({
-        'name': 'app:cookies:ready',
-        'payload': jsonEncode({'subscription': null, 'showCmp': true})
-      }));
+      stateKey.currentState!.simulateJsEvent('app:cookies:ready',
+          jsonEncode({'subscription': true, 'showCmp': true}));
+      await tester.pump();
       expect(closeCount, 0);
     });
 
     testWidgets(
         'app:cookies:ready with showConsentManager==true bypasses showCmp check',
         (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: AxeptioConsentView(
-          key: stateKey,
-          consentUrl: testUri,
-          onJsEvent: (name, _) => jsEvents.add(name),
-          onClose: () => closeCount++,
-          showConsentManager: true,
-        ),
-      ));
-      stateKey.currentState!.simulateJsMessage(jsonEncode({
-        'name': 'app:cookies:ready',
-        'payload': jsonEncode({'subscription': null, 'showCmp': false})
-      }));
-      // Should NOT close — showConsentManager forces the CMP to show
+      await buildWidget(tester, showConsentManager: true);
+      // With showConsentManager, it tries to call runJavaScript via the channel.
+      // Since there's no native view in tests, the channel won't exist,
+      // but it shouldn't crash.
+      stateKey.currentState!.simulateJsEvent('app:cookies:ready',
+          jsonEncode({'subscription': true, 'showCmp': false}));
+      await tester.pump();
+      // Should NOT close because showConsentManager takes a different path
       expect(closeCount, 0);
     });
 
     testWidgets('app:cookies:ready with null payload calls onClose',
         (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(
-          jsonEncode({'name': 'app:cookies:ready', 'payload': null}));
+      stateKey.currentState!.simulateJsEvent('app:cookies:ready', null);
+      await tester.pump();
       expect(closeCount, 1);
     });
 
-    testWidgets('payload as Map (not string) is handled', (tester) async {
+    testWidgets('payload as Map is handled', (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!.simulateJsMessage(jsonEncode({
-        'name': 'some:event',
-        'payload': {'key': 'value'}
-      }));
-      expect(jsEvents, contains('some:event'));
+      stateKey.currentState!.simulateJsEvent(
+          'app:cookies:ready', {'subscription': false, 'showCmp': true});
+      await tester.pump();
+      expect(closeCount, 1);
     });
 
-    testWidgets('message with null name is ignored', (tester) async {
+    testWidgets('payload as JSON string is decoded', (tester) async {
       await buildWidget(tester);
-      stateKey.currentState!
-          .simulateJsMessage(jsonEncode({'name': null, 'payload': null}));
+      stateKey.currentState!.simulateJsEvent(
+          'app:cookies:ready', jsonEncode({'subscription': false}));
+      await tester.pump();
+      expect(closeCount, 1);
+    });
+
+    testWidgets('null event name is ignored', (tester) async {
+      await buildWidget(tester);
+      stateKey.currentState!.handleNativeCall(
+        const MethodCall('onJsEvent', {'name': null, 'payload': null}),
+      );
       expect(jsEvents, isEmpty);
       expect(closeCount, 0);
-    });
-
-    testWidgets('invalid JSON is silently ignored', (tester) async {
-      await buildWidget(tester);
-      expect(() => stateKey.currentState!.simulateJsMessage('not valid json'),
-          returnsNormally);
-      expect(jsEvents, isEmpty);
     });
   });
 
   group('AxeptioConsentViewState error handling', () {
-    late GlobalKey<AxeptioConsentViewState> stateKey;
-    late List<AxeptioException> errors;
-
-    setUp(() {
-      stateKey = GlobalKey<AxeptioConsentViewState>();
-      errors = [];
-    });
-
-    Future<void> buildWidgetWithOnError(WidgetTester tester) async {
+    testWidgets('onError callback receives native errors', (tester) async {
+      final errors = <AxeptioException>[];
+      final stateKey = GlobalKey<AxeptioConsentViewState>();
       await tester.pumpWidget(MaterialApp(
         home: AxeptioConsentView(
           key: stateKey,
-          consentUrl: testUri,
+          consentUrl: Uri.parse('https://static.axept.io/test.html'),
           onJsEvent: (_, __) {},
           onClose: () {},
           onError: (e) => errors.add(e),
         ),
       ));
-    }
-
-    testWidgets('handleWebResourceError fires onError for main frame errors',
-        (tester) async {
-      await buildWidgetWithOnError(tester);
-      final state = stateKey.currentState!;
-      state.handleWebResourceError(WebResourceError(
-        errorCode: -2,
-        description: 'net::ERR_FAILED',
-        isForMainFrame: true,
-        errorType: WebResourceErrorType.connect,
-      ));
-      expect(errors, hasLength(1));
-      expect(errors.first, isA<AxeptioNetworkException>());
-      expect(errors.first.message, contains('net::ERR_FAILED'));
-    });
-
-    testWidgets('handleWebResourceError ignores non-main-frame errors',
-        (tester) async {
-      await buildWidgetWithOnError(tester);
-      final state = stateKey.currentState!;
-      state.handleWebResourceError(WebResourceError(
-        errorCode: -2,
-        description: 'sub-resource failed',
-        isForMainFrame: false,
-        errorType: WebResourceErrorType.connect,
-      ));
-      expect(errors, isEmpty);
-    });
-
-    testWidgets('handleHttpError fires onError for status >= 400',
-        (tester) async {
-      await buildWidgetWithOnError(tester);
-      final state = stateKey.currentState!;
-      state.handleHttpError(HttpResponseError(
-        response: WebResourceResponse(uri: null, statusCode: 500),
-      ));
-      expect(errors, hasLength(1));
-      expect(errors.first, isA<AxeptioNetworkException>());
-      expect((errors.first as AxeptioNetworkException).statusCode, 500);
-    });
-
-    testWidgets('handleHttpError ignores status < 400', (tester) async {
-      await buildWidgetWithOnError(tester);
-      final state = stateKey.currentState!;
-      state.handleHttpError(HttpResponseError(
-        response: WebResourceResponse(uri: null, statusCode: 301),
-      ));
-      expect(errors, isEmpty);
-    });
-
-    testWidgets('handleWebResourceError does nothing without onError',
-        (tester) async {
-      final keyNoError = GlobalKey<AxeptioConsentViewState>();
-      await tester.pumpWidget(MaterialApp(
-        home: AxeptioConsentView(
-          key: keyNoError,
-          consentUrl: testUri,
-          onJsEvent: (_, __) {},
-          onClose: () {},
-        ),
-      ));
-      // Should not throw even without onError callback
-      expect(
-        () => keyNoError.currentState!.handleWebResourceError(WebResourceError(
-          errorCode: -2,
-          description: 'error',
-          isForMainFrame: true,
-          errorType: WebResourceErrorType.connect,
-        )),
-        returnsNormally,
+      // Clear any platform-related errors from build
+      errors.clear();
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall('onError', {'type': 'navigation', 'message': 'fail'}),
       );
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<AxeptioWebViewException>());
     });
   });
-}
 
-// Minimal mock WebView platform
-class _MockWebViewPlatform extends WebViewPlatform {
-  @override
-  PlatformWebViewController createPlatformWebViewController(
-      PlatformWebViewControllerCreationParams params) {
-    return _MockWebViewController(params);
-  }
+  group('AxeptioConsentViewState handleNativeCall', () {
+    late GlobalKey<AxeptioConsentViewState> stateKey;
+    late List<String> jsEvents;
+    late int closeCount;
+    late List<AxeptioException> errors;
 
-  @override
-  PlatformWebViewWidget createPlatformWebViewWidget(
-      PlatformWebViewWidgetCreationParams params) {
-    return _MockWebViewWidget(params);
-  }
+    Future<void> buildWidget(WidgetTester tester) async {
+      stateKey = GlobalKey<AxeptioConsentViewState>();
+      jsEvents = [];
+      closeCount = 0;
+      errors = [];
 
-  @override
-  PlatformWebViewCookieManager createPlatformCookieManager(
-      PlatformWebViewCookieManagerCreationParams params) {
-    return _MockCookieManager(params);
-  }
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          key: stateKey,
+          consentUrl: Uri.parse('https://static.axept.io/test.html'),
+          onJsEvent: (name, _) => jsEvents.add(name),
+          onClose: () => closeCount++,
+          onError: (e) => errors.add(e),
+        ),
+      ));
+      // Clear any platform-related errors from build
+      errors.clear();
+    }
 
-  @override
-  PlatformNavigationDelegate createPlatformNavigationDelegate(
-      PlatformNavigationDelegateCreationParams params) {
-    return _MockNavigationDelegate(params);
-  }
-}
+    testWidgets('onJsEvent method call dispatches event', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall(
+            'onJsEvent', {'name': 'cookies:close', 'payload': null}),
+      );
+      expect(jsEvents, contains('cookies:close'));
+      expect(closeCount, 1);
+    });
 
-class _MockWebViewController extends PlatformWebViewController {
-  _MockWebViewController(super.params) : super.implementation();
+    testWidgets('onJsEvent with null name is ignored', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall('onJsEvent', {'name': null, 'payload': null}),
+      );
+      expect(jsEvents, isEmpty);
+      expect(closeCount, 0);
+    });
 
-  @override
-  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) async {}
+    testWidgets('onError method call dispatches error', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall(
+            'onError', {'type': 'navigation', 'message': 'timeout'}),
+      );
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<AxeptioWebViewException>());
+      expect(errors.first.message, contains('timeout'));
+    });
 
-  @override
-  Future<void> setBackgroundColor(Color color) async {}
+    testWidgets('onError with missing message uses default', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall('onError', {'type': 'navigation'}),
+      );
+      expect(errors, hasLength(1));
+      expect(errors.first.message, contains('Unknown error'));
+    });
 
-  @override
-  Future<void> setPlatformNavigationDelegate(
-      PlatformNavigationDelegate handler) async {}
+    testWidgets('unknown method call is ignored', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall('unknownMethod', null),
+      );
+      expect(jsEvents, isEmpty);
+      expect(closeCount, 0);
+      expect(errors, isEmpty);
+    });
 
-  @override
-  Future<void> addJavaScriptChannel(
-      JavaScriptChannelParams javaScriptChannelParams) async {}
+    testWidgets('onJsEvent with string payload parses JSON', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        MethodCall('onJsEvent', {
+          'name': 'app:cookies:ready',
+          'payload': jsonEncode({'subscription': false}),
+        }),
+      );
+      await tester.pump();
+      expect(closeCount, 1);
+    });
 
-  @override
-  Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {}
-
-  @override
-  Future<void> loadRequest(LoadRequestParams params) async {}
-
-  @override
-  Future<void> loadHtmlString(String html, {String? baseUrl}) async {}
-
-  @override
-  Future<void> loadFile(String absoluteFilePath) async {}
-
-  @override
-  Future<void> loadFlutterAsset(String key) async {}
-
-  @override
-  Future<String?> currentUrl() async => null;
-
-  @override
-  Future<bool> canGoBack() async => false;
-
-  @override
-  Future<bool> canGoForward() async => false;
-
-  @override
-  Future<void> goBack() async {}
-
-  @override
-  Future<void> goForward() async {}
-
-  @override
-  Future<void> reload() async {}
-
-  @override
-  Future<void> clearCache() async {}
-
-  @override
-  Future<void> clearLocalStorage() async {}
-
-  @override
-  Future<void> runJavaScript(String javaScript) async {}
-
-  @override
-  Future<Object> runJavaScriptReturningResult(String javaScript) async => '';
-
-  @override
-  Future<String?> getTitle() async => null;
-
-  @override
-  Future<void> scrollTo(int x, int y) async {}
-
-  @override
-  Future<void> scrollBy(int x, int y) async {}
-
-  @override
-  Future<Offset> getScrollPosition() async => Offset.zero;
-
-  @override
-  Future<void> enableZoom(bool enabled) async {}
-
-  Future<void> setCustomUserAgent(String? userAgent) async {}
-
-  @override
-  Future<String?> getUserAgent() async => null;
-}
-
-class _MockWebViewWidget extends PlatformWebViewWidget {
-  _MockWebViewWidget(super.params) : super.implementation();
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
-class _MockCookieManager extends PlatformWebViewCookieManager {
-  _MockCookieManager(super.params) : super.implementation();
-
-  @override
-  Future<bool> clearCookies() async => true;
-
-  @override
-  Future<void> setCookie(WebViewCookie cookie) async {}
-}
-
-class _MockNavigationDelegate extends PlatformNavigationDelegate {
-  _MockNavigationDelegate(super.params) : super.implementation();
-
-  @override
-  Future<void> setOnNavigationRequest(
-      NavigationRequestCallback onNavigationRequest) async {}
-
-  @override
-  Future<void> setOnPageStarted(PageEventCallback onPageStarted) async {}
-
-  @override
-  Future<void> setOnPageFinished(PageEventCallback onPageFinished) async {}
-
-  @override
-  Future<void> setOnProgress(ProgressCallback onProgress) async {}
-
-  @override
-  Future<void> setOnWebResourceError(
-      WebResourceErrorCallback onWebResourceError) async {}
-
-  @override
-  Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {}
-
-  @override
-  Future<void> setOnHttpAuthRequest(
-      HttpAuthRequestCallback onHttpAuthRequest) async {}
-
-  @override
-  Future<void> setOnHttpError(HttpResponseErrorCallback onHttpError) async {}
+    testWidgets('onJsEvent with map payload is handled', (tester) async {
+      await buildWidget(tester);
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall('onJsEvent', {
+          'name': 'app:cookies:ready',
+          'payload': {'subscription': false},
+        }),
+      );
+      await tester.pump();
+      expect(closeCount, 1);
+    });
+  });
 }
