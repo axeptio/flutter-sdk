@@ -37,6 +37,20 @@ class AxeptioConsentView extends StatefulWidget {
 class AxeptioConsentViewState extends State<AxeptioConsentView> {
   MethodChannel? _channel;
 
+  @override
+  void initState() {
+    super.initState();
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onError?.call(
+          const AxeptioWebViewException(
+            'Consent webview is only supported on iOS',
+          ),
+        );
+      });
+    }
+  }
+
   void _onPlatformViewCreated(int viewId) {
     _channel = MethodChannel('axeptio/consent_webview_$viewId');
     _channel!.setMethodCallHandler(handleNativeCall);
@@ -142,12 +156,6 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
 
   Widget _buildWebView() {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
-      // Android and other platforms: not yet implemented
-      widget.onError?.call(
-        const AxeptioWebViewException(
-          'Consent webview is only supported on iOS',
-        ),
-      );
       return const Center(child: Text('Consent webview not available'));
     }
     return UiKitView(

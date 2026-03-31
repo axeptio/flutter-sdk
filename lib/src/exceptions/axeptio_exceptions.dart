@@ -37,7 +37,7 @@ class AxeptioNetworkException extends AxeptioException {
       'AxeptioNetworkException: $message${statusCode != null ? ' (HTTP $statusCode)' : ''}';
 }
 
-/// Thrown when WebView JavaScript injection fails.
+/// Thrown for WebView-related failures (JS injection, navigation, unsupported platform).
 class AxeptioWebViewException extends AxeptioException {
   const AxeptioWebViewException(super.message, {super.cause});
 
