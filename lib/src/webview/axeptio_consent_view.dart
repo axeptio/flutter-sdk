@@ -67,16 +67,19 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   Future<dynamic> handleNativeCall(MethodCall call) async {
     switch (call.method) {
       case 'onJsEvent':
-        final args = call.arguments as Map;
-        final name = args['name'] as String?;
-        final payloadRaw = args['payload'];
-        if (name == null) return;
-        _handleEvent(name, payloadRaw);
+        final args = call.arguments;
+        if (args is! Map) return;
+        final name = args['name'];
+        if (name is! String) return;
+        _handleEvent(name, args['payload']);
         return;
       case 'onError':
-        final args = call.arguments as Map;
-        final message = args['message'] as String? ?? 'Unknown error';
-        final type = args['type'] as String?;
+        final args = call.arguments;
+        if (args is! Map) return;
+        final message = args['message'] is String
+            ? args['message'] as String
+            : 'Unknown error';
+        final type = args['type'] is String ? args['type'] as String : null;
         widget.onError?.call(
           AxeptioWebViewException(
             'WebView error: $message${type != null ? ' (type=$type)' : ''}',

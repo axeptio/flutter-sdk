@@ -42,7 +42,8 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
             ))
         }
 
-        // 2. axeptioAppSdk polyfill at document end (before deferred scripts)
+        // 2. axeptioAppSdk polyfill — inject at document start so it's available
+        // before the page's deferred scripts initialize
         let polyfill = """
         window.axeptioAppSdk = window.axeptioAppSdk || {};
         if (typeof window.axeptioAppSdk.onEvent !== 'function') {
@@ -56,7 +57,7 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
         """
         contentController.addUserScript(WKUserScript(
             source: polyfill,
-            injectionTime: .atDocumentEnd,
+            injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         ))
 
@@ -124,11 +125,11 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
     ) {
         guard let body = message.body as? [String: Any],
               let event = body["name"] as? String else { return }
-        let payload = body["payload"]
-        channel.invokeMethod("onJsEvent", arguments: [
-            "name": event,
-            "payload": payload as Any,
-        ])
+        var arguments: [String: Any] = ["name": event]
+        if let payload = body["payload"] {
+            arguments["payload"] = payload
+        }
+        channel.invokeMethod("onJsEvent", arguments: arguments)
     }
 
     // MARK: - WKNavigationDelegate

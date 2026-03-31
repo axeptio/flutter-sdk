@@ -161,8 +161,8 @@ void main() {
             tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
         expect(view.onError, isNotNull);
 
-        // Clear any platform-related errors from build
-        errors.clear();
+        // Filter out the expected platform-unsupported error from initState
+        errors.removeWhere((e) => e.message.contains('only supported on iOS'));
         // Simulate calling onError to verify it routes to listeners
         view.onError!(
             const AxeptioNetworkException('test error', statusCode: 500));
