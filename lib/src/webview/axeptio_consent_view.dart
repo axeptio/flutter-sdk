@@ -133,6 +133,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: _buildWebView(),
       ),
