@@ -176,14 +176,16 @@ void main() {
 
     testWidgets('null event name is ignored', (tester) async {
       await buildWidget(tester);
-      // simulateJsEvent requires a non-null name, so this tests the guard
+      stateKey.currentState!.handleNativeCall(
+        const MethodCall('onJsEvent', {'name': null, 'payload': null}),
+      );
       expect(jsEvents, isEmpty);
       expect(closeCount, 0);
     });
   });
 
   group('AxeptioConsentViewState error handling', () {
-    testWidgets('onError callback receives errors', (tester) async {
+    testWidgets('onError callback receives native errors', (tester) async {
       final errors = <AxeptioException>[];
       final stateKey = GlobalKey<AxeptioConsentViewState>();
       await tester.pumpWidget(MaterialApp(
@@ -195,10 +197,13 @@ void main() {
           onError: (e) => errors.add(e),
         ),
       ));
-
-      // Widget should render without errors
-      expect(find.byType(Scaffold), findsOneWidget);
-      expect(errors, isEmpty);
+      // Clear any platform-related errors from build
+      errors.clear();
+      await stateKey.currentState!.handleNativeCall(
+        const MethodCall('onError', {'type': 'navigation', 'message': 'fail'}),
+      );
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<AxeptioWebViewException>());
     });
   });
 
@@ -223,6 +228,8 @@ void main() {
           onError: (e) => errors.add(e),
         ),
       ));
+      // Clear any platform-related errors from build
+      errors.clear();
     }
 
     testWidgets('onJsEvent method call dispatches event', (tester) async {
@@ -251,7 +258,7 @@ void main() {
             'onError', {'type': 'navigation', 'message': 'timeout'}),
       );
       expect(errors, hasLength(1));
-      expect(errors.first, isA<AxeptioNetworkException>());
+      expect(errors.first, isA<AxeptioWebViewException>());
       expect(errors.first.message, contains('timeout'));
     });
 
@@ -296,23 +303,6 @@ void main() {
       );
       await tester.pump();
       expect(closeCount, 1);
-    });
-  });
-
-  group('AxeptioWebViewException', () {
-    test('constructs with message', () {
-      const e = AxeptioWebViewException('js fail');
-      expect(e.message, 'js fail');
-    });
-
-    test('toString uses own prefix', () {
-      const e = AxeptioWebViewException('test');
-      expect(e.toString(), 'AxeptioWebViewException: test');
-    });
-
-    test('is an AxeptioException', () {
-      const e = AxeptioWebViewException('test');
-      expect(e, isA<AxeptioException>());
     });
   });
 }

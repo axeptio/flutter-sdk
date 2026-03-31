@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -43,6 +42,13 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
     _channel!.setMethodCallHandler(handleNativeCall);
   }
 
+  @override
+  void dispose() {
+    _channel?.setMethodCallHandler(null);
+    _channel = null;
+    super.dispose();
+  }
+
   @visibleForTesting
   Future<dynamic> handleNativeCall(MethodCall call) async {
     switch (call.method) {
@@ -52,12 +58,19 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         final payloadRaw = args['payload'];
         if (name == null) return;
         _handleEvent(name, payloadRaw);
+        return;
       case 'onError':
         final args = call.arguments as Map;
         final message = args['message'] as String? ?? 'Unknown error';
+        final type = args['type'] as String?;
         widget.onError?.call(
-          AxeptioNetworkException('WebView error: $message'),
+          AxeptioWebViewException(
+            'WebView error: $message${type != null ? ' (type=$type)' : ''}',
+          ),
         );
+        return;
+      default:
+        return;
     }
   }
 
@@ -127,8 +140,13 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   Widget _buildWebView() {
-    if (!Platform.isIOS) {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
       // Android and other platforms: not yet implemented
+      widget.onError?.call(
+        const AxeptioWebViewException(
+          'Consent webview is only supported on iOS',
+        ),
+      );
       return const Center(child: Text('Consent webview not available'));
     }
     return UiKitView(

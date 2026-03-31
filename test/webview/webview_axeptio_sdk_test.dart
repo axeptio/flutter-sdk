@@ -161,6 +161,8 @@ void main() {
             tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
         expect(view.onError, isNotNull);
 
+        // Clear any platform-related errors from build
+        errors.clear();
         // Simulate calling onError to verify it routes to listeners
         view.onError!(
             const AxeptioNetworkException('test error', statusCode: 500));

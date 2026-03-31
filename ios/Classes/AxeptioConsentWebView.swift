@@ -2,6 +2,16 @@ import Flutter
 import UIKit
 import WebKit
 
+private class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var delegate: WKScriptMessageHandler?
+    init(delegate: WKScriptMessageHandler) {
+        self.delegate = delegate
+    }
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.userContentController(controller, didReceive: message)
+    }
+}
+
 class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandler, WKNavigationDelegate {
     private let webView: WKWebView
     private let channel: FlutterMethodChannel
@@ -65,11 +75,15 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
 
         super.init()
 
-        contentController.add(self, name: Self.handlerName)
+        contentController.add(WeakScriptMessageHandler(delegate: self), name: Self.handlerName)
         webView.navigationDelegate = self
 
         // 4. Handle method calls from Dart (e.g. runJavaScript)
         channel.setMethodCallHandler { [weak self] call, result in
+            guard let self = self else {
+                result(FlutterError(code: "DISPOSED", message: "WebView disposed", details: nil))
+                return
+            }
             switch call.method {
             case "runJavaScript":
                 if let js = call.arguments as? String {
@@ -118,12 +132,29 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
-        if let host = navigationAction.request.url?.host,
-           host == "static.axept.io" {
+        if let url = navigationAction.request.url,
+           url.scheme == "https",
+           url.host == "static.axept.io" {
             decisionHandler(.allow)
         } else {
             decisionHandler(.cancel)
         }
+    }
+
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationResponse: WKNavigationResponse,
+        decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+    ) {
+        if let httpResponse = navigationResponse.response as? HTTPURLResponse,
+           navigationResponse.isForMainFrame,
+           httpResponse.statusCode >= 400 {
+            channel.invokeMethod("onError", arguments: [
+                "type": "http",
+                "message": "HTTP error \(httpResponse.statusCode)",
+            ])
+        }
+        decisionHandler(.allow)
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
