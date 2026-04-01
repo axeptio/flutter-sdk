@@ -84,6 +84,8 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     await key.currentState!.push(
       PageRouteBuilder(
         opaque: false,
+        barrierColor: Colors.transparent,
+        barrierDismissible: false,
         pageBuilder: (_, __, ___) => AxeptioConsentView(
           consentUrl: url,
           attDenied: _attDenied,
