@@ -5,11 +5,17 @@ import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final testUri = Uri.parse('https://static.axept.io/test.html');
+
+  setUpAll(() {
+    // Provide a minimal WebView mock so Android code path doesn't crash
+    WebViewPlatform.instance = _MockWebViewPlatform();
+  });
 
   group('AxeptioConsentView widget', () {
     testWidgets('renders Scaffold', (tester) async {
@@ -305,4 +311,86 @@ void main() {
       expect(closeCount, 1);
     });
   });
+}
+
+// Minimal mock WebView platform for Android code path in tests
+class _MockWebViewPlatform extends WebViewPlatform {
+  @override
+  PlatformWebViewController createPlatformWebViewController(
+      PlatformWebViewControllerCreationParams params) {
+    return _MockWebViewController(params);
+  }
+
+  @override
+  PlatformWebViewWidget createPlatformWebViewWidget(
+      PlatformWebViewWidgetCreationParams params) {
+    return _MockWebViewWidget(params);
+  }
+
+  @override
+  PlatformWebViewCookieManager createPlatformCookieManager(
+      PlatformWebViewCookieManagerCreationParams params) {
+    return _MockCookieManager(params);
+  }
+
+  @override
+  PlatformNavigationDelegate createPlatformNavigationDelegate(
+      PlatformNavigationDelegateCreationParams params) {
+    return _MockNavigationDelegate(params);
+  }
+}
+
+class _MockWebViewController extends PlatformWebViewController {
+  _MockWebViewController(super.params) : super.implementation();
+  @override
+  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) async {}
+  @override
+  Future<void> setBackgroundColor(Color color) async {}
+  @override
+  Future<void> setPlatformNavigationDelegate(
+      PlatformNavigationDelegate handler) async {}
+  @override
+  Future<void> addJavaScriptChannel(
+      JavaScriptChannelParams javaScriptChannelParams) async {}
+  @override
+  Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {}
+  @override
+  Future<void> loadRequest(LoadRequestParams params) async {}
+  @override
+  Future<void> runJavaScript(String javaScript) async {}
+  @override
+  Future<Object> runJavaScriptReturningResult(String javaScript) async => '';
+}
+
+class _MockWebViewWidget extends PlatformWebViewWidget {
+  _MockWebViewWidget(super.params) : super.implementation();
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+class _MockCookieManager extends PlatformWebViewCookieManager {
+  _MockCookieManager(super.params) : super.implementation();
+}
+
+class _MockNavigationDelegate extends PlatformNavigationDelegate {
+  _MockNavigationDelegate(super.params) : super.implementation();
+  @override
+  Future<void> setOnNavigationRequest(
+      NavigationRequestCallback onNavigationRequest) async {}
+  @override
+  Future<void> setOnPageStarted(PageEventCallback onPageStarted) async {}
+  @override
+  Future<void> setOnPageFinished(PageEventCallback onPageFinished) async {}
+  @override
+  Future<void> setOnProgress(ProgressCallback onProgress) async {}
+  @override
+  Future<void> setOnWebResourceError(
+      WebResourceErrorCallback onWebResourceError) async {}
+  @override
+  Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {}
+  @override
+  Future<void> setOnHttpAuthRequest(
+      HttpAuthRequestCallback onHttpAuthRequest) async {}
+  @override
+  Future<void> setOnHttpError(HttpResponseErrorCallback onHttpError) async {}
 }
