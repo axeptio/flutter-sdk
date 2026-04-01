@@ -74,6 +74,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
 
   void _initAndroidWebView() {
     _androidController = WebViewController()
+      ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
         'axeptioSdk',
@@ -84,9 +85,9 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onPageFinished: (_) => _androidInjectScripts(),
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
-          if (uri?.scheme == 'https' && uri?.host == 'static.axept.io') {
-            return NavigationDecision.navigate;
-          }
+          if (uri == null) return NavigationDecision.prevent;
+          if (uri.scheme == 'https') return NavigationDecision.navigate;
+          if (uri.scheme == 'about') return NavigationDecision.navigate;
           return NavigationDecision.prevent;
         },
         onWebResourceError: (error) {
@@ -112,7 +113,6 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
           }
         },
       ))
-      ..setBackgroundColor(Colors.transparent)
       ..loadRequest(widget.consentUrl);
   }
 
