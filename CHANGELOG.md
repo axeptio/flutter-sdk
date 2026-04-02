@@ -1,3 +1,19 @@
+## 3.0.0-beta.2
+
+### ✨ New Features
+
+- **Native iOS WKWebView**: Replace `webview_flutter` with native WKWebView PlatformView for reliable JS injection timing
+- **Android consent webview**: Add Android support using `webview_flutter` with JS channel bridge and polyfill
+
+### 🔧 Fixes
+
+- Transparent route overlay for consent webview on both platforms
+- Handle unsupported platforms (web, macOS, Linux, Windows) with error callback and route close
+- Defer Google Mobile Ads initialization in example app to prevent Dart event loop freeze
+- Use nonPersistent data store on iOS for fresh consent state each load
+- Restrict WebView navigation to consent host only (matching iOS behavior)
+- Reset script injection flag on each navigation for proper re-injection
+
 ## 3.0.0-beta.1
 
 ### 🔧 Fixes
