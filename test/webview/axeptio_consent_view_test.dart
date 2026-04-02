@@ -14,7 +14,9 @@ void main() {
   final testUri = Uri.parse('https://static.axept.io/test.html');
 
   setUpAll(() {
-    // Provide a minimal WebView mock so Android code path doesn't crash
+    // Provide a minimal WebView mock so Android code path doesn't crash.
+    // WebViewPlatform.instance is initially null in tests and the setter
+    // rejects null values, so we only set it once and don't restore.
     WebViewPlatform.instance = _CapturingWebViewPlatform();
   });
 
@@ -93,12 +95,12 @@ void main() {
       ));
       await tester.pump(); // process post-frame callback
 
+      debugDefaultTargetPlatformOverride = null;
+
       expect(errors, hasLength(1));
       expect(errors.first, isA<AxeptioWebViewException>());
       expect(errors.first.message, contains('linux'));
       expect(closeCount, 1);
-
-      debugDefaultTargetPlatformOverride = null;
     });
 
     testWidgets('unsupported platform shows fallback text and calls onClose',
@@ -117,10 +119,10 @@ void main() {
       ));
       await tester.pump();
 
+      debugDefaultTargetPlatformOverride = null;
+
       expect(closeCount, 1);
       expect(find.text('Consent webview not available'), findsOneWidget);
-
-      debugDefaultTargetPlatformOverride = null;
     });
   });
 
@@ -458,18 +460,22 @@ void main() {
           greaterThan(callsAfterFirst));
     });
 
-    testWidgets('onNavigationRequest allows https and about schemes',
+    testWidgets('onNavigationRequest allows consent host and about scheme',
         (tester) async {
       await buildAndroidWidget(tester);
       final onNavRequest = capturedDelegate.capturedOnNavigationRequest!;
 
-      final httpsResult = await onNavRequest(const NavigationRequest(
-          url: 'https://example.com', isMainFrame: true));
-      expect(httpsResult, NavigationDecision.navigate);
+      final consentHostResult = await onNavRequest(const NavigationRequest(
+          url: 'https://static.axept.io/some-page', isMainFrame: true));
+      expect(consentHostResult, NavigationDecision.navigate);
 
       final aboutResult = await onNavRequest(
           const NavigationRequest(url: 'about:blank', isMainFrame: true));
       expect(aboutResult, NavigationDecision.navigate);
+
+      final otherHostResult = await onNavRequest(const NavigationRequest(
+          url: 'https://example.com', isMainFrame: true));
+      expect(otherHostResult, NavigationDecision.prevent);
     });
 
     testWidgets('onNavigationRequest blocks non-https/about schemes',
@@ -704,11 +710,11 @@ void main() {
       ));
       await tester.pump();
 
+      debugDefaultTargetPlatformOverride = null;
+
       expect(errors, hasLength(1));
       expect(errors.first.message, contains('macOS'));
       expect(closeCount, 1);
-
-      debugDefaultTargetPlatformOverride = null;
     });
   });
 }

@@ -99,7 +99,9 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
           if (uri == null) return NavigationDecision.prevent;
-          if (uri.scheme == 'https') return NavigationDecision.navigate;
+          if (uri.scheme == 'https' && uri.host == widget.consentUrl.host) {
+            return NavigationDecision.navigate;
+          }
           if (uri.scheme == 'about') return NavigationDecision.navigate;
           return NavigationDecision.prevent;
         },
