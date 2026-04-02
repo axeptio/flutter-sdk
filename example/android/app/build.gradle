@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "io.axept.axeptio_sdk_example"
-    compileSdk 35
+    compileSdk 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

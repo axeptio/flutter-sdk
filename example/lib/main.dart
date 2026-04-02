@@ -18,7 +18,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
   AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
 
   runApp(const MyApp());
@@ -82,6 +81,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   InterstitialAd? _interstitialAd;
   Function()? _onAdBtnPressed;
+  bool _adsInitialized = false;
 
   final _axeptioSdkPlugin = AxeptioSdk();
 
@@ -92,6 +92,7 @@ class _MyAppState extends State<MyApp> {
 
   /// Loads an interstitial ad.
   void loadAd() {
+    if (!_adsInitialized) return;
     InterstitialAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
@@ -122,7 +123,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initSDK();
+    _initAll();
+  }
+
+  Future<void> _initAll() async {
+    await initSDK();
+    await MobileAds.instance.initialize();
+    _adsInitialized = true;
     loadAd();
   }
 
