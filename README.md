@@ -7,7 +7,16 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![Android SDK Version](https://img.shields.io/badge/Android%20SDK-%3E%3D%2026-blue)](https://developer.android.com/studio) [![iOS Version Support](https://img.shields.io/badge/iOS%20Version-%3E%3D%2015.0-blue)](https://developer.apple.com) [![Axeptio Flutter SDK Version](https://img.shields.io/github/v/release/axeptio/flutter-sdk)](https://github.com/axeptio/flutter-sdk/releases) [![Flutter Version](https://img.shields.io/badge/flutter-%3E%3D%203.3.0-blue)](https://flutter.dev) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/axeptio/flutter-sdk/pulls)
 
-
+> **Version Notice**
+>
+> | Version | Status | Branch | Install |
+> |---------|--------|--------|---------|
+> | **2.0.19** | Stable | [`master` (tag 2.0.19)](https://github.com/axeptio/flutter-sdk/tree/2.0.19) | `axeptio_sdk: ^2.0.0` |
+> | **3.0.0-beta.2** | Beta | [`develop`](https://github.com/axeptio/flutter-sdk/tree/develop) | `axeptio_sdk: ^3.0.0-beta.2` |
+>
+> **Using 2.x?** See the [2.0.19 README](https://github.com/axeptio/flutter-sdk/blob/2.0.19/README.md) — it uses native iOS/Android SDKs and requires Maven/CocoaPods credentials.
+>
+> **This page documents 3.x** — a pure Flutter WebView implementation with no native SDK dependencies.
 
 
 
@@ -51,7 +60,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^3.0.0
+  axeptio_sdk: ^3.0.0-beta.2  # Pre-release — see version notice above
 ```
 
 ### Navigator Key Setup
@@ -674,12 +683,12 @@ Future<Map<int, String>> safeGetVendorNames(List<int> vendorIds) async {
 The Axeptio Flutter SDK includes comprehensive test coverage to ensure reliability and catch regressions.
 
 ### Current Test Coverage
-- **Coverage**: 94.6% (lines covered)
-- **Target**: 94% coverage requirement (current: 94.6%)
-- **Tests**: 343 comprehensive tests
-- **Status**: ✅ Coverage meets target
+- **Coverage**: 95.1% (lines covered)
+- **Target**: 94% coverage requirement (current: 95.1%)
+- **Tests**: 378 comprehensive tests
+- **Status**: Coverage meets target
 
-[![Test Coverage](https://img.shields.io/badge/coverage-94.6%25-brightgreen)](TESTING.md)
+[![Test Coverage](https://img.shields.io/badge/coverage-95.1%25-brightgreen)](TESTING.md)
 
 ### Quick Testing Commands
 
@@ -724,65 +733,21 @@ For detailed testing information, patterns, and coverage improvement strategies,
 ### To test the version in production
 - Checkout the master branch.
 
-### Change native SDK version
-#### Android
-In `android/build.gradle`, update the dependencies:
-```gradle
-dependencies {
-    implementation("io.axept.android:android-sdk:2.0.8")
-}
-```
-#### iOS
-In `ios/axeptio_sdk.podspec`, update the version:
-```ruby
-Pod::Spec.new do |s|
-  s.name             = 'axeptio_sdk'
-  s.version          = '2.0.15'
-  s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
-  s.homepage         = '<https://github.com/axeptio/flutter-sdk>'
-  s.license          = { :type => 'MIT', :file => '../LICENSE' }
-  s.author           = { 'Axeptio' => 'support@axeptio.eu' }
-  s.source           = { :git => "<https://github.com/axeptio/flutter-sdk.git>" }
-  s.source_files = 'Classes/**/*'
-  s.dependency 'Flutter'
-  s.dependency "AxeptioIOSSDK", "2.0.15"
-  s.platform = :ios, '15.0'
-```
-
-### ⚙️Configure widget in sample app
-To configure the widget, add the project ID and version name in `example/lib/main.dart`:
+### Configure the example app
+Edit `example/lib/main.dart` to set your project ID and cookies version:
 ```dart
-  Future<void> initSDK() async {
-    try {
-      await _axeptioSdkPlugin.initialize(
-        AxeptioService.publishers,
-        '67b63ac7d81d22bf09c09e52',
-        'tcf-consent-mode',
-        null,
-      );
+static const String _defaultClientId = 'your_client_id';
+static const String _defaultVersion = 'your_cookies_version';
+static const AxeptioService _defaultService = AxeptioService.brands; // or .publishers
 ```
-#### Android
-In the Android sample app, add your GitHub credentials in example/android/build.gradle:
-```gradle
-maven {
-      url = uri("<https://maven.pkg.github.com/axeptio/axeptio-android-sdk>")
-      credentials {
-          username = "USER" // TODO: GITHUB USERNAME
-          password = "TOKEN" // TODO: GITHUB TOKEN
-      }
-```
-In build variants select `Brands` or `Publisher` depending on which service you want to use.
 
-In `settings.gradle.kts` add your GitHub user and token.
-```gradle
-  maven {
-      url = uri("<https://maven.pkg.github.com/axeptio/tcf-android-sdk>")
-      credentials {
-          username = "USER" // TODO: GITHUB USERNAME
-          password = "TOKEN" // TODO: GITHUB TOKEN
-      }
-  }
+Then run:
+```bash
+cd example
+flutter run
 ```
+
+No Maven credentials or CocoaPods setup is required — v3.x uses a pure Flutter WebView implementation.
 
 <br><br><br>
 
