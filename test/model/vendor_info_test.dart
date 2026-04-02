@@ -404,6 +404,38 @@ void main() {
         expect(vendor1, isNot(equals(vendor2)));
       });
 
+      test('objects with different optional fields are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 755,
+          name: 'Google LLC',
+          consented: true,
+          purposes: [1],
+          legitimateInterestPurposes: [2],
+          specialFeatures: [1],
+          specialPurposes: [1],
+          cookieMaxAgeSeconds: 3600,
+          usesCookies: true,
+          usesNonCookieAccess: false,
+          policyUrl: 'https://example.com/policy',
+        );
+
+        const vendor2 = VendorInfo(
+          id: 755,
+          name: 'Google LLC',
+          consented: true,
+          purposes: [1],
+          legitimateInterestPurposes: [3],
+          specialFeatures: [2],
+          specialPurposes: [2],
+          cookieMaxAgeSeconds: 7200,
+          usesCookies: false,
+          usesNonCookieAccess: true,
+          policyUrl: 'https://other.com/policy',
+        );
+
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
       test('objects with same null descriptions are equal', () {
         const vendor1 = VendorInfo(
           id: 123,
@@ -437,6 +469,114 @@ void main() {
           purposes: [1, 2], // Different purposes
         );
 
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
+      test('objects differing only in specialFeatures are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          specialFeatures: [1],
+        );
+        const vendor2 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          specialFeatures: [2],
+        );
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
+      test('objects differing only in specialPurposes are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          specialPurposes: [1],
+        );
+        const vendor2 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          specialPurposes: [2],
+        );
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
+      test('objects differing only in cookieMaxAgeSeconds are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          cookieMaxAgeSeconds: 100,
+        );
+        const vendor2 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          cookieMaxAgeSeconds: 200,
+        );
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
+      test('objects differing only in usesCookies are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          usesCookies: true,
+        );
+        const vendor2 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          usesCookies: false,
+        );
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
+      test('objects differing only in usesNonCookieAccess are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          usesNonCookieAccess: true,
+        );
+        const vendor2 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          usesNonCookieAccess: false,
+        );
+        expect(vendor1, isNot(equals(vendor2)));
+      });
+
+      test('objects differing only in policyUrl are not equal', () {
+        const vendor1 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          policyUrl: 'https://a.com',
+        );
+        const vendor2 = VendorInfo(
+          id: 1,
+          name: 'V',
+          consented: true,
+          purposes: [1],
+          policyUrl: 'https://b.com',
+        );
         expect(vendor1, isNot(equals(vendor2)));
       });
     });

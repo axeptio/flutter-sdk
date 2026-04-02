@@ -82,8 +82,11 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     );
 
     await key.currentState!.push(
-      MaterialPageRoute(
-        builder: (_) => AxeptioConsentView(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        barrierDismissible: false,
+        pageBuilder: (_, __, ___) => AxeptioConsentView(
           consentUrl: url,
           attDenied: _attDenied,
           storedTcString: _storage?.tcString,
@@ -92,7 +95,6 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
           onClose: () => key.currentState?.pop(),
           onError: (error) => _eventsHandler.handleDAxeptioErrorEvent(error),
         ),
-        fullscreenDialog: true,
       ),
     );
   }

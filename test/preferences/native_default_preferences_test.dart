@@ -23,9 +23,16 @@ class MockNativePreferencesPlatform
     _shouldThrowError = shouldThrow;
   }
 
+  Map<String, dynamic>? _returnOverride;
+
+  void setMockReturnOverride(Map<String, dynamic>? override) {
+    _returnOverride = override;
+  }
+
   void reset() {
     _mockData.clear();
     _shouldThrowError = false;
+    _returnOverride = null;
   }
 
   @override
@@ -33,6 +40,10 @@ class MockNativePreferencesPlatform
       {String? preferenceKey}) async {
     if (_shouldThrowError) {
       throw PlatformException(code: 'TEST_ERROR', message: 'Test error');
+    }
+
+    if (_returnOverride != null) {
+      return _returnOverride;
     }
 
     if (preferenceKey != null) {
@@ -224,14 +235,24 @@ void main() {
             isNull);
       });
 
-      test('handles single entry fallback', () async {
+      test('handles single entry fallback when key not in mock', () async {
         mockPlatform.setMockData({'single_key': 'single_value'});
 
-        // Request a different key, should return null since key doesn't exist
+        // Request a different key — mock returns null for unknown keys
         final result = await NativeDefaultPreferences.getDefaultPreference(
             'different_key');
 
         expect(result, isNull);
+      });
+
+      test('handles single entry fallback when key mismatches', () async {
+        // Simulate platform returning a map with one entry but mismatched key
+        mockPlatform.setMockReturnOverride({'other_key': 'fallback_value'});
+
+        final result = await NativeDefaultPreferences.getDefaultPreference(
+            'requested_key');
+
+        expect(result, 'fallback_value');
       });
 
       test('returns null when multiple entries and key not found', () async {

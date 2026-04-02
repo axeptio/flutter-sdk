@@ -18,7 +18,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
   AxeptioSdk.navigatorKey = GlobalKey<NavigatorState>();
 
   runApp(const MyApp());
@@ -80,10 +79,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // ignore: unused_field
-  String _platformVersion = 'Unknown';
   InterstitialAd? _interstitialAd;
   Function()? _onAdBtnPressed;
+  bool _adsInitialized = false;
 
   final _axeptioSdkPlugin = AxeptioSdk();
 
@@ -94,6 +92,7 @@ class _MyAppState extends State<MyApp> {
 
   /// Loads an interstitial ad.
   void loadAd() {
+    if (!_adsInitialized) return;
     InterstitialAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
@@ -124,7 +123,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initSDK();
+    _initAll();
+  }
+
+  Future<void> _initAll() async {
+    await initSDK();
+    await MobileAds.instance.initialize();
+    _adsInitialized = true;
     loadAd();
   }
 
@@ -154,6 +159,9 @@ class _MyAppState extends State<MyApp> {
         // The Google Consent V2 status
         // Do something
       };
+      listener.onError = (error) {
+        print('Axeptio error: $error');
+      };
       _axeptioSdkPlugin.addEventListerner(listener);
 
       try {
@@ -175,32 +183,11 @@ class _MyAppState extends State<MyApp> {
         // Run setupUI on android
         await _axeptioSdkPlugin.setupUI();
       }
-    } catch (e) {
-      print("ERROR $e");
+    } on AxeptioNotInitializedException catch (e) {
+      print("SDK not initialized: $e");
+    } on AxeptioException catch (e) {
+      print("Axeptio error: $e");
     }
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _axeptioSdkPlugin.getPlatformVersion() ??
-          'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
   }
 
   @override
@@ -293,8 +280,12 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             ElevatedButton(
               style: style,
-              onPressed: () {
-                widget.axeptioSdk.showConsentScreen();
+              onPressed: () async {
+                try {
+                  await widget.axeptioSdk.showConsentScreen();
+                } on AxeptioException catch (e) {
+                  print('Failed to show consent screen: $e');
+                }
               },
               child: const Text('Consent popup', style: textStyle),
             ),

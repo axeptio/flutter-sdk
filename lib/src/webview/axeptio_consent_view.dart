@@ -1,21 +1,25 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
-import 'js_bridge_message_parser.dart';
 
 /// Duration in days for the Axeptio user cookie consent window.
 const int _axUserCookiesDurationDays = 190;
 
-const String _polyfillScript = r'''
-window.webkit = window.webkit || {};
-window.webkit.messageHandlers = window.webkit.messageHandlers || {};
-window.webkit.messageHandlers.axeptioSdk = {
-  postMessage: function(data) { axeptioSdk.postMessage(JSON.stringify(data)); }
-};
+/// Polyfill bridging the Axeptio web page's `window.axeptioAppSdk.onEvent()`
+/// to the Flutter JS channel on Android (via `addJavaScriptChannel`).
+const String _androidPolyfillScript = r'''
+window.axeptioAppSdk = window.axeptioAppSdk || {};
+if (typeof window.axeptioAppSdk.onEvent !== 'function') {
+  window.axeptioAppSdk.onEvent = function(event, payload) {
+    if (window.axeptioSdk) {
+      window.axeptioSdk.postMessage(JSON.stringify({ name: event, payload: payload }));
+    }
+  };
+}
 ''';
 
 class AxeptioConsentView extends StatefulWidget {
@@ -45,43 +49,112 @@ class AxeptioConsentView extends StatefulWidget {
 /// Public state class to allow testing of message handling logic.
 @visibleForTesting
 class AxeptioConsentViewState extends State<AxeptioConsentView> {
-  final _parser = JsBridgeMessageParser();
-  late final WebViewController _controller;
+  // iOS: native PlatformView channel
+  MethodChannel? _channel;
+
+  // Android: webview_flutter controller
+  WebViewController? _androidController;
+  bool _androidInjected = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onError?.call(
+          const AxeptioWebViewException(
+            'Consent webview is not supported on web',
+          ),
+        );
+        widget.onClose();
+      });
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      _initAndroidWebView();
+    } else if (defaultTargetPlatform != TargetPlatform.iOS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onError?.call(
+          AxeptioWebViewException(
+            'Consent webview is not supported on ${defaultTargetPlatform.name}',
+          ),
+        );
+        widget.onClose();
+      });
+    }
+  }
+
+  void _initAndroidWebView() {
+    _androidController = WebViewController()
+      ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
         'axeptioSdk',
-        onMessageReceived: _onMessage,
+        onMessageReceived: _onAndroidJsMessage,
       )
       ..setNavigationDelegate(NavigationDelegate(
-        // onPageStarted fires before the page's scripts execute, ensuring
-        // localStorage values (_ax_app_att_denied etc.) and the webkit polyfill
-        // are in place before app/index.js reads them synchronously on startup.
-        // onPageFinished is too late: init() has already run by then.
-        onPageStarted: (_) => _onPageFinished(),
+        onPageStarted: (_) {
+          _androidInjected = false;
+          _androidInjectScripts();
+        },
+        onPageFinished: (_) => _androidInjectScripts(),
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
-          if (uri?.scheme == 'https' && uri?.host == 'static.axept.io') {
+          if (uri == null) return NavigationDecision.prevent;
+          if (uri.scheme == 'https' && uri.host == widget.consentUrl.host) {
             return NavigationDecision.navigate;
           }
+          if (uri.scheme == 'about') return NavigationDecision.navigate;
           return NavigationDecision.prevent;
         },
-        onWebResourceError: _onWebResourceError,
-        onHttpError: _onHttpError,
+        onWebResourceError: (error) {
+          if (error.isForMainFrame ?? false) {
+            widget.onError?.call(
+              AxeptioNetworkException(
+                'WebView failed to load: ${error.description}',
+                cause: error,
+              ),
+            );
+          }
+        },
+        onHttpError: (error) {
+          final statusCode = error.response?.statusCode;
+          if (statusCode != null && statusCode >= 400) {
+            widget.onError?.call(
+              AxeptioNetworkException(
+                'WebView HTTP error: $statusCode',
+                statusCode: statusCode,
+                cause: error,
+              ),
+            );
+          }
+        },
       ))
       ..loadRequest(widget.consentUrl);
   }
 
-  Future<void> _onPageFinished() async {
-    await _injectLocalStorage();
-    await _injectPolyfill();
+  Future<void> _androidInjectScripts() async {
+    if (_androidInjected) return;
+    final controller = _androidController;
+    if (controller == null) return;
+    bool localStorageOk = false;
+    try {
+      await _androidInjectLocalStorage(controller);
+      localStorageOk = true;
+    } on Exception {
+      // May fail at onPageStarted; onPageFinished will retry.
+    }
+    try {
+      await controller.runJavaScript(_androidPolyfillScript);
+      if (localStorageOk) {
+        _androidInjected = true;
+      }
+    } on Exception catch (e) {
+      widget.onError?.call(
+        AxeptioWebViewException('Failed to inject polyfill: $e', cause: e),
+      );
+    }
   }
 
-  Future<void> _injectLocalStorage() async {
+  Future<void> _androidInjectLocalStorage(WebViewController controller) async {
     final items = <String, String>{
       '_ax_app_sdk_mode': 'true',
       '_ax_user_cookies_duration': _axUserCookiesDurationDays.toString(),
@@ -92,50 +165,74 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         .map((e) =>
             "localStorage.setItem(${jsonEncode(e.key)}, ${jsonEncode(e.value)});")
         .join('\n');
-    await _controller.runJavaScript(script);
+    await controller.runJavaScript(script);
   }
 
-  Future<void> _injectPolyfill() async {
-    await _controller.runJavaScript(_polyfillScript);
+  void _onAndroidJsMessage(JavaScriptMessage message) {
+    try {
+      final decoded = jsonDecode(message.message) as Map<String, dynamic>;
+      final name = decoded['name'] as String?;
+      if (name == null) return;
+      _handleEvent(name, decoded['payload']);
+    } catch (_) {}
+  }
+
+  // iOS: native PlatformView callbacks
+
+  void _onPlatformViewCreated(int viewId) {
+    _channel = MethodChannel('axeptio/consent_webview_$viewId');
+    _channel!.setMethodCallHandler(handleNativeCall);
+  }
+
+  @override
+  void dispose() {
+    _channel?.setMethodCallHandler(null);
+    _channel = null;
+    _androidController = null;
+    super.dispose();
   }
 
   @visibleForTesting
-  void handleWebResourceError(WebResourceError error) {
-    if (error.isForMainFrame ?? false) {
-      widget.onError?.call(
-        AxeptioNetworkException(
-          'WebView failed to load: ${error.description}',
-          cause: error,
-        ),
-      );
+  Future<dynamic> handleNativeCall(MethodCall call) async {
+    switch (call.method) {
+      case 'onJsEvent':
+        final args = call.arguments;
+        if (args is! Map) return;
+        final name = args['name'];
+        if (name is! String) return;
+        _handleEvent(name, args['payload']);
+        return;
+      case 'onError':
+        final args = call.arguments;
+        if (args is! Map) return;
+        final message = args['message'] is String
+            ? args['message'] as String
+            : 'Unknown error';
+        final type = args['type'] is String ? args['type'] as String : null;
+        widget.onError?.call(
+          AxeptioWebViewException(
+            'WebView error: $message${type != null ? ' (type=$type)' : ''}',
+          ),
+        );
+        return;
+      default:
+        return;
     }
   }
 
-  void _onWebResourceError(WebResourceError error) =>
-      handleWebResourceError(error);
+  // Shared event handling
 
-  @visibleForTesting
-  void handleHttpError(HttpResponseError error) {
-    final statusCode = error.response?.statusCode;
-    if (statusCode != null && statusCode >= 400) {
-      widget.onError?.call(
-        AxeptioNetworkException(
-          'WebView HTTP error: $statusCode',
-          statusCode: statusCode,
-          cause: error,
-        ),
-      );
+  void _handleEvent(String name, dynamic payloadRaw) {
+    // The native/JS side may send payload as a JSON string or a structured
+    // Map/List, depending on how the bridge serializes the data.
+    Map<String, dynamic>? payload;
+    if (payloadRaw is String && payloadRaw.isNotEmpty) {
+      try {
+        payload = jsonDecode(payloadRaw) as Map<String, dynamic>?;
+      } catch (_) {}
+    } else if (payloadRaw is Map) {
+      payload = Map<String, dynamic>.from(payloadRaw);
     }
-  }
-
-  void _onHttpError(HttpResponseError error) => handleHttpError(error);
-
-  void _onMessage(JavaScriptMessage message) {
-    final parsed = _parser.parse(message.message);
-    if (parsed == null) return;
-
-    final name = parsed.name;
-    final payload = parsed.payload;
 
     if (name == 'app:cookies:ready') {
       unawaited(_handleCookiesReady(payload));
@@ -158,8 +255,22 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
       return;
     }
     if (widget.showConsentManager) {
-      await _controller
-          .runJavaScript("window.axeptioSDK?.requestShow?.('consentManager')");
+      try {
+        if (_androidController != null) {
+          await _androidController!.runJavaScript(
+              "window.axeptioSDK?.requestShow?.('consentManager')");
+        } else {
+          await _channel?.invokeMethod<void>(
+            'runJavaScript',
+            "window.axeptioSDK?.requestShow?.('consentManager')",
+          );
+        }
+      } on PlatformException catch (e) {
+        widget.onError?.call(
+          AxeptioWebViewException('Failed to show consent manager: $e',
+              cause: e),
+        );
+      }
       return;
     }
     final showCmp = payload['showCmp'] as bool? ?? false;
@@ -169,18 +280,40 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   @visibleForTesting
-  Future<void> simulatePageFinished() => _onPageFinished();
-
-  @visibleForTesting
-  void simulateJsMessage(String rawJson) =>
-      _onMessage(JavaScriptMessage(message: rawJson));
+  void simulateJsEvent(String name, dynamic payload) =>
+      _handleEvent(name, payload);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: WebViewWidget(controller: _controller),
+        child: _buildWebView(),
       ),
     );
+  }
+
+  Widget _buildWebView() {
+    if (kIsWeb) {
+      return const Center(child: Text('Consent webview not available'));
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
+        viewType: 'axeptio/consent_webview',
+        creationParams: <String, dynamic>{
+          'url': widget.consentUrl.toString(),
+          'attDenied': widget.attDenied,
+          'storedTcString': widget.storedTcString,
+          'showConsentManager': widget.showConsentManager,
+          'cookiesDurationDays': _axUserCookiesDurationDays,
+        },
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _onPlatformViewCreated,
+      );
+    }
+    if (_androidController != null) {
+      return WebViewWidget(controller: _androidController!);
+    }
+    return const Center(child: Text('Consent webview not available'));
   }
 }
