@@ -8,16 +8,23 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
+WebViewPlatform? _previousWebViewPlatform;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final testUri = Uri.parse('https://static.axept.io/test.html');
 
   setUpAll(() {
+    _previousWebViewPlatform = WebViewPlatform.instance;
     // Provide a minimal WebView mock so Android code path doesn't crash.
-    // WebViewPlatform.instance is initially null in tests and the setter
-    // rejects null values, so we only set it once and don't restore.
     WebViewPlatform.instance = _CapturingWebViewPlatform();
+  });
+
+  tearDownAll(() {
+    if (_previousWebViewPlatform != null) {
+      WebViewPlatform.instance = _previousWebViewPlatform!;
+    }
   });
 
   group('AxeptioConsentView widget', () {
@@ -81,48 +88,50 @@ void main() {
     testWidgets('unsupported platform calls onError and onClose',
         (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      try {
+        final errors = <AxeptioException>[];
+        int closeCount = 0;
 
-      final errors = <AxeptioException>[];
-      int closeCount = 0;
+        await tester.pumpWidget(MaterialApp(
+          home: AxeptioConsentView(
+            consentUrl: testUri,
+            onJsEvent: (_, __) {},
+            onClose: () => closeCount++,
+            onError: (e) => errors.add(e),
+          ),
+        ));
+        await tester.pump(); // process post-frame callback
 
-      await tester.pumpWidget(MaterialApp(
-        home: AxeptioConsentView(
-          consentUrl: testUri,
-          onJsEvent: (_, __) {},
-          onClose: () => closeCount++,
-          onError: (e) => errors.add(e),
-        ),
-      ));
-      await tester.pump(); // process post-frame callback
-
-      debugDefaultTargetPlatformOverride = null;
-
-      expect(errors, hasLength(1));
-      expect(errors.first, isA<AxeptioWebViewException>());
-      expect(errors.first.message, contains('linux'));
-      expect(closeCount, 1);
+        expect(errors, hasLength(1));
+        expect(errors.first, isA<AxeptioWebViewException>());
+        expect(errors.first.message, contains('linux'));
+        expect(closeCount, 1);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
 
     testWidgets('unsupported platform shows fallback text and calls onClose',
         (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        int closeCount = 0;
 
-      int closeCount = 0;
+        await tester.pumpWidget(MaterialApp(
+          home: AxeptioConsentView(
+            consentUrl: testUri,
+            onJsEvent: (_, __) {},
+            onClose: () => closeCount++,
+            onError: (_) {},
+          ),
+        ));
+        await tester.pump();
 
-      await tester.pumpWidget(MaterialApp(
-        home: AxeptioConsentView(
-          consentUrl: testUri,
-          onJsEvent: (_, __) {},
-          onClose: () => closeCount++,
-          onError: (_) {},
-        ),
-      ));
-      await tester.pump();
-
-      debugDefaultTargetPlatformOverride = null;
-
-      expect(closeCount, 1);
-      expect(find.text('Consent webview not available'), findsOneWidget);
+        expect(closeCount, 1);
+        expect(find.text('Consent webview not available'), findsOneWidget);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 
@@ -696,25 +705,26 @@ void main() {
 
     testWidgets('macOS calls onError and onClose', (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        final errors = <AxeptioException>[];
+        int closeCount = 0;
 
-      final errors = <AxeptioException>[];
-      int closeCount = 0;
+        await tester.pumpWidget(MaterialApp(
+          home: AxeptioConsentView(
+            consentUrl: testUri,
+            onJsEvent: (_, __) {},
+            onClose: () => closeCount++,
+            onError: (e) => errors.add(e),
+          ),
+        ));
+        await tester.pump();
 
-      await tester.pumpWidget(MaterialApp(
-        home: AxeptioConsentView(
-          consentUrl: testUri,
-          onJsEvent: (_, __) {},
-          onClose: () => closeCount++,
-          onError: (e) => errors.add(e),
-        ),
-      ));
-      await tester.pump();
-
-      debugDefaultTargetPlatformOverride = null;
-
-      expect(errors, hasLength(1));
-      expect(errors.first.message, contains('macOS'));
-      expect(closeCount, 1);
+        expect(errors, hasLength(1));
+        expect(errors.first.message, contains('macOS'));
+        expect(closeCount, 1);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 }
