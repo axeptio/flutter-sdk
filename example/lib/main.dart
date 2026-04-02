@@ -81,6 +81,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   InterstitialAd? _interstitialAd;
   Function()? _onAdBtnPressed;
+  bool _adsInitialized = false;
 
   final _axeptioSdkPlugin = AxeptioSdk();
 
@@ -91,6 +92,7 @@ class _MyAppState extends State<MyApp> {
 
   /// Loads an interstitial ad.
   void loadAd() {
+    if (!_adsInitialized) return;
     InterstitialAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
@@ -127,6 +129,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _initAll() async {
     await initSDK();
     await MobileAds.instance.initialize();
+    _adsInitialized = true;
     loadAd();
   }
 

@@ -66,9 +66,19 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
             'Consent webview is not supported on web',
           ),
         );
+        widget.onClose();
       });
     } else if (defaultTargetPlatform == TargetPlatform.android) {
       _initAndroidWebView();
+    } else if (defaultTargetPlatform != TargetPlatform.iOS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onError?.call(
+          AxeptioWebViewException(
+            'Consent webview is not supported on ${defaultTargetPlatform.name}',
+          ),
+        );
+        widget.onClose();
+      });
     }
   }
 
@@ -81,7 +91,10 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         onMessageReceived: _onAndroidJsMessage,
       )
       ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (_) => _androidInjectScripts(),
+        onPageStarted: (_) {
+          _androidInjected = false;
+          _androidInjectScripts();
+        },
         onPageFinished: (_) => _androidInjectScripts(),
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
@@ -120,14 +133,18 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
     if (_androidInjected) return;
     final controller = _androidController;
     if (controller == null) return;
+    bool localStorageOk = false;
     try {
       await _androidInjectLocalStorage(controller);
+      localStorageOk = true;
     } on Exception {
       // May fail at onPageStarted; onPageFinished will retry.
     }
     try {
       await controller.runJavaScript(_androidPolyfillScript);
-      _androidInjected = true;
+      if (localStorageOk) {
+        _androidInjected = true;
+      }
     } on Exception catch (e) {
       widget.onError?.call(
         AxeptioWebViewException('Failed to inject polyfill: $e', cause: e),
