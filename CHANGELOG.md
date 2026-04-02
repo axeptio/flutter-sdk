@@ -1,11 +1,28 @@
 ## 3.0.0-beta.1
 
+### 🚨 Breaking Changes
+
+- `MethodChannelAxeptioSdk` removed from public API (was deprecated)
+- `showConsentScreen()` / `setupUI()` now throw `AxeptioNotInitializedException` instead of returning silently
+- `AxeptioEventListener` has new `onError` callback for async error notification
+
+### ✨ New Features
+
+- **Typed exception hierarchy**: `AxeptioNotInitializedException`, `AxeptioConsentException`, `AxeptioNetworkException`, `AxeptioStorageException` — replaces 27 silent error sites
+- **JS bridge message parser**: Critical consent parsing logic extracted into testable `JsBridgeMessageParser` with per-event schema validation
+- **WebView network failure detection**: `onWebResourceError`/`onHttpError` routed through `AxeptioEventListener.onError`
+
 ### 🔧 Fixes
 
 - Inject localStorage values in `onPageStarted` (before page scripts run) instead of `onPageFinished`
 - `appendAxeptioTokenURL` now only appends `axeptio_token`, not `clientId`/`cookiesVersion`
 - `showConsentScreen` now awaits until the consent screen is dismissed
 - `AxeptioSdk.navigatorKey` setter rejects `null` (throws `ArgumentError`)
+
+### 🗑 Removed
+
+- Deleted deprecated `MethodChannelAxeptioSdk` (210 lines)
+- Deleted native event stream handlers (iOS/Android) and `ModelHelper` stub
 
 ## 3.0.0
 
