@@ -14,11 +14,17 @@
   required.
 - The `_ax_token` SharedPreferences key is replaced by `AX_CLIENT_TOKEN`. Existing stored tokens
   are read transparently during migration.
+- `MethodChannelAxeptioSdk` removed from public API (was deprecated)
+- `showConsentScreen()` / `setupUI()` now throw `AxeptioNotInitializedException` instead of returning silently
+- `AxeptioEventListener` has new `onError` callback for async error notification
 
 ### ✨ New Features
 
 - **Native iOS WKWebView**: Replace `webview_flutter` with native WKWebView PlatformView for reliable JS injection timing
 - **Android consent webview**: Add Android support using `webview_flutter` with JS channel bridge and polyfill
+- **Typed exception hierarchy**: `AxeptioNotInitializedException`, `AxeptioConsentException`, `AxeptioNetworkException`, `AxeptioStorageException` — replaces 27 silent error sites
+- **JS bridge message parser**: Critical consent parsing logic extracted into testable `JsBridgeMessageParser` with per-event schema validation
+- **WebView network failure detection**: `onWebResourceError`/`onHttpError` routed through `AxeptioEventListener.onError`
 
 ### 🔧 Fixes
 
@@ -32,6 +38,11 @@
 - Use nonPersistent data store on iOS for fresh consent state each load
 - Restrict WebView navigation to consent host only (matching iOS behavior)
 - Reset script injection flag on each navigation for proper re-injection
+
+### 🗑 Removed
+
+- Deleted deprecated `MethodChannelAxeptioSdk` (210 lines)
+- Deleted native event stream handlers (iOS/Android) and `ModelHelper` stub
 
 ## 2.0.18
 
