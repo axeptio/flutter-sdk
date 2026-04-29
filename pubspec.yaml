@@ -1,7 +1,7 @@
 name: axeptio_sdk
 description: "Axeptio flutter sdk for presenting cookies consent to the user."
 
-version: 3.0.0-beta.2
+version: 3.0.0
 
 repository: https://github.com/axeptio/flutter-sdk
 

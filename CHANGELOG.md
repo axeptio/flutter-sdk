@@ -1,45 +1,3 @@
-## 3.0.0-beta.2
-
-### ✨ New Features
-
-- **Native iOS WKWebView**: Replace `webview_flutter` with native WKWebView PlatformView for reliable JS injection timing
-- **Android consent webview**: Add Android support using `webview_flutter` with JS channel bridge and polyfill
-
-### 🔧 Fixes
-
-- Transparent route overlay for consent webview on both platforms
-- Handle unsupported platforms (web, macOS, Linux, Windows) with error callback and route close
-- Defer Google Mobile Ads initialization in example app to prevent Dart event loop freeze
-- Use nonPersistent data store on iOS for fresh consent state each load
-- Restrict WebView navigation to consent host only (matching iOS behavior)
-- Reset script injection flag on each navigation for proper re-injection
-
-## 3.0.0-beta.1
-
-### 🚨 Breaking Changes
-
-- `MethodChannelAxeptioSdk` removed from public API (was deprecated)
-- `showConsentScreen()` / `setupUI()` now throw `AxeptioNotInitializedException` instead of returning silently
-- `AxeptioEventListener` has new `onError` callback for async error notification
-
-### ✨ New Features
-
-- **Typed exception hierarchy**: `AxeptioNotInitializedException`, `AxeptioConsentException`, `AxeptioNetworkException`, `AxeptioStorageException` — replaces 27 silent error sites
-- **JS bridge message parser**: Critical consent parsing logic extracted into testable `JsBridgeMessageParser` with per-event schema validation
-- **WebView network failure detection**: `onWebResourceError`/`onHttpError` routed through `AxeptioEventListener.onError`
-
-### 🔧 Fixes
-
-- Inject localStorage values in `onPageStarted` (before page scripts run) instead of `onPageFinished`
-- `appendAxeptioTokenURL` now only appends `axeptio_token`, not `clientId`/`cookiesVersion`
-- `showConsentScreen` now awaits until the consent screen is dismissed
-- `AxeptioSdk.navigatorKey` setter rejects `null` (throws `ArgumentError`)
-
-### 🗑 Removed
-
-- Deleted deprecated `MethodChannelAxeptioSdk` (210 lines)
-- Deleted native event stream handlers (iOS/Android) and `ModelHelper` stub
-
 ## 3.0.0
 
 ### 🚨 Breaking Changes
@@ -56,6 +14,35 @@
   required.
 - The `_ax_token` SharedPreferences key is replaced by `AX_CLIENT_TOKEN`. Existing stored tokens
   are read transparently during migration.
+- `MethodChannelAxeptioSdk` removed from public API (was deprecated)
+- `showConsentScreen()` / `setupUI()` now throw `AxeptioNotInitializedException` instead of returning silently
+- `AxeptioEventListener` has new `onError` callback for async error notification
+
+### ✨ New Features
+
+- **Native iOS WKWebView**: Replace `webview_flutter` with native WKWebView PlatformView for reliable JS injection timing
+- **Android consent webview**: Add Android support using `webview_flutter` with JS channel bridge and polyfill
+- **Typed exception hierarchy**: `AxeptioNotInitializedException`, `AxeptioConsentException`, `AxeptioNetworkException`, `AxeptioStorageException` — replaces 27 silent error sites
+- **JS bridge message parser**: Critical consent parsing logic extracted into testable `JsBridgeMessageParser` with per-event schema validation
+- **WebView network failure detection**: `onWebResourceError`/`onHttpError` routed through `AxeptioEventListener.onError`
+
+### 🔧 Fixes
+
+- Inject localStorage values in `onPageStarted` (before page scripts run) instead of `onPageFinished`
+- `appendAxeptioTokenURL` now only appends `axeptio_token`, not `clientId`/`cookiesVersion`
+- `showConsentScreen` now awaits until the consent screen is dismissed
+- `AxeptioSdk.navigatorKey` setter rejects `null` (throws `ArgumentError`)
+- Transparent route overlay for consent webview on both platforms
+- Handle unsupported platforms (web, macOS, Linux, Windows) with error callback and route close
+- Defer Google Mobile Ads initialization in example app to prevent Dart event loop freeze
+- Use nonPersistent data store on iOS for fresh consent state each load
+- Restrict WebView navigation to consent host only (matching iOS behavior)
+- Reset script injection flag on each navigation for proper re-injection
+
+### 🗑 Removed
+
+- Deleted deprecated `MethodChannelAxeptioSdk` (210 lines)
+- Deleted native event stream handlers (iOS/Android) and `ModelHelper` stub
 
 ## 2.0.18
 
