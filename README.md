@@ -7,16 +7,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![Android SDK Version](https://img.shields.io/badge/Android%20SDK-%3E%3D%2026-blue)](https://developer.android.com/studio) [![iOS Version Support](https://img.shields.io/badge/iOS%20Version-%3E%3D%2015.0-blue)](https://developer.apple.com) [![Axeptio Flutter SDK Version](https://img.shields.io/github/v/release/axeptio/flutter-sdk)](https://github.com/axeptio/flutter-sdk/releases) [![Flutter Version](https://img.shields.io/badge/flutter-%3E%3D%203.3.0-blue)](https://flutter.dev) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/axeptio/flutter-sdk/pulls)
 
-> **Version Notice**
->
-> | Version | Status | Branch | Install |
-> |---------|--------|--------|---------|
-> | **2.0.19** | Stable | [`master` (tag 2.0.19)](https://github.com/axeptio/flutter-sdk/tree/2.0.19) | `axeptio_sdk: ^2.0.0` |
-> | **3.0.0-beta.2** | Beta | [`develop`](https://github.com/axeptio/flutter-sdk/tree/develop) | `axeptio_sdk: ^3.0.0-beta.2` |
->
-> **Using 2.x?** See the [2.0.19 README](https://github.com/axeptio/flutter-sdk/blob/2.0.19/README.md) — it uses native iOS/Android SDKs and requires Maven/CocoaPods credentials.
->
-> **This page documents 3.x** — a pure Flutter WebView implementation with no native SDK dependencies.
+> **Upgrading from 2.x?** See the [2.0.19 README](https://github.com/axeptio/flutter-sdk/blob/2.0.19/README.md) — it uses native iOS/Android SDKs and requires Maven/CocoaPods credentials. Version 3.x is a pure Flutter WebView implementation with no native SDK dependencies.
 
 
 
@@ -60,7 +51,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^3.0.0-beta.2  # Pre-release — see version notice above
+  axeptio_sdk: ^3.0.0
 ```
 
 ### Navigator Key Setup
