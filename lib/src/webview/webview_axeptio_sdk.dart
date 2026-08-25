@@ -47,9 +47,24 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       throw const AxeptioNotInitializedException(
           'SDK not initialized. Call initialize() before setupUI().');
     }
-    if (storage.tcString == null || storage.tcString!.isEmpty) {
+    if (!_hasStoredConsent(storage)) {
       await showConsentScreen();
     }
+  }
+
+  /// Whether consent was already collected for the configured service.
+  ///
+  /// The two services persist consent under different keys: the TCF widget
+  /// used by [AxeptioService.publishers] writes `IABTCF_TCString`, while the
+  /// widget used by [AxeptioService.brands] writes `axeptio_cookies` and never
+  /// emits an IABTCF field. Reading the TC string for brands clients would
+  /// therefore always report "no consent" and show the consent screen on every
+  /// launch.
+  bool _hasStoredConsent(TcfStorage storage) {
+    if (_targetService == AxeptioService.brands) {
+      return storage.brandsCookies?.isNotEmpty ?? false;
+    }
+    return storage.tcString?.isNotEmpty ?? false;
   }
 
   @override
