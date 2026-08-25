@@ -129,6 +129,38 @@ void main() {
         expect(all.containsKey('axeptio_cookies'), isFalse);
       });
 
+      test('stores the token nested in the brands cookies payload', () async {
+        await storage.writeConsentSaved({
+          'axeptio_cookies': r'{"a":true,"$$token":"brands-tok"}',
+        });
+        expect(storage.axeptioToken, 'brands-tok');
+      });
+
+      test('stores the nested token when cookies arrive as a map', () async {
+        await storage.writeConsentSaved({
+          'axeptio_cookies': {'a': true, r'$$token': 'map-tok'},
+        });
+        expect(storage.axeptioToken, 'map-tok');
+      });
+
+      test('prefers the top level token over the nested one', () async {
+        await storage.writeConsentSaved({
+          'axeptio_token': 'top-tok',
+          'axeptio_cookies': r'{"$$token":"nested-tok"}',
+        });
+        expect(storage.axeptioToken, 'top-tok');
+      });
+
+      test('stores no token when the cookies payload carries none', () async {
+        await storage.writeConsentSaved({'axeptio_cookies': '{"a":true}'});
+        expect(storage.axeptioToken, isNull);
+      });
+
+      test('stores no token when the cookies payload is not JSON', () async {
+        await storage.writeConsentSaved({'axeptio_cookies': 'not-json'});
+        expect(storage.axeptioToken, isNull);
+      });
+
       test('clears legacy _ax_token when writing new token', () async {
         SharedPreferences.setMockInitialValues({'_ax_token': 'legacy-tok'});
         final prefs = await SharedPreferences.getInstance();
