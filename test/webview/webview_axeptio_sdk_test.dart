@@ -82,6 +82,24 @@ void main() {
         // No navigator key set — if it would show screen it would silently skip
         await expectLater(sdk.setupUI(), completes);
       });
+
+      test('does nothing when brands consent already exists', () async {
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues(
+            {'axeptio_cookies': r'{"$$completed":true}'});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        // The brands widget never writes IABTCF_TCString, so gating on it
+        // showed the consent screen on every launch. Showing it without a
+        // navigator key throws, so completing proves it was not shown.
+        await expectLater(sdk.setupUI(), completes);
+      });
+
+      test('does not accept a TC string as consent for brands', () async {
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues({'IABTCF_TCString': 'CPXxRfAP'});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), throwsA(isA<AxeptioException>()));
+      });
     });
 
     group('setUserDeniedTracking', () {

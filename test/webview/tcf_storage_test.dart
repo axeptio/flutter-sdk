@@ -35,6 +35,20 @@ void main() {
       });
     });
 
+    group('brandsCookies getter', () {
+      test('returns null when not set', () {
+        expect(storage.brandsCookies, isNull);
+      });
+
+      test('returns stored value', () async {
+        SharedPreferences.setMockInitialValues(
+            {'axeptio_cookies': r'{"$$completed":true}'});
+        final prefs = await SharedPreferences.getInstance();
+        final s = TcfStorage(prefs);
+        expect(s.brandsCookies, r'{"$$completed":true}');
+      });
+    });
+
     group('axeptioToken getter', () {
       test('returns null when not set', () {
         expect(storage.axeptioToken, isNull);

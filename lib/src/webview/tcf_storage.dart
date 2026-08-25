@@ -13,6 +13,10 @@ class TcfStorage {
 
   String? get tcString => _prefs.getString('IABTCF_TCString');
 
+  /// Consent payload written by the brands widget, which never emits any
+  /// IABTCF field. This is the brands counterpart of [tcString].
+  String? get brandsCookies => _prefs.getString('axeptio_cookies');
+
   String? get axeptioToken =>
       _prefs.getString('AX_CLIENT_TOKEN') ?? _prefs.getString('_ax_token');
 
