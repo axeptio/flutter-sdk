@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:axeptio_sdk/src/preferences/native_default_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,9 +27,10 @@ class TcfStorage {
 
   Future<void> writeConsentSaved(Map<String, dynamic>? payload) async {
     if (payload == null) return;
-    if (payload['axeptio_token'] != null) {
-      await _prefs.setString(
-          'AX_CLIENT_TOKEN', payload['axeptio_token'].toString());
+    final token = payload['axeptio_token']?.toString() ??
+        _tokenFromCookies(payload['axeptio_cookies']);
+    if (token != null && token.isNotEmpty) {
+      await _prefs.setString('AX_CLIENT_TOKEN', token);
       await _prefs.remove('_ax_token');
     }
     if (payload['axeptio_cookies'] != null) {
@@ -42,6 +45,20 @@ class TcfStorage {
       await _prefs.setString('axeptio_authorized_vendors',
           payload['axeptio_authorized_vendors'].toString());
     }
+  }
+
+  /// Reads the token the brands widget nests in its cookies payload as
+  /// `$$token` instead of sending it as a top level `axeptio_token`.
+  String? _tokenFromCookies(dynamic cookies) {
+    if (cookies == null) return null;
+    if (cookies is Map) return cookies[r'$$token']?.toString();
+    try {
+      final decoded = jsonDecode(cookies.toString());
+      if (decoded is Map) return decoded[r'$$token']?.toString();
+    } on FormatException {
+      // Not a JSON payload, so there is no token to recover from it.
+    }
+    return null;
   }
 
   Future<void> writeCookies(Map<String, dynamic>? payload) async {
