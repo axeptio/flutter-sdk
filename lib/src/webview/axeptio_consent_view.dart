@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 /// Duration in days for the Axeptio user cookie consent window.
 const int _axUserCookiesDurationDays = 190;
@@ -83,7 +84,15 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   void _initAndroidWebView() {
-    _androidController = WebViewController()
+    final controller = WebViewController();
+    final platform = controller.platform;
+    if (platform is AndroidWebViewController) {
+      // The consent widget shows a muted, looping cover video and calls play()
+      // once, without a user gesture. Android WebView requires a gesture for
+      // media playback by default, which leaves the video area empty.
+      platform.setMediaPlaybackRequiresUserGesture(false);
+    }
+    _androidController = controller
       ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(

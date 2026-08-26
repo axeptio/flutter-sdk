@@ -16,6 +16,7 @@ dependencies:
   http: ^1.1.0
   shared_preferences: ^2.2.2
   webview_flutter: ^4.10.0
+  webview_flutter_android: ^4.3.0
 
 dev_dependencies:
   flutter_test:

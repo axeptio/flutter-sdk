@@ -65,6 +65,12 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
         let config = WKWebViewConfiguration()
         config.userContentController = contentController
         config.websiteDataStore = .nonPersistent()
+        // The consent widget renders a muted, looping cover video and calls
+        // play() once, without a user gesture. WKWebView defaults block that on
+        // iPhone (inline playback off, every media type needs a gesture), so the
+        // video area stays empty. Allow muted inline autoplay.
+        config.allowsInlineMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
         webView = WKWebView(frame: frame, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
