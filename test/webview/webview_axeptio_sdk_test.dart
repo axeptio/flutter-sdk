@@ -437,10 +437,10 @@ void main() {
         sdk.addEventListener(listener);
 
         await sdk.handleJsEvent('google:consent-mode-v2-update', {
-          'analytics_storage': true,
-          'ad_storage': false,
-          'ad_user_data': true,
-          'ad_personalization': false,
+          'analytics_storage': 'granted',
+          'ad_storage': 'denied',
+          'ad_user_data': 'granted',
+          'ad_personalization': 'denied',
         });
 
         expect(received, isNotNull);
@@ -448,6 +448,30 @@ void main() {
         expect(received!.adStorage, isFalse);
         expect(received!.adUserData, isTrue);
         expect(received!.adPersonalization, isFalse);
+      });
+
+      test('google consent maps every granted key to true', () async {
+        // test: regression MSK-301, 3.0.0 compared to true and reported all denied
+        await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
+
+        ConsentsV2? received;
+        final listener = AxeptioEventListener();
+        listener.onGoogleConsentModeUpdate = (c) => received = c;
+        sdk.addEventListener(listener);
+
+        await sdk.handleJsEvent('google:consent-mode-v2-update', {
+          'analytics_storage': 'granted',
+          'ad_storage': 'granted',
+          'ad_user_data': 'granted',
+          'ad_personalization': 'granted',
+          'functionality_storage': 'granted',
+          'security_storage': 'denied',
+        });
+
+        expect(received!.analyticsStorage, isTrue);
+        expect(received!.adStorage, isTrue);
+        expect(received!.adUserData, isTrue);
+        expect(received!.adPersonalization, isTrue);
       });
 
       test('iabtcf event writes to storage', () async {

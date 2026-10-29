@@ -198,10 +198,10 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   void handleGoogleConsentMode(Map<String, dynamic>? payload) {
     if (payload == null) return;
     final consents = ConsentsV2(
-      payload['analytics_storage'] == true,
-      payload['ad_storage'] == true,
-      payload['ad_user_data'] == true,
-      payload['ad_personalization'] == true,
+      payload['analytics_storage'] == 'granted',
+      payload['ad_storage'] == 'granted',
+      payload['ad_user_data'] == 'granted',
+      payload['ad_personalization'] == 'granted',
     );
     for (final listener in List.of(_eventsHandler.listeners)) {
       listener.onGoogleConsentModeUpdate(consents);
