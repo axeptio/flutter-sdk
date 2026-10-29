@@ -82,6 +82,29 @@ void main() {
         // No navigator key set — if it would show screen it would silently skip
         await expectLater(sdk.setupUI(), completes);
       });
+
+      test('does nothing when brands consent already exists', () async {
+        // test: regression MSK-301, 3.0.0 gated brands on IABTCF_TCString
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues(
+            {'axeptio_cookies': r'{"$$completed":true}'});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), completes);
+      });
+
+      test('does not accept a TC string as consent for brands', () async {
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues({'IABTCF_TCString': 'CPXxRfAP'});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), throwsA(isA<AxeptioException>()));
+      });
+
+      test('shows consent for brands when axeptio_cookies is empty', () async {
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues({'axeptio_cookies': ''});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), throwsA(isA<AxeptioException>()));
+      });
     });
 
     group('setUserDeniedTracking', () {

@@ -47,9 +47,17 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       throw const AxeptioNotInitializedException(
           'SDK not initialized. Call initialize() before setupUI().');
     }
-    if (storage.tcString == null || storage.tcString!.isEmpty) {
+    if (!_hasStoredConsent(storage)) {
       await showConsentScreen();
     }
+  }
+
+  bool _hasStoredConsent(TcfStorage storage) {
+    if (_targetService == AxeptioService.brands) {
+      final cookies = storage.getAllData()['axeptio_cookies'];
+      return cookies != null && cookies.toString().isNotEmpty;
+    }
+    return storage.tcString?.isNotEmpty ?? false;
   }
 
   @override
