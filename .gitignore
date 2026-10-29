@@ -39,3 +39,6 @@ node_modules/
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+
+# Fleet worktrees
+.worktrees/

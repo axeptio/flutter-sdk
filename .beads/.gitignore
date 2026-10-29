@@ -77,3 +77,4 @@ proxieddb/
 dolt-server.activity
 dolt-server-config.yaml
 proxied_server_client_info.json
+*.jsonl
