@@ -6,6 +6,7 @@ import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/axeptio_service.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
+import 'package:axeptio_sdk/src/network/axeptio_uploader.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/webview_axeptio_sdk.dart';
 import 'package:flutter/material.dart';
@@ -630,6 +631,17 @@ void main() {
         await pumpEventQueue();
 
         expect(requests, hasLength(2));
+      });
+
+      test('clearConsent before initialize drops a persisted proof', () async {
+        // test: Copilot review 5702699106, proof replayed after withdrawal
+        const key = AxeptioUploader.pendingProofKey;
+        SharedPreferences.setMockInitialValues({key: '{}'});
+
+        await upSdk.clearConsent();
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString(key), isNull);
       });
 
       test('clearConsent cancels the pending proof', () async {
