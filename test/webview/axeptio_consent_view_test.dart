@@ -700,6 +700,9 @@ void main() {
       AxeptioConsentViewState.registerDocumentStartScript = defaultRegistrar;
     });
 
+    _CapturingNavigationDelegate lastDelegate() =>
+        (WebViewPlatform.instance! as _CapturingWebViewPlatform).lastDelegate!;
+
     Future<_CapturingWebViewController> buildWithRegistrar(
       WidgetTester tester,
       Future<bool> Function(_CapturingWebViewController controller) result, {
@@ -755,8 +758,7 @@ void main() {
     testWidgets('skips runJavaScript injection when registered',
         (tester) async {
       final controller = await buildWithRegistrar(tester, (_) async => true);
-      final delegate =
-          (WebViewPlatform.instance! as _CapturingWebViewPlatform).lastDelegate!;
+      final delegate = lastDelegate();
 
       delegate.capturedOnPageStarted!('https://static.axept.io/test.html');
       await tester.pump();
@@ -770,8 +772,7 @@ void main() {
     testWidgets('falls back to runJavaScript when unsupported',
         (tester) async {
       final controller = await buildWithRegistrar(tester, (_) async => false);
-      final delegate =
-          (WebViewPlatform.instance! as _CapturingWebViewPlatform).lastDelegate!;
+      final delegate = lastDelegate();
 
       delegate.capturedOnPageStarted!('https://static.axept.io/test.html');
       await tester.pump();
@@ -786,8 +787,7 @@ void main() {
         tester,
         (_) async => throw PlatformException(code: 'boom'),
       );
-      final delegate =
-          (WebViewPlatform.instance! as _CapturingWebViewPlatform).lastDelegate!;
+      final delegate = lastDelegate();
 
       delegate.capturedOnPageFinished!('https://static.axept.io/test.html');
       await tester.pump();
