@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -21,6 +22,7 @@ Map<String, dynamic> _proof(String identifier) {
 void main() {
   late List<http.Request> requests;
   late List<int> statuses;
+  Completer<void>? gate;
   late SharedPreferences prefs;
   late AxeptioUploader uploader;
   final random = Random();
@@ -28,6 +30,7 @@ void main() {
   http.Client client() {
     return MockClient((request) async {
       requests.add(request);
+      await gate?.future;
       final status = statuses.isNotEmpty ? statuses.removeAt(0) : 200;
       if (status < 0) throw const SocketExceptionStub();
       return http.Response('', status);
@@ -47,6 +50,7 @@ void main() {
   setUp(() async {
     requests = [];
     statuses = [];
+    gate = null;
     SharedPreferences.setMockInitialValues({});
     uploader = await create();
   });
@@ -208,6 +212,21 @@ void main() {
       expect(queue, hasLength(max));
       expect(queue.first, jsonEncode(event(1)));
       expect(queue.last, jsonEncode(event(-1)));
+    });
+
+    test('a flush in flight when disposed schedules nothing', () async {
+      // test: Copilot review 5702538949, disposed uploader kept retrying
+      gate = Completer<void>();
+      await uploader.enqueueEvent(event(1));
+      final flush = uploader.flushEvents();
+      uploader.dispose();
+      statuses = [500];
+      gate!.complete();
+      await flush;
+
+      await Future.delayed(_tick * 3);
+
+      expect(requests, hasLength(1));
     });
 
     test('concurrent enqueues keep every event', () async {
