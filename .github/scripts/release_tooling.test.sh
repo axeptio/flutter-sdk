@@ -55,10 +55,28 @@ else
   fail "publish.yml runs the version guard"
 fi
 
-if grep -qF "ref: \${{ github.event.release.tag_name || inputs.release_tag }}" "$ROOT/.github/workflows/publish.yml"; then
+PUBLISH="$ROOT/.github/workflows/publish.yml"
+if grep -qF "git checkout --detach \"refs/tags/\$RELEASE_TAG\"" "$PUBLISH"; then
   pass "publish.yml checks out the release tag"
 else
   fail "publish.yml checks out the release tag"
+fi
+
+# test: a dispatch retry of a tag cut before the guards existed must still find them
+for script in check_release_version.sh check_release_branch.sh check_changelog_entry.sh; do
+  if grep -qF "\"\$RUNNER_TEMP/release-scripts/$script\"" "$PUBLISH"; then
+    pass "publish.yml runs $script from the branch copy"
+  else
+    fail "publish.yml runs $script from the branch copy"
+  fi
+done
+
+COPY_LINE="$(grep -n 'cp -R .github/scripts' "$PUBLISH" | head -n 1 | cut -d: -f1)"
+DETACH_LINE="$(grep -n 'git checkout --detach' "$PUBLISH" | head -n 1 | cut -d: -f1)"
+if [ -n "$COPY_LINE" ] && [ -n "$DETACH_LINE" ] && [ "$COPY_LINE" -lt "$DETACH_LINE" ]; then
+  pass "publish.yml copies the scripts before checking out the tag"
+else
+  fail "publish.yml copies the scripts before checking out the tag"
 fi
 
 DRY_RUN="$ROOT/.github/workflows/dry-run-publish.yml"
