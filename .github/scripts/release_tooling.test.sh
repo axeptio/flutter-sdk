@@ -78,6 +78,15 @@ else
   fail "dry-run-publish.yml validates the tag snapshot when the tag exists"
 fi
 
+GUARD_LINE="$(grep -n 'check_release_version.sh' "$DRY_RUN" | head -n 1 | cut -d: -f1)"
+CHECKOUT_LINE="$(grep -n 'git checkout --detach' "$DRY_RUN" | head -n 1 | cut -d: -f1)"
+# test: tags cut before the guard existed have no script, so it must run from the branch first
+if [ -n "$GUARD_LINE" ] && [ -n "$CHECKOUT_LINE" ] && [ "$GUARD_LINE" -lt "$CHECKOUT_LINE" ]; then
+  pass "dry-run-publish.yml runs the guard before checking out the tag"
+else
+  fail "dry-run-publish.yml runs the guard before checking out the tag"
+fi
+
 if grep -qi 'changelog will be auto-generated' "$DRY_RUN"; then
   fail "dry-run-publish.yml does not promise a generated changelog"
 else
