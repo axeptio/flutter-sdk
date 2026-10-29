@@ -78,6 +78,22 @@ else
   pass "dry-run-publish.yml does not promise a generated changelog"
 fi
 
+for doc in RELEASE_PROCESS.md CLAUDE.md CONTRIBUTING.md AGENTS.md; do
+  if grep -qiE 'semantic.release|semver workflow|Semantic Version Release|"Beta Release" workflow|Beta Release workflow' "$ROOT/$doc"; then
+    fail "$doc references only the documented release path"
+  else
+    pass "$doc references only the documented release path"
+  fi
+done
+
+for needle in 'develop → master' 'publish.yml' 'release: published' 'dry-run-publish.yml' 'pre-release'; do
+  if grep -qiF "$needle" "$ROOT/RELEASE_PROCESS.md"; then
+    pass "RELEASE_PROCESS.md documents $needle"
+  else
+    fail "RELEASE_PROCESS.md documents $needle"
+  fi
+done
+
 pubspec 3.0.0
 expect_pass "matching stable version passes" "$GUARD" v3.0.0 "$WORK/pubspec.yaml"
 
