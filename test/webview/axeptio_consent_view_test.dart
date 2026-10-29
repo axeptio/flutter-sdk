@@ -769,8 +769,7 @@ void main() {
       expect(errors, isEmpty);
     });
 
-    testWidgets('falls back to runJavaScript when unsupported',
-        (tester) async {
+    testWidgets('falls back to runJavaScript when unsupported', (tester) async {
       final controller = await buildWithRegistrar(tester, (_) async => false);
       final delegate = lastDelegate();
 
