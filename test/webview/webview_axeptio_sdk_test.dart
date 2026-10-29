@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
@@ -8,6 +9,8 @@ import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/webview_axeptio_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
@@ -581,6 +584,87 @@ void main() {
         await sdk.handleJsEvent('google:consent-mode-v2-update', null);
 
         expect(received, isNull);
+      });
+    });
+
+    group('uploads', () {
+      late List<http.Request> requests;
+      late WebViewAxeptioSdk uploadingSdk;
+
+      final consent = {
+        'preferences': {
+          'config': {'identifier': 'cfg-1'},
+        },
+        'accept': true,
+      };
+
+      setUp(() {
+        requests = [];
+        final client = MockClient((request) async {
+          requests.add(request);
+          return http.Response('', 500);
+        });
+        uploadingSdk = WebViewAxeptioSdk(httpClient: client);
+      });
+
+      tearDown(() => uploadingSdk.uploader?.dispose());
+
+      test('consent:saved posts the proof and keeps it until accepted',
+          () async {
+        await uploadingSdk.initialize(
+            AxeptioService.brands, 'client-1', 'cv', null);
+
+        await uploadingSdk.handleJsEvent('consent:saved', consent);
+
+        expect(requests.single.url.path,
+            '/v1/app/consents/client-1/cookies/cfg-1');
+        expect(jsonDecode(requests.single.body), consent);
+        expect(uploadingSdk.uploader!.hasPendingConsentProof, isTrue);
+      });
+
+      test('initialize replays a proof left pending by a previous launch',
+          () async {
+        await uploadingSdk.initialize(
+            AxeptioService.brands, 'client-1', 'cv', null);
+        await uploadingSdk.handleJsEvent('consent:saved', consent);
+
+        await uploadingSdk.initialize(
+            AxeptioService.brands, 'client-1', 'cv', null);
+        await pumpEventQueue();
+
+        expect(requests, hasLength(2));
+      });
+
+      test('clearConsent cancels the pending proof', () async {
+        await uploadingSdk.initialize(
+            AxeptioService.brands, 'client-1', 'cv', null);
+        await uploadingSdk.handleJsEvent('consent:saved', consent);
+
+        await uploadingSdk.clearConsent();
+
+        expect(uploadingSdk.uploader!.hasPendingConsentProof, isFalse);
+      });
+
+      test('analytics:collect queues the event', () async {
+        await uploadingSdk.initialize(
+            AxeptioService.brands, 'client-1', 'cv', null);
+
+        await uploadingSdk
+            .handleJsEvent('analytics:collect', {'type': 'cookies:open'});
+
+        expect(uploadingSdk.uploader!.queuedEvents,
+            [jsonEncode({'type': 'cookies:open'})]);
+      });
+
+      test('analytics:collect is dropped when tracking is denied', () async {
+        await uploadingSdk.initialize(
+            AxeptioService.brands, 'client-1', 'cv', null);
+        await uploadingSdk.setUserDeniedTracking();
+
+        await uploadingSdk
+            .handleJsEvent('analytics:collect', {'type': 'cookies:open'});
+
+        expect(uploadingSdk.uploader!.queuedEvents, isEmpty);
       });
     });
   });

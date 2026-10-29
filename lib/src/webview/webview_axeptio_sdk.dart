@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/events/events_handler.dart';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
+import 'package:axeptio_sdk/src/network/axeptio_uploader.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/consent_url_builder.dart';
 import 'package:axeptio_sdk/src/webview/tcf_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   static GlobalKey<NavigatorState>? navigatorKey;
@@ -17,12 +22,19 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   String? _token;
   bool _attDenied = false;
   TcfStorage? _storage;
+  AxeptioUploader? _uploader;
 
   late final EventsHandler _eventsHandler;
+  final http.Client _httpClient;
 
-  WebViewAxeptioSdk() : super() {
+  WebViewAxeptioSdk({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client(),
+        super() {
     _eventsHandler = EventsHandler();
   }
+
+  @visibleForTesting
+  AxeptioUploader? get uploader => _uploader;
 
   @override
   Future<String?> getPlatformVersion() async => null;
@@ -37,7 +49,12 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     _clientId = clientId;
     _cookiesVersion = cookiesVersion;
     _token = token;
-    _storage = await TcfStorage.create();
+    final prefs = await SharedPreferences.getInstance();
+    _storage = TcfStorage(prefs);
+    _uploader?.dispose();
+    final uploader = AxeptioUploader(prefs, _httpClient);
+    _uploader = uploader;
+    unawaited(uploader.start());
   }
 
   @override
@@ -109,6 +126,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
 
   @override
   Future<void> clearConsent() async {
+    await _uploader?.cancelConsentProof();
     await _storage?.clearAll();
     _token = null;
     for (final listener in List.of(_eventsHandler.listeners)) {
@@ -185,6 +203,10 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
         break;
       case 'consent:saved':
         await _storage?.writeConsentSaved(payload);
+        await _uploader?.sendConsentProof(_clientId!, payload);
+        break;
+      case 'analytics:collect':
+        if (!_attDenied) await _uploader?.enqueueEvent(payload);
         break;
       case 'axeptio:cookies':
         await _storage?.writeCookies(payload);
