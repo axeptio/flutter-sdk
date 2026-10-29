@@ -59,6 +59,25 @@ else
   fail "publish.yml checks out the release tag"
 fi
 
+DRY_RUN="$ROOT/.github/workflows/dry-run-publish.yml"
+if grep -q 'sed -i "s/version: ' "$DRY_RUN"; then
+  fail "dry-run-publish.yml does not rewrite pubspec.yaml"
+else
+  pass "dry-run-publish.yml does not rewrite pubspec.yaml"
+fi
+
+if grep -q 'check_release_version.sh' "$DRY_RUN"; then
+  pass "dry-run-publish.yml runs the version guard"
+else
+  fail "dry-run-publish.yml runs the version guard"
+fi
+
+if grep -qi 'changelog will be auto-generated' "$DRY_RUN"; then
+  fail "dry-run-publish.yml does not promise a generated changelog"
+else
+  pass "dry-run-publish.yml does not promise a generated changelog"
+fi
+
 pubspec 3.0.0
 expect_pass "matching stable version passes" "$GUARD" v3.0.0 "$WORK/pubspec.yaml"
 
