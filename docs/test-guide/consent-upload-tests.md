@@ -20,6 +20,7 @@ intervals.
 | persists the queue and flushes it on...   | Queue survives a restart         |
 | caps the persisted queue by dropping...   | Queue never exceeds 1000         |
 | a concurrent flush is a no-op             | No double send                   |
+| concurrent enqueues keep every event      | No event lost on interleaving    |
 
 ## SDK wiring
 
@@ -36,5 +37,21 @@ intervals.
 | clearConsent cancels the pending proof    | Withdrawal deletes the proof     |
 | analytics:collect queues the event        | Event is queued                  |
 | analytics:collect is dropped when...      | No queueing when tracking denied |
+| analytics:collect tags the event with...  | `sdk-app-*` becomes `sdk-<os>-*` |
+| analytics:collect keeps a source it...    | Other sources pass unchanged     |
+| consent:saved persists the page token     | Top-level `token` is stored      |
 
-The first two SDK tests and the upload tests fail on 3.0.0 (MSK-301).
+## Storage
+
+`test/webview/tcf_storage_test.dart`.
+
+| Test                                      | Proves                           |
+| ----------------------------------------- | -------------------------------- |
+| stores the top level token sent by the... | `token` feeds `AX_CLIENT_TOKEN`  |
+| stores the token nested in the brands...  | `$$token` in a JSON string       |
+| stores the nested token when cookies...   | `$$token` in a map               |
+| prefers axeptio_token over the other...   | `axeptio_token` wins             |
+| stores no token when the cookies payload  | No `$$token`, or not JSON        |
+| stores the token nested in axeptio_coo... | `axeptio:cookies` stores token   |
+
+Tests tagged `// test: regression` fail on 3.0.0 (MSK-301).

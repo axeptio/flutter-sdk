@@ -16,6 +16,7 @@ Host `https://api.axept.io`. Headers `Content-Type: application/json` and
 - `client` is the client id; `ID` is `preferences.config.identifier`.
 - The proof body is the event payload as-is; it retries until 2xx.
 - The analytics body is a JSON array of events.
+- Event `source` `sdk-app-*` is sent as `sdk-ios-*` or `sdk-android-*`.
 
 ## Persistence
 
@@ -35,6 +36,11 @@ background.
 | New proof while one is pending        | Replaces it                       |
 | `clearConsent()`                      | Stops retries, deletes the proof  |
 | After `setUserDeniedTracking()`       | Analytics events are not queued   |
+
+## Token
+
+`AX_CLIENT_TOKEN` takes the first present of `axeptio_token`, `token`
+(`consent:saved`) and `$$token` inside `axeptio_cookies`.
 
 ## Google Consent Mode
 
