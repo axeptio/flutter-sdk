@@ -234,7 +234,7 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     return {...event!, 'source': source.replaceFirst('sdk-app-', 'sdk-$os-')};
   }
 
-    void handleGoogleConsentMode(Map<String, dynamic>? payload) {
+  void handleGoogleConsentMode(Map<String, dynamic>? payload) {
     if (payload == null) return;
     final consents = ConsentsV2(
       payload['analytics_storage'] == 'granted',
