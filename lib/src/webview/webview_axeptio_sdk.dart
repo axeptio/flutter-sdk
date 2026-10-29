@@ -127,7 +127,13 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
 
   @override
   Future<void> clearConsent() async {
-    await _uploader?.cancelConsentProof();
+    final uploader = _uploader;
+    if (uploader != null) {
+      await uploader.cancelConsentProof();
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(AxeptioUploader.pendingProofKey);
+    }
     await _storage?.clearAll();
     _token = null;
     for (final listener in List.of(_eventsHandler.listeners)) {
