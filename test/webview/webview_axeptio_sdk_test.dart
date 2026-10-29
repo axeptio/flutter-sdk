@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
@@ -646,6 +647,35 @@ void main() {
         await upSdk.handleJsEvent('analytics:collect', event);
 
         expect(upSdk.uploader!.queuedEvents, [jsonEncode(event)]);
+      });
+
+      test('analytics:collect tags the event with the platform SDK', () async {
+        // test: regression MSK-301, natives send sdk-<os>-brands
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        const appEvent = {'type': 'cookies:open', 'source': 'sdk-app-brands'};
+
+        await upSdk.handleJsEvent('analytics:collect', appEvent);
+
+        final queued = jsonDecode(upSdk.uploader!.queuedEvents.single);
+        final os = Platform.operatingSystem;
+        expect(queued, {'type': 'cookies:open', 'source': 'sdk-$os-brands'});
+      });
+
+      test('analytics:collect keeps a source it does not own', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        const webEvent = {'type': 'cookies:open', 'source': 'sdk-web'};
+
+        await upSdk.handleJsEvent('analytics:collect', webEvent);
+
+        expect(upSdk.uploader!.queuedEvents, [jsonEncode(webEvent)]);
+      });
+
+      test('consent:saved persists the page token', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+
+        await upSdk.handleJsEvent('consent:saved', {'token': 'page-tok'});
+
+        expect(await upSdk.axeptioToken, 'page-tok');
       });
 
       test('analytics:collect is dropped when tracking is denied', () async {
