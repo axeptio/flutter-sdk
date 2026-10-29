@@ -36,8 +36,12 @@ void main() {
 
   Future<AxeptioUploader> create() async {
     prefs = await SharedPreferences.getInstance();
-    return AxeptioUploader(prefs, client(),
-        proofRetryInterval: _tick, flushInterval: _tick);
+    return AxeptioUploader(
+      prefs,
+      client(),
+      proofRetryInterval: _tick,
+      flushInterval: _tick,
+    );
   }
 
   setUp(() async {
@@ -59,8 +63,8 @@ void main() {
       final request = requests.single;
       expect(request.method, 'POST');
       expect(request.url.host, 'api.axept.io');
-      expect(request.url.pathSegments,
-          ['v1', 'app', 'consents', 'client 1', 'cookies', id]);
+      final segments = request.url.pathSegments;
+      expect(segments, ['v1', 'app', 'consents', 'client 1', 'cookies', id]);
       expect(request.headers['Content-Type'], startsWith('application/json'));
       expect(request.headers['User-Agent'], startsWith('AxeptioFlutterSDK'));
       expect(jsonDecode(request.body), _proof(id));
@@ -72,12 +76,12 @@ void main() {
       await uploader.sendConsentProof('cid', null);
       await uploader.sendConsentProof('cid', {'preferences': 'x'});
       await uploader.sendConsentProof('cid', {
-        'preferences': {'config': 'x'}
+        'preferences': {'config': 'x'},
       });
       await uploader.sendConsentProof('cid', {
         'preferences': {
-          'config': {'identifier': ''}
-        }
+          'config': {'identifier': ''},
+        },
       });
 
       expect(requests, isEmpty);
@@ -134,8 +138,7 @@ void main() {
   group('analytics events', () {
     Map<String, dynamic> event(int i) => {'type': 'cookies:open', 'n': i};
 
-    test('queues events and posts them as a JSON array after the interval',
-        () async {
+    test('posts queued events as a JSON array after the interval', () async {
       // test: regression MSK-301, 3.0.0 dropped analytics:collect
       await uploader.enqueueEvent(event(1));
       await uploader.enqueueEvent(event(2));
@@ -157,20 +160,20 @@ void main() {
 
     test('sends batches of 20', () async {
       final count = 41 + random.nextInt(10);
-      await prefs.setStringList(AxeptioUploader.eventQueueKey,
-          List.generate(count, (i) => jsonEncode(event(i))));
+      final events = List.generate(count, (i) => jsonEncode(event(i)));
+      await prefs.setStringList(AxeptioUploader.eventQueueKey, events);
 
       await uploader.flushEvents();
 
-      expect(requests.map((r) => (jsonDecode(r.body) as List).length),
-          [20, 20, count - 40]);
+      final sizes = requests.map((r) => (jsonDecode(r.body) as List).length);
+      expect(sizes, [20, 20, count - 40]);
       expect(uploader.queuedEvents, isEmpty);
     });
 
     test('keeps unsent batches queued and retries them', () async {
       statuses = [200, 500];
-      await prefs.setStringList(AxeptioUploader.eventQueueKey,
-          List.generate(25, (i) => jsonEncode(event(i))));
+      final events = List.generate(25, (i) => jsonEncode(event(i)));
+      await prefs.setStringList(AxeptioUploader.eventQueueKey, events);
 
       await uploader.flushEvents();
       expect(uploader.queuedEvents, hasLength(5));
@@ -180,8 +183,7 @@ void main() {
       expect(uploader.queuedEvents, isEmpty);
     });
 
-    test('persists the queue across instances and flushes on start',
-        () async {
+    test('persists the queue and flushes it on start', () async {
       statuses = [500];
       await uploader.enqueueEvent(event(1));
       await uploader.flushEvents();
@@ -196,14 +198,14 @@ void main() {
     });
 
     test('caps the persisted queue by dropping the oldest events', () async {
-      final queued = List.generate(AxeptioUploader.maxQueuedEvents,
-          (i) => jsonEncode(event(i)));
+      const max = AxeptioUploader.maxQueuedEvents;
+      final queued = List.generate(max, (i) => jsonEncode(event(i)));
       await prefs.setStringList(AxeptioUploader.eventQueueKey, queued);
 
       await uploader.enqueueEvent(event(-1));
 
       final queue = uploader.queuedEvents;
-      expect(queue, hasLength(AxeptioUploader.maxQueuedEvents));
+      expect(queue, hasLength(max));
       expect(queue.first, jsonEncode(event(1)));
       expect(queue.last, jsonEncode(event(-1)));
     });

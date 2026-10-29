@@ -589,7 +589,7 @@ void main() {
 
     group('uploads', () {
       late List<http.Request> requests;
-      late WebViewAxeptioSdk uploadingSdk;
+      late WebViewAxeptioSdk upSdk;
 
       final consent = {
         'preferences': {
@@ -597,6 +597,7 @@ void main() {
         },
         'accept': true,
       };
+      final event = {'type': 'cookies:open'};
 
       setUp(() {
         requests = [];
@@ -604,67 +605,56 @@ void main() {
           requests.add(request);
           return http.Response('', 500);
         });
-        uploadingSdk = WebViewAxeptioSdk(httpClient: client);
+        upSdk = WebViewAxeptioSdk(httpClient: client);
       });
 
-      tearDown(() => uploadingSdk.uploader?.dispose());
+      tearDown(() => upSdk.uploader?.dispose());
 
-      test('consent:saved posts the proof and keeps it until accepted',
-          () async {
-        await uploadingSdk.initialize(
-            AxeptioService.brands, 'client-1', 'cv', null);
+      test('consent:saved posts the proof until accepted', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
 
-        await uploadingSdk.handleJsEvent('consent:saved', consent);
+        await upSdk.handleJsEvent('consent:saved', consent);
 
-        expect(requests.single.url.path,
-            '/v1/app/consents/client-1/cookies/cfg-1');
+        final path = requests.single.url.path;
+        expect(path, '/v1/app/consents/client-1/cookies/cfg-1');
         expect(jsonDecode(requests.single.body), consent);
-        expect(uploadingSdk.uploader!.hasPendingConsentProof, isTrue);
+        expect(upSdk.uploader!.hasPendingConsentProof, isTrue);
       });
 
-      test('initialize replays a proof left pending by a previous launch',
-          () async {
-        await uploadingSdk.initialize(
-            AxeptioService.brands, 'client-1', 'cv', null);
-        await uploadingSdk.handleJsEvent('consent:saved', consent);
+      test('initialize replays a pending proof', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.handleJsEvent('consent:saved', consent);
 
-        await uploadingSdk.initialize(
-            AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
         await pumpEventQueue();
 
         expect(requests, hasLength(2));
       });
 
       test('clearConsent cancels the pending proof', () async {
-        await uploadingSdk.initialize(
-            AxeptioService.brands, 'client-1', 'cv', null);
-        await uploadingSdk.handleJsEvent('consent:saved', consent);
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.handleJsEvent('consent:saved', consent);
 
-        await uploadingSdk.clearConsent();
+        await upSdk.clearConsent();
 
-        expect(uploadingSdk.uploader!.hasPendingConsentProof, isFalse);
+        expect(upSdk.uploader!.hasPendingConsentProof, isFalse);
       });
 
       test('analytics:collect queues the event', () async {
-        await uploadingSdk.initialize(
-            AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
 
-        await uploadingSdk
-            .handleJsEvent('analytics:collect', {'type': 'cookies:open'});
+        await upSdk.handleJsEvent('analytics:collect', event);
 
-        expect(uploadingSdk.uploader!.queuedEvents,
-            [jsonEncode({'type': 'cookies:open'})]);
+        expect(upSdk.uploader!.queuedEvents, [jsonEncode(event)]);
       });
 
       test('analytics:collect is dropped when tracking is denied', () async {
-        await uploadingSdk.initialize(
-            AxeptioService.brands, 'client-1', 'cv', null);
-        await uploadingSdk.setUserDeniedTracking();
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.setUserDeniedTracking();
 
-        await uploadingSdk
-            .handleJsEvent('analytics:collect', {'type': 'cookies:open'});
+        await upSdk.handleJsEvent('analytics:collect', event);
 
-        expect(uploadingSdk.uploader!.queuedEvents, isEmpty);
+        expect(upSdk.uploader!.queuedEvents, isEmpty);
       });
     });
   });
