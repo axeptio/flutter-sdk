@@ -3,6 +3,8 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 GUARD="$ROOT/.github/scripts/check_release_version.sh"
+BRANCH_GUARD="$ROOT/.github/scripts/check_release_branch.sh"
+CHANGELOG_GUARD="$ROOT/.github/scripts/check_changelog_entry.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 FAILED=0
@@ -87,6 +89,13 @@ else
   fail "dry-run-publish.yml runs the guard before checking out the tag"
 fi
 
+# test: steps after the tag checkout run scripts kept from the branch, absent from older tags
+if grep -qF "\"\$RUNNER_TEMP/release-scripts/check_changelog_entry.sh\"" "$DRY_RUN"; then
+  pass "dry-run-publish.yml runs post-checkout scripts from the branch copy"
+else
+  fail "dry-run-publish.yml runs post-checkout scripts from the branch copy"
+fi
+
 if grep -qi 'changelog will be auto-generated' "$DRY_RUN"; then
   fail "dry-run-publish.yml does not promise a generated changelog"
 else
@@ -108,6 +117,38 @@ for needle in 'develop → master' 'publish.yml' 'release: published' 'dry-run-p
     fail "RELEASE_PROCESS.md documents $needle"
   fi
 done
+
+for wf in publish.yml dry-run-publish.yml; do
+  for script in check_release_branch.sh check_changelog_entry.sh; do
+    if grep -q "$script" "$ROOT/.github/workflows/$wf"; then
+      pass "$wf runs $script"
+    else
+      fail "$wf runs $script"
+    fi
+  done
+  if grep -qF "grep -q \"^## \$VERSION\"" "$ROOT/.github/workflows/$wf"; then
+    fail "$wf has no prefix-matching CHANGELOG check"
+  else
+    pass "$wf has no prefix-matching CHANGELOG check"
+  fi
+done
+
+if grep -q 'git checkout -B' "$ROOT/.github/workflows/publish.yml"; then
+  fail "publish.yml keeps the release tag checked out"
+else
+  pass "publish.yml keeps the release tag checked out"
+fi
+
+printf '## 3.1.0-beta.1\n\n- x\n\n## 3.0.0\n' > "$WORK/CHANGELOG.md"
+expect_fail "pre-release heading does not satisfy the stable entry" "No '## 3.1.0' heading" \
+  "$CHANGELOG_GUARD" 3.1.0 "$WORK/CHANGELOG.md"
+expect_pass "exact pre-release heading passes" "$CHANGELOG_GUARD" 3.1.0-beta.1 "$WORK/CHANGELOG.md"
+expect_pass "exact stable heading passes" "$CHANGELOG_GUARD" 3.0.0 "$WORK/CHANGELOG.md"
+printf '## 3x0x0\n' > "$WORK/CHANGELOG.md"
+expect_fail "dots are not wildcards" "No '## 3.0.0' heading" "$CHANGELOG_GUARD" 3.0.0 "$WORK/CHANGELOG.md"
+printf '## 3.0.0 - 2026-04-29\n' > "$WORK/CHANGELOG.md"
+expect_pass "heading with a trailing date passes" "$CHANGELOG_GUARD" 3.0.0 "$WORK/CHANGELOG.md"
+expect_fail "missing version argument fails" "Usage" "$CHANGELOG_GUARD"
 
 pubspec 3.0.0
 expect_pass "matching stable version passes" "$GUARD" v3.0.0 "$WORK/pubspec.yaml"
@@ -147,5 +188,15 @@ pubspec 9.9.9 && cp "$WORK/pubspec.yaml" "$REPO/pubspec.yaml"
 # test: the working tree diverges from the tag; the guard must read the tagged pubspec.yaml
 expect_pass "reads pubspec.yaml at the tag, not the working tree" bash -c "cd '$REPO' && '$GUARD' v3.2.0"
 expect_fail "missing tag fails" "does not exist" bash -c "cd '$REPO' && '$GUARD' v3.3.0"
+
+git -C "$REPO" branch -q -M master
+git -C "$REPO" update-ref refs/remotes/origin/master master
+git -C "$REPO" checkout -q -b develop
+git -C "$REPO" -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -q --allow-empty -m unmerged
+git -C "$REPO" -c tag.gpgsign=false tag v3.3.0
+expect_pass "tag reachable from origin/master passes" bash -c "cd '$REPO' && '$BRANCH_GUARD' v3.2.0 master"
+expect_fail "tag not on origin/master fails" "is not on origin/master" bash -c "cd '$REPO' && '$BRANCH_GUARD' v3.3.0 master"
+expect_fail "missing tag fails the branch guard" "does not exist" bash -c "cd '$REPO' && '$BRANCH_GUARD' v9.0.0 master"
+expect_fail "missing branch argument fails" "Usage" "$BRANCH_GUARD" v3.2.0
 
 exit "$FAILED"

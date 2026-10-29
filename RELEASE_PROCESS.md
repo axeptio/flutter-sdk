@@ -29,6 +29,7 @@ Publishing the release triggers `publish.yml`, which:
 
 - checks out the tag;
 - fails if `pubspec.yaml` at the tag differs from the tag version;
+- fails if the tagged commit is not on `master`;
 - fails if the version already exists on pub.dev;
 - fails if `CHANGELOG.md` has no `## 3.1.0` heading;
 - runs `flutter analyze`, `flutter test` and `dart pub publish --dry-run`;
@@ -49,7 +50,7 @@ pub.dev serves pre-releases only to apps that request them, e.g. `axeptio_sdk: 3
 ## Dry run
 
 Run `dry-run-publish.yml` from [GitHub Actions](https://github.com/axeptio/flutter-sdk/actions)
-with a `release_tag` before publishing. It runs the same version guard, pub.dev and
+with a `release_tag` before publishing. It runs the same version, `master`, pub.dev and
 `CHANGELOG.md` checks, analysis, tests and a pub.dev dry-run, without publishing.
 
 - If the tag exists, it checks out the tag and validates that snapshot.
@@ -60,6 +61,7 @@ with a `release_tag` before publishing. It runs the same version guard, pub.dev 
 | Failure                                       | Fix                                                                   |
 | --------------------------------------------- | --------------------------------------------------------------------- |
 | `pubspec.yaml version X does not match tag Y` | Bump `pubspec.yaml` via `develop` → `master`, then release a new tag  |
+| Release tag is not on `origin/master`         | Merge `develop` → `master`, then release a new tag targeting `master` |
 | Version already exists on pub.dev             | Release a new, higher version                                         |
 | No `## X.Y.Z` heading in `CHANGELOG.md`       | Add the entry via `develop` → `master`, then release a new tag        |
 | Analysis or tests fail                        | Fix on `develop`, promote to `master`, release a new tag              |

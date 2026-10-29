@@ -55,6 +55,15 @@ jobs:
             .github/scripts/check_release_version.sh "$RELEASE_TAG" pubspec.yaml
           fi
 
+      - name: Check release tag is on master
+        if: steps.check-tag.outputs.tag_exists == 'true'
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: .github/scripts/check_release_branch.sh "$RELEASE_TAG" master
+
+      - name: Keep release scripts from the branch
+        run: cp -R .github/scripts "$RUNNER_TEMP/release-scripts"
+
       - name: Check out release tag
         if: steps.check-tag.outputs.tag_exists == 'true'
         env:
@@ -80,15 +89,7 @@ jobs:
           fi
 
       - name: Check if version exists in CHANGELOG
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          if grep -q "^## $VERSION" CHANGELOG.md; then
-            echo "✅ Version $VERSION found in CHANGELOG.md"
-          else
-            echo "❌ Version $VERSION not found in CHANGELOG.md!"
-            echo "publish.yml will refuse this release. Add '## $VERSION' to CHANGELOG.md."
-            exit 1
-          fi
+        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${{ steps.extract-version.outputs.version }}"'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2

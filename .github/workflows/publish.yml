@@ -67,6 +67,11 @@ jobs:
           RELEASE_TAG: ${{ steps.resolve-tag.outputs.tag }}
         run: .github/scripts/check_release_version.sh "$RELEASE_TAG"
 
+      - name: Check release tag is on master
+        env:
+          RELEASE_TAG: ${{ steps.resolve-tag.outputs.tag }}
+        run: .github/scripts/check_release_branch.sh "$RELEASE_TAG" master
+
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v6
@@ -87,10 +92,6 @@ jobs:
           git config --global gpg.program "$(which gpg)"
           git remote set-url origin https://x-access-token:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
-          # Ensure we're on master branch with proper upstream tracking
-          git checkout -B master
-          git branch --set-upstream-to=origin/master master
-
       - name: Check if version exists on pub.dev
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
@@ -109,18 +110,7 @@ jobs:
           fi
 
       - name: Check if version exists in CHANGELOG
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Checking if version $VERSION exists in CHANGELOG.md..."
-
-          if grep -q "^## $VERSION" CHANGELOG.md; then
-            echo "✅ Version $VERSION found in CHANGELOG.md"
-          else
-            echo "❌ Version $VERSION not found in CHANGELOG.md!"
-            echo "Cannot publish without changelog entry. Please add changelog entry for version $VERSION."
-            echo "Expected format: '## $VERSION' at the top of CHANGELOG.md"
-            exit 1
-          fi
+        run: .github/scripts/check_changelog_entry.sh "${{ steps.extract-version.outputs.version }}"
 
       - name: Install dependencies
         run: flutter pub get
