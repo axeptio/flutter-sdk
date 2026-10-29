@@ -24,6 +24,7 @@ class AxeptioUploader {
   Timer? _flushTimer;
   int _proofGeneration = 0;
   bool _flushing = false;
+  bool _disposed = false;
 
   AxeptioUploader(
     this._prefs,
@@ -45,6 +46,7 @@ class AxeptioUploader {
   }
 
   void dispose() {
+    _disposed = true;
     _proofTimer?.cancel();
     _proofTimer = null;
     _flushTimer?.cancel();
@@ -82,6 +84,7 @@ class AxeptioUploader {
   }
 
   void _scheduleFlush() {
+    if (_disposed) return;
     _flushTimer ??= Timer(flushInterval, () {
       _flushTimer = null;
       unawaited(flushEvents());
@@ -89,7 +92,7 @@ class AxeptioUploader {
   }
 
   Future<void> flushEvents() async {
-    if (_flushing) return;
+    if (_flushing || _disposed) return;
     _flushing = true;
     try {
       final queue = queuedEvents;
@@ -101,6 +104,7 @@ class AxeptioUploader {
         );
         if (!sent) break;
         await _removeEvents(batch);
+        if (_disposed) break;
       }
     } finally {
       _flushing = false;
