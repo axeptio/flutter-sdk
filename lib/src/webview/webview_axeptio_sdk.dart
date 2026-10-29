@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
@@ -206,7 +207,8 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
         await _uploader?.sendConsentProof(_clientId!, payload);
         break;
       case 'analytics:collect':
-        if (!_attDenied) await _uploader?.enqueueEvent(payload);
+        if (_attDenied) break;
+        await _uploader?.enqueueEvent(_withSdkSource(payload));
         break;
       case 'axeptio:cookies':
         await _storage?.writeCookies(payload);
@@ -225,7 +227,14 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     }
   }
 
-  void handleGoogleConsentMode(Map<String, dynamic>? payload) {
+  Map<String, dynamic>? _withSdkSource(Map<String, dynamic>? event) {
+    final source = event?['source'];
+    if (source is! String || !source.startsWith('sdk-app-')) return event;
+    final os = Platform.operatingSystem;
+    return {...event!, 'source': source.replaceFirst('sdk-app-', 'sdk-$os-')};
+  }
+
+    void handleGoogleConsentMode(Map<String, dynamic>? payload) {
     if (payload == null) return;
     final consents = ConsentsV2(
       payload['analytics_storage'] == 'granted',
