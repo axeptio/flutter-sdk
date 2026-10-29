@@ -72,6 +72,12 @@ else
   fail "dry-run-publish.yml runs the version guard"
 fi
 
+if grep -qF "git checkout --detach \"refs/tags/\$RELEASE_TAG\"" "$DRY_RUN"; then
+  pass "dry-run-publish.yml validates the tag snapshot when the tag exists"
+else
+  fail "dry-run-publish.yml validates the tag snapshot when the tag exists"
+fi
+
 if grep -qi 'changelog will be auto-generated' "$DRY_RUN"; then
   fail "dry-run-publish.yml does not promise a generated changelog"
 else
@@ -104,6 +110,9 @@ pubspec '"3.0.0"'
 expect_pass "quoted pubspec version passes" "$GUARD" v3.0.0 "$WORK/pubspec.yaml"
 
 pubspec 3.0.0
+expect_fail "mismatch tells the operator to create a new tag" "then create a new tag" \
+  "$GUARD" v3.0.1 "$WORK/pubspec.yaml"
+
 expect_fail "mismatch fails naming both versions" "pubspec.yaml version 3.0.0 does not match tag v3.0.1" \
   "$GUARD" v3.0.1 "$WORK/pubspec.yaml"
 

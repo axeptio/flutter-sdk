@@ -52,8 +52,8 @@ Run `dry-run-publish.yml` from [GitHub Actions](https://github.com/axeptio/flutt
 with a `release_tag` before publishing. It runs the same version guard, pub.dev and
 `CHANGELOG.md` checks, analysis, tests and a pub.dev dry-run, without publishing.
 
-- If the tag exists, it checks `pubspec.yaml` at the tag.
-- If the tag does not exist yet, it checks `pubspec.yaml` on the selected branch.
+- If the tag exists, it checks out the tag and validates that snapshot.
+- If the tag does not exist yet, it validates the selected branch.
 
 ## When publish fails
 

@@ -35,7 +35,7 @@ fi
 
 if [ "$PUBSPEC_VERSION" != "$VERSION" ]; then
   echo "❌ pubspec.yaml version $PUBSPEC_VERSION does not match tag $TAG ($SOURCE)" >&2
-  echo "Bump version: in pubspec.yaml on develop, merge to master, then re-tag." >&2
+  echo "Bump the version in pubspec.yaml on develop, merge to master, then create a new tag." >&2
   exit 1
 fi
 
