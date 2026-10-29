@@ -1,19 +1,5 @@
 name: Publish to pub.dev
 
-# This workflow publishes to pub.dev when a GitHub release is published,
-# or can be triggered manually via workflow_dispatch as a fallback.
-#
-# Key improvements:
-# 1. Version extracted from GitHub release tag (not pubspec.yaml)
-# 2. pubspec.yaml updated dynamically from tag
-# 3. Validates version doesn't already exist on pub.dev
-#
-# Process:
-# 1. Create GitHub release with version tag (e.g., v2.0.16)
-# 2. This workflow triggers automatically on release published event
-# 3. Extracts version from tag, updates pubspec.yaml
-# 4. Validates and publishes to pub.dev
-
 on:
   release:
     types: [published]
@@ -36,6 +22,7 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.release.tag_name || inputs.release_tag }}
           fetch-depth: 0
           persist-credentials: false
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
@@ -75,15 +62,10 @@ jobs:
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Validate version format
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
-            echo "❌ Invalid version format: $VERSION"
-            echo "Expected format: X.Y.Z or X.Y.Z-suffix"
-            exit 1
-          fi
-          echo "✅ Version format valid: $VERSION"
+      - name: Check pubspec.yaml version matches tag
+        env:
+          RELEASE_TAG: ${{ steps.resolve-tag.outputs.tag }}
+        run: .github/scripts/check_release_version.sh "$RELEASE_TAG"
 
       - name: Import GPG key
         id: import_gpg
@@ -125,21 +107,6 @@ jobs:
             echo "⚠️ Could not verify version availability (HTTP $HTTP_CODE)"
             echo "Proceeding with caution..."
           fi
-
-      - name: Update pubspec.yaml with release version
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Updating pubspec.yaml from release tag version: $VERSION"
-
-          # Backup original pubspec.yaml
-          cp pubspec.yaml pubspec.yaml.backup
-
-          # Update version in pubspec.yaml
-          sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
-
-          echo "✅ Updated pubspec.yaml to version: $VERSION"
-          echo "Changes:"
-          diff pubspec.yaml.backup pubspec.yaml || true
 
       - name: Check if version exists in CHANGELOG
         run: |
@@ -196,7 +163,7 @@ jobs:
             echo ""
             echo "### Process"
             echo "✅ Version extracted from GitHub release tag"
-            echo "✅ pubspec.yaml updated dynamically"
+            echo "✅ pubspec.yaml version matches tag"
             echo "✅ Version availability verified on pub.dev"
             echo "✅ Published to pub.dev successfully"
           } >> "$GITHUB_STEP_SUMMARY"
