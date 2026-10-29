@@ -210,6 +210,14 @@ void main() {
       expect(queue.last, jsonEncode(event(-1)));
     });
 
+    test('concurrent enqueues keep every event', () async {
+      // test: Copilot r4415848599, read and write share no await
+      await Future.wait([
+        for (var i = 0; i < 10; i++) uploader.enqueueEvent(event(i)),
+      ]);
+      expect(uploader.queuedEvents, hasLength(10));
+    });
+
     test('a concurrent flush is a no-op', () async {
       await uploader.enqueueEvent(event(1));
       await Future.wait([uploader.flushEvents(), uploader.flushEvents()]);
