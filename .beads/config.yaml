@@ -54,3 +54,6 @@
 # - github.repo
 
 # Local-only Beads DB: this repo is public, so the DB must never be given a sync remote.
+backup:
+    enabled: false
+    git-push: false
