@@ -917,6 +917,43 @@ void main() {
     });
   });
 
+  group('Android media playback', () {
+    testWidgets('lets the cover video autoplay before the page loads',
+        (tester) async {
+      final previousPlatform = WebViewPlatform.instance!;
+      final defaultRegistrar =
+          AxeptioConsentViewState.registerDocumentStartScript;
+      final platform = _AndroidCapturingWebViewPlatform();
+      final registered = <String>[];
+      WebViewPlatform.instance = platform;
+      AxeptioConsentViewState.registerDocumentStartScript =
+          (controller, script, origin) async {
+        registered.add(origin);
+        return true;
+      };
+      addTearDown(() {
+        WebViewPlatform.instance = previousPlatform;
+        AxeptioConsentViewState.registerDocumentStartScript = defaultRegistrar;
+      });
+
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+        ),
+      ));
+      await tester.pump();
+
+      final controller = platform.lastAndroidController!;
+      expect(controller.mediaPlaybackRequiresUserGesture, isFalse);
+      expect(registered, ['https://static.axept.io']);
+      expect(controller.loadedUrl, testUri.toString());
+      expect(controller.calls.indexOf('setMediaPlaybackRequiresUserGesture'),
+          lessThan(controller.calls.indexOf('loadRequest')));
+    });
+  });
+
   group('AxeptioConsentView build for different platforms', () {
     testWidgets('Android renders WebViewWidget', (tester) async {
       // default test platform is android
@@ -997,6 +1034,48 @@ class _FakeAndroidWebViewController extends Fake
     implements AndroidWebViewController {
   @override
   int get webViewIdentifier => 7;
+}
+
+class _AndroidCapturingWebViewPlatform extends _CapturingWebViewPlatform {
+  _RecordingAndroidWebViewController? lastAndroidController;
+
+  @override
+  PlatformWebViewController createPlatformWebViewController(
+      PlatformWebViewControllerCreationParams params) {
+    lastAndroidController = _RecordingAndroidWebViewController();
+    return lastAndroidController!;
+  }
+}
+
+class _RecordingAndroidWebViewController extends Fake
+    implements AndroidWebViewController {
+  final List<String> calls = [];
+  bool? mediaPlaybackRequiresUserGesture;
+  String? loadedUrl;
+
+  @override
+  int get webViewIdentifier => 7;
+  @override
+  Future<void> setMediaPlaybackRequiresUserGesture(bool require) async {
+    calls.add('setMediaPlaybackRequiresUserGesture');
+    mediaPlaybackRequiresUserGesture = require;
+  }
+
+  @override
+  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) async {}
+  @override
+  Future<void> setBackgroundColor(Color color) async {}
+  @override
+  Future<void> setPlatformNavigationDelegate(
+      PlatformNavigationDelegate handler) async {}
+  @override
+  Future<void> addJavaScriptChannel(
+      JavaScriptChannelParams javaScriptChannelParams) async {}
+  @override
+  Future<void> loadRequest(LoadRequestParams params) async {
+    calls.add('loadRequest');
+    loadedUrl = params.uri.toString();
+  }
 }
 
 class _CapturingWebViewController extends PlatformWebViewController {
