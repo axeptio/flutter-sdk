@@ -176,6 +176,10 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
           }
         },
       ));
+    final platform = controller.platform;
+    if (platform is AndroidWebViewController) {
+      unawaited(platform.setMediaPlaybackRequiresUserGesture(false));
+    }
     _androidController = controller;
     unawaited(_loadAndroidWebView(controller));
   }
