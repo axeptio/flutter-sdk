@@ -53,5 +53,4 @@
 # - github.org
 # - github.repo
 
-sync:
-    remote: "git+https://github.com/axeptio/flutter-sdk.git"
+# Local-only Beads DB: this repo is public, so the DB must never be given a sync remote.

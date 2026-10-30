@@ -135,7 +135,7 @@ NEVER proactively create documentation files (*.md) or README files. Only create
 
 ## Contributor Protocol
 
-Beads standard: `axeptio/.claude` `docs/beads-standard.md`; config `.beads/standard.json`.
+Beads config: `.beads/standard.json`. The Beads DB is local-only: this repo is public.
 
 - **Work:** `bd ready` / `bd list -a <role>`. Brief = `bd show <id>` + notes; read only named doc sections.
 - **Ack:** `bd note <id> "ack <token>"`, then `bd update <id> -s in_progress`. Never `--claim`: the assignee is preset and bd refuses it.
@@ -143,4 +143,4 @@ Beads standard: `axeptio/.claude` `docs/beads-standard.md`; config `.beads/stand
 - **Ask:** the dispatcher session, never the user. No session names in beads or commits.
 - **Code:** worktree `git worktree add .worktrees/<x> -b <branch> origin/<dev>`; red-green per criterion; `git commit -S`, `%G?` = `G`; no cloud roles (use `ops-request`).
 - **PR:** base dev branch; body Objective/Changes/Verification + `Beads: <id>`; merge-ready = note with evidence + `needs-review` + `--external-ref gh-<PR>`. Humans merge.
-- **Done:** `bd close <id>`, `bd dolt push`, `git worktree remove .worktrees/<x>`.
+- **Done:** `bd close <id>`, `git worktree remove .worktrees/<x>`. Never `bd dolt push`: public repo, Beads DB is local-only.
