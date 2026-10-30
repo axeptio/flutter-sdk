@@ -187,7 +187,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
         '${_androidLocalStorageScript()}\n$_androidPolyfillScript',
         'https://${widget.consentUrl.host}',
       );
-    } on Exception {
+    } catch (_) {
       _androidDocumentStart = false;
     }
     if (!mounted || _androidController == null) return;
