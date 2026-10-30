@@ -107,17 +107,13 @@ Examples:
 
 ### Release Process
 
-#### Stable Releases
-1. Releases are managed through semantic versioning from `master` branch
-2. Version bumps are automated based on conventional commits
-3. Use GitHub workflow dispatch to trigger releases manually
-4. Never manually edit version numbers - use the semver workflow
-
-#### Beta Releases
-1. Beta releases are created from `develop` branch for next version testing
-2. Use "Beta Release" workflow to create beta versions (e.g., 2.1.0-beta.1)
-3. Betas are published to pub.dev as pre-release versions for customer testing
-4. Multiple beta increments can be released before stable version
+See [RELEASE_PROCESS.md](RELEASE_PROCESS.md). One path: develop → master PR → GitHub Release → `publish.yml` → pub.dev.
+1. Bump `version:` in `pubspec.yaml` and add `## X.Y.Z` to `CHANGELOG.md` on `develop`
+2. Merge `develop` into `master` via PR
+3. Publish a GitHub Release tagged `vX.Y.Z` on `master`; `publish.yml` publishes on `release: published`
+4. `publish.yml` fails when the `pubspec.yaml` version differs from the tag
+5. Pre-releases use a suffixed version (e.g. `3.1.0-beta.1`) and the GitHub "pre-release" flag
+6. Validate first with the `dry-run-publish.yml` workflow
 
 ### Code Quality
 - Run `flutter analyze` before committing
