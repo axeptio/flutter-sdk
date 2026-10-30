@@ -1,0 +1,7 @@
+{
+  "prefix": "flutter",
+  "tech_epic": "flutter-tech",
+  "milestones": [],
+  "layers": ["SDK", "Platform", "QA", "DevSecOps", "Docs"],
+  "risk_labels": ["security", "consent", "release"]
+}
