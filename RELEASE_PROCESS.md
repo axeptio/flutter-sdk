@@ -1,98 +1,67 @@
 # Release Process
 
-This document describes the improved release process for the Axeptio Flutter SDK.
+The Axeptio Flutter SDK has one release path:
 
-## Overview
-
-The release process is now **tag-driven** and ensures proper synchronization between GitHub releases and pub.dev publishing.
-
-## Key Improvements
-
-✅ **GitHub Release Tag = Source of Truth**  
-✅ **Manual Workflow Control**  
-✅ **Dynamic pubspec.yaml Update**  
-✅ **pub.dev Version Conflict Prevention**  
-✅ **Pre-publish Validation**  
-
-## Release Steps
-
-### 1. Prepare Release
-```bash
-# Ensure master branch is ready
-git checkout master
-git pull origin master
-
-# Verify tests pass
-flutter test
-flutter analyze
+```text
+develop → master PR → GitHub Release (tag vX.Y.Z) → publish.yml → pub.dev
 ```
 
-### 2. Create GitHub Release
-1. Go to [GitHub Releases](https://github.com/axeptio/flutter-sdk/releases)
-2. Click "Create a new release"
-3. Set tag version: `v2.0.16` (following semver)
-4. Set release title: `v2.0.16`
-5. Add release notes describing changes
-6. Click "Publish release"
+`publish.yml` runs on `release: published`. It never edits files: the version in
+`pubspec.yaml` and the `CHANGELOG.md` entry must already be on `master` at the tag.
 
-### 3. Validate Release (Optional)
-Before publishing, validate the release:
-1. Go to [GitHub Actions](https://github.com/axeptio/flutter-sdk/actions)
-2. Select "Dry-run Publish to pub.dev" workflow
-3. Click "Run workflow"
-4. Enter the release tag: `v2.0.16`
-5. Review validation results
+## 1. Prepare the release on `develop`
 
-### 4. Manual Publishing
-Publish to pub.dev manually:
-1. Go to [GitHub Actions](https://github.com/axeptio/flutter-sdk/actions)
-2. Select "Publish to pub.dev" workflow
-3. Click "Run workflow"
-4. Enter the release tag: `v2.0.16`
-5. The workflow will:
-   - ✅ Extract version from tag (`v2.0.16` → `2.0.16`)
-   - ✅ Validate version format
-   - ✅ Check if version already exists on pub.dev
-   - ✅ Update `pubspec.yaml` with tag version
-   - ✅ Run tests and analysis
-   - ✅ Publish to pub.dev
-   - ✅ Provide summary in workflow output
+1. Bump `version:` in `pubspec.yaml` to the release version, e.g. `3.1.0`.
+2. Add a `## 3.1.0` heading with release notes at the top of `CHANGELOG.md`.
+3. Merge through a normal PR into `develop`.
 
-## Version Format
+## 2. Promote `develop` → `master`
 
-- **Stable releases**: `v2.0.16`, `v2.1.0`, `v3.0.0`
-- **Pre-releases**: `v2.1.0-beta.1`, `v2.1.0-rc.1`
+Open a PR from `develop` to `master`. Merge it once CI is green and approved.
 
-## Validation
+## 3. Create the GitHub Release
 
-The workflow validates:
-- ✅ Version format (semantic versioning)
-- ✅ Version doesn't exist on pub.dev
-- ✅ Flutter analysis passes
-- ✅ All tests pass
-- ✅ pub publish dry-run succeeds
+1. Go to [GitHub Releases](https://github.com/axeptio/flutter-sdk/releases) → "Draft a new release".
+2. Tag: `v3.1.0`, target `master`. The tag must match `pubspec.yaml` exactly.
+3. Title `v3.1.0`, add release notes, click "Publish release".
 
-## Error Handling
+Publishing the release triggers `publish.yml`, which:
 
-**If version already exists on pub.dev:**
-- ❌ Workflow fails with clear error
-- 🔄 Create new release with incremented version
+- checks out the tag;
+- fails if `pubspec.yaml` at the tag differs from the tag version;
+- fails if the tagged commit is not on `master`;
+- fails if the version already exists on pub.dev;
+- fails if `CHANGELOG.md` has no `## 3.1.0` heading;
+- runs `flutter analyze`, `flutter test` and `dart pub publish --dry-run`;
+- publishes to pub.dev.
 
-**If tests fail:**
-- ❌ Publishing is blocked
-- 🔧 Fix issues and create new release
+`publish.yml` also accepts `workflow_dispatch` with a `release_tag` input. Use it only to
+retry an existing tag after a transient failure, such as a pub.dev outage.
 
-## Migration from Old Process
+## Pre-releases
 
-**Before:** Manual pubspec.yaml updates, automatic publishing, version mismatches possible  
-**After:** Tag-driven, manual workflow control, pre-publish validation, synchronized
+Pre-release versions follow the same path with a suffixed version:
 
-**Previous issues resolved:**
-- ❌ Publishing version 2.0.15 when expecting 2.0.10
-- ❌ pubspec.yaml and pub.dev version mismatches
-- ❌ Automatic publishing without validation
-- ❌ Manual version management errors
+- `pubspec.yaml`: `version: 3.1.0-beta.1`, `CHANGELOG.md`: `## 3.1.0-beta.1`.
+- Tag `v3.1.0-beta.1` and tick "Set as a pre-release" on the GitHub Release.
 
-## Beta Releases (Future)
+pub.dev serves pre-releases only to apps that request them, e.g. `axeptio_sdk: 3.1.0-beta.1`.
 
-Beta releases will be handled separately through a dedicated workflow targeting the `develop` branch.
+## Dry run
+
+Run `dry-run-publish.yml` from [GitHub Actions](https://github.com/axeptio/flutter-sdk/actions)
+with a `release_tag` before publishing. It runs the same version, `master`, pub.dev and
+`CHANGELOG.md` checks, analysis, tests and a pub.dev dry-run, without publishing.
+
+- If the tag exists, it checks out the tag and validates that snapshot.
+- If the tag does not exist yet, it validates the selected branch.
+
+## When publish fails
+
+| Failure                                       | Fix                                                                   |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `pubspec.yaml version X does not match tag Y` | Bump `pubspec.yaml` via `develop` → `master`, then release a new tag  |
+| Release tag is not on `origin/master`         | Merge `develop` → `master`, then release a new tag targeting `master` |
+| Version already exists on pub.dev             | Release a new, higher version                                         |
+| No `## X.Y.Z` heading in `CHANGELOG.md`       | Add the entry via `develop` → `master`, then release a new tag        |
+| Analysis or tests fail                        | Fix on `develop`, promote to `master`, release a new tag              |
