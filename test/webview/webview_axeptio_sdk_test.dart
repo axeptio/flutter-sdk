@@ -1,13 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/axeptio_service.dart';
 import 'package:axeptio_sdk/src/model/consents_v2.dart';
+import 'package:axeptio_sdk/src/network/axeptio_uploader.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/webview_axeptio_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
@@ -81,6 +86,29 @@ void main() {
         await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
         // No navigator key set — if it would show screen it would silently skip
         await expectLater(sdk.setupUI(), completes);
+      });
+
+      test('does nothing when brands consent already exists', () async {
+        // test: regression MSK-301, 3.0.0 gated brands on IABTCF_TCString
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues(
+            {'axeptio_cookies': r'{"$$completed":true}'});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), completes);
+      });
+
+      test('does not accept a TC string as consent for brands', () async {
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues({'IABTCF_TCString': 'CPXxRfAP'});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), throwsA(isA<AxeptioException>()));
+      });
+
+      test('shows consent for brands when axeptio_cookies is empty', () async {
+        WebViewAxeptioSdk.navigatorKey = null;
+        SharedPreferences.setMockInitialValues({'axeptio_cookies': ''});
+        await sdk.initialize(AxeptioService.brands, 'cid', 'cv', null);
+        await expectLater(sdk.setupUI(), throwsA(isA<AxeptioException>()));
       });
     });
 
@@ -437,10 +465,10 @@ void main() {
         sdk.addEventListener(listener);
 
         await sdk.handleJsEvent('google:consent-mode-v2-update', {
-          'analytics_storage': true,
-          'ad_storage': false,
-          'ad_user_data': true,
-          'ad_personalization': false,
+          'analytics_storage': 'granted',
+          'ad_storage': 'denied',
+          'ad_user_data': 'granted',
+          'ad_personalization': 'denied',
         });
 
         expect(received, isNotNull);
@@ -448,6 +476,30 @@ void main() {
         expect(received!.adStorage, isFalse);
         expect(received!.adUserData, isTrue);
         expect(received!.adPersonalization, isFalse);
+      });
+
+      test('google consent maps every granted key to true', () async {
+        // test: regression MSK-301, 3.0.0 compared to true and reported all denied
+        await sdk.initialize(AxeptioService.publishers, 'cid', 'cv', null);
+
+        ConsentsV2? received;
+        final listener = AxeptioEventListener();
+        listener.onGoogleConsentModeUpdate = (c) => received = c;
+        sdk.addEventListener(listener);
+
+        await sdk.handleJsEvent('google:consent-mode-v2-update', {
+          'analytics_storage': 'granted',
+          'ad_storage': 'granted',
+          'ad_user_data': 'granted',
+          'ad_personalization': 'granted',
+          'functionality_storage': 'granted',
+          'security_storage': 'denied',
+        });
+
+        expect(received!.analyticsStorage, isTrue);
+        expect(received!.adStorage, isTrue);
+        expect(received!.adUserData, isTrue);
+        expect(received!.adPersonalization, isTrue);
       });
 
       test('iabtcf event writes to storage', () async {
@@ -534,6 +586,117 @@ void main() {
         await sdk.handleJsEvent('google:consent-mode-v2-update', null);
 
         expect(received, isNull);
+      });
+    });
+
+    group('uploads', () {
+      late List<http.Request> requests;
+      late WebViewAxeptioSdk upSdk;
+
+      final consent = {
+        'preferences': {
+          'config': {'identifier': 'cfg-1'},
+        },
+        'accept': true,
+      };
+      final event = {'type': 'cookies:open'};
+
+      setUp(() {
+        requests = [];
+        final client = MockClient((request) async {
+          requests.add(request);
+          return http.Response('', 500);
+        });
+        upSdk = WebViewAxeptioSdk(httpClient: client);
+      });
+
+      tearDown(() => upSdk.uploader?.dispose());
+
+      test('consent:saved posts the proof until accepted', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+
+        await upSdk.handleJsEvent('consent:saved', consent);
+
+        final path = requests.single.url.path;
+        expect(path, '/v1/app/consents/client-1/cookies/cfg-1');
+        expect(jsonDecode(requests.single.body), consent);
+        expect(upSdk.uploader!.hasPendingConsentProof, isTrue);
+      });
+
+      test('initialize replays a pending proof', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.handleJsEvent('consent:saved', consent);
+
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await pumpEventQueue();
+
+        expect(requests, hasLength(2));
+      });
+
+      test('clearConsent before initialize drops a persisted proof', () async {
+        // test: Copilot review 5702699106, proof replayed after withdrawal
+        const key = AxeptioUploader.pendingProofKey;
+        SharedPreferences.setMockInitialValues({key: '{}'});
+
+        await upSdk.clearConsent();
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString(key), isNull);
+      });
+
+      test('clearConsent cancels the pending proof', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.handleJsEvent('consent:saved', consent);
+
+        await upSdk.clearConsent();
+
+        expect(upSdk.uploader!.hasPendingConsentProof, isFalse);
+      });
+
+      test('analytics:collect queues the event', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+
+        await upSdk.handleJsEvent('analytics:collect', event);
+
+        expect(upSdk.uploader!.queuedEvents, [jsonEncode(event)]);
+      });
+
+      test('analytics:collect tags the event with the platform SDK', () async {
+        // test: regression MSK-301, natives send sdk-<os>-brands
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        const appEvent = {'type': 'cookies:open', 'source': 'sdk-app-brands'};
+
+        await upSdk.handleJsEvent('analytics:collect', appEvent);
+
+        final queued = jsonDecode(upSdk.uploader!.queuedEvents.single);
+        final os = Platform.operatingSystem;
+        expect(queued, {'type': 'cookies:open', 'source': 'sdk-$os-brands'});
+      });
+
+      test('analytics:collect keeps a source it does not own', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        const webEvent = {'type': 'cookies:open', 'source': 'sdk-web'};
+
+        await upSdk.handleJsEvent('analytics:collect', webEvent);
+
+        expect(upSdk.uploader!.queuedEvents, [jsonEncode(webEvent)]);
+      });
+
+      test('consent:saved persists the page token', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+
+        await upSdk.handleJsEvent('consent:saved', {'token': 'page-tok'});
+
+        expect(await upSdk.axeptioToken, 'page-tok');
+      });
+
+      test('analytics:collect is dropped when tracking is denied', () async {
+        await upSdk.initialize(AxeptioService.brands, 'client-1', 'cv', null);
+        await upSdk.setUserDeniedTracking();
+
+        await upSdk.handleJsEvent('analytics:collect', event);
+
+        expect(upSdk.uploader!.queuedEvents, isEmpty);
       });
     });
   });

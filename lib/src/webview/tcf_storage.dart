@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:axeptio_sdk/src/preferences/native_default_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,11 +27,9 @@ class TcfStorage {
 
   Future<void> writeConsentSaved(Map<String, dynamic>? payload) async {
     if (payload == null) return;
-    if (payload['axeptio_token'] != null) {
-      await _prefs.setString(
-          'AX_CLIENT_TOKEN', payload['axeptio_token'].toString());
-      await _prefs.remove('_ax_token');
-    }
+    final cookieToken = _tokenFromCookies(payload['axeptio_cookies']);
+    final token = payload['axeptio_token'] ?? payload['token'] ?? cookieToken;
+    await _writeToken(token);
     if (payload['axeptio_cookies'] != null) {
       await _prefs.setString(
           'axeptio_cookies', payload['axeptio_cookies'].toString());
@@ -46,6 +46,7 @@ class TcfStorage {
 
   Future<void> writeCookies(Map<String, dynamic>? payload) async {
     if (payload == null) return;
+    await _writeToken(_tokenFromCookies(payload['axeptio_cookies']));
     for (final entry in payload.entries) {
       await _writeValue(entry.key, entry.value);
     }
@@ -92,6 +93,23 @@ class TcfStorage {
       result[i + 1] = bitString[i] == '1';
     }
     return result;
+  }
+
+  Future<void> _writeToken(Object? token) async {
+    if (token == null || token.toString().isEmpty) return;
+    await _prefs.setString('AX_CLIENT_TOKEN', token.toString());
+    await _prefs.remove('_ax_token');
+  }
+
+  Object? _tokenFromCookies(Object? cookies) {
+    if (cookies is Map) return cookies[r'$$token'];
+    if (cookies is! String) return null;
+    try {
+      final decoded = jsonDecode(cookies);
+      return decoded is Map ? decoded[r'$$token'] : null;
+    } on FormatException {
+      return null;
+    }
   }
 
   Future<void> _writeValue(String key, dynamic value) async {
