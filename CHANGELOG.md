@@ -1,3 +1,22 @@
+## 3.1.0
+
+### ✨ New Features
+
+- **Swift Package Manager**: The iOS plugin ships a `Package.swift`; the CocoaPods podspec still works (#103)
+
+### 🔧 Fixes
+
+- Brands mode: consent proof (`consent:saved`) and `analytics:collect` events are uploaded again, persisted and retried until accepted (#102)
+- Google Consent Mode: `"granted"` now maps to `true` (#102)
+- Brands mode: the consent screen is shown once, reading `axeptio_cookies` instead of the TCF string (#102, supersedes #97)
+- Brands mode: the page token `AX_CLIENT_TOKEN` is persisted (#102, covers #98)
+- Android: the consent bridge and `localStorage` values are injected at document start via `androidx.webkit` (#103)
+- The consent cover video autoplays muted inline on iOS and Android (#105, supersedes #99, thanks to ybeshkarov)
+
+### 🛠 Maintenance
+
+- Release tooling simplified; publishing fails when `pubspec.yaml` differs from the release tag (#101)
+
 ## 3.0.0
 
 ### 🚨 Breaking Changes
