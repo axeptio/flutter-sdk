@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
   s.author           = { 'Axeptio' => 'support@axeptio.eu' }
   s.source           = { :git => "https://github.com/axeptio/flutter-sdk.git" }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'axeptio_sdk/Sources/axeptio_sdk/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '15.0'
 
