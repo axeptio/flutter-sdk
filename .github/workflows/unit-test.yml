@@ -19,6 +19,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Release tooling tests
+        run: |
+          for t in .github/scripts/*.test.sh; do
+            bash "$t"
+          done
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:

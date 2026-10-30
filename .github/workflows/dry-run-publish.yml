@@ -36,12 +36,6 @@ jobs:
             echo "⚠️ Release tag $TAG does not exist yet - using current branch for validation"
           fi
 
-      - name: Validate release tag for dry-run
-        if: steps.check-tag.outputs.tag_exists == 'true'
-        run: |
-          echo "✅ Release tag ${{ inputs.release_tag }} exists and ready for validation"
-          echo "Note: Dry-run validation uses current branch state, not the specific tag"
-
       - name: Extract version from release tag
         id: extract-version
         run: |
@@ -50,29 +44,33 @@ jobs:
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Validate version format
+      - name: Check pubspec.yaml version matches tag
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          TAG_EXISTS: ${{ steps.check-tag.outputs.tag_exists }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
-            echo "❌ Invalid version format: $VERSION"
-            echo "Expected format: X.Y.Z or X.Y.Z-suffix"
-            exit 1
-          fi
-          echo "✅ Version format valid: $VERSION"
-
-      - name: Validate Changelog Generation (Dry-run)
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Validating automated changelog generation for version: $VERSION"
-
-          # Check if we have conventional commits to generate changelog from
-          if git log --oneline --grep="^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^perf\|^test" --since="$(git describe --tags --abbrev=0 2>/dev/null || echo '1 month ago')" | head -5; then
-            echo "✅ Found conventional commits for changelog generation"
+          if [ "$TAG_EXISTS" = "true" ]; then
+            .github/scripts/check_release_version.sh "$RELEASE_TAG"
           else
-            echo "⚠️ No recent conventional commits found - changelog may be minimal"
+            .github/scripts/check_release_version.sh "$RELEASE_TAG" pubspec.yaml
           fi
 
-          echo "✅ Changelog will be auto-generated during actual publish"
+      - name: Check release tag is on master
+        if: steps.check-tag.outputs.tag_exists == 'true'
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: .github/scripts/check_release_branch.sh "$RELEASE_TAG" master
+
+      - name: Keep release scripts from the branch
+        run: cp -R .github/scripts "$RUNNER_TEMP/release-scripts"
+
+      - name: Check out release tag
+        if: steps.check-tag.outputs.tag_exists == 'true'
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          git checkout --detach "refs/tags/$RELEASE_TAG"
+          echo "✅ Validating the snapshot at release tag $RELEASE_TAG"
 
       - name: Check if version exists on pub.dev
         run: |
@@ -90,31 +88,8 @@ jobs:
             echo "Continuing with dry-run validation..."
           fi
 
-      - name: Update pubspec.yaml with release version
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Updating pubspec.yaml from release tag version: $VERSION"
-
-          # Backup original pubspec.yaml
-          cp pubspec.yaml pubspec.yaml.backup
-
-          # Update version in pubspec.yaml
-          sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
-
-          echo "✅ Updated pubspec.yaml to version: $VERSION"
-          echo "Changes:"
-          diff pubspec.yaml.backup pubspec.yaml || true
-
-      - name: Simulate Changelog Generation
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Simulating changelog generation for version: $VERSION"
-
-          # Show what commits would be included in changelog
-          echo "📋 Recent commits that would generate changelog entries:"
-          git log --oneline --grep="^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^perf\|^test" --since="$(git describe --tags --abbrev=0 2>/dev/null || echo '1 month ago')" | head -10 || echo "No conventional commits found"
-
-          echo "✅ During actual publish, changelog will be auto-generated from conventional commits"
+      - name: Check if version exists in CHANGELOG
+        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${{ steps.extract-version.outputs.version }}"'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -150,9 +125,9 @@ jobs:
             echo "✅ Package validation completed successfully for version **$VERSION**"
             echo ""
             echo "### Validation Results"
-            echo "✅ Version format validation passed"
+            echo "✅ pubspec.yaml version matches tag"
             echo "✅ pub.dev version availability checked"
-            echo "✅ Changelog generation validation passed"
+            echo "✅ CHANGELOG.md entry found"
             echo "✅ Flutter analysis passed"
             echo "✅ All tests passed"
             echo "✅ Package structure validation passed"
@@ -162,19 +137,15 @@ jobs:
             if [ "${{ steps.check-tag.outputs.tag_exists }}" = "true" ]; then
               echo "🚀 **Ready for production release!**"
               echo "1. GitHub release already created with tag: \`${{ inputs.release_tag }}\`"
-              echo "2. Run main publish workflow manually with same tag"
-              echo "3. Package will be published to pub.dev"
+              echo "2. publish.yml runs when the GitHub release is published"
             else
               echo "🚀 **Ready for release preparation!**"
               echo "1. Create GitHub release with tag: \`${{ inputs.release_tag }}\`"
-              echo "2. Run this dry-run again with the created tag to validate"
-              echo "3. Run main publish workflow manually with same tag"
+              echo "2. publish.yml publishes to pub.dev when the release is published"
             fi
             echo ""
             echo "### Important Notes"
             echo "- This was a **dry-run only** - no actual publishing occurred"
-            echo "- **Changelog will be auto-generated** during actual publish from conventional commits"
-            echo "- For production releases, run publish workflow manually"
             echo "- Validated release tag: \`${{ inputs.release_tag }}\`"
             if [ "${{ steps.check-tag.outputs.tag_exists }}" = "false" ]; then
               echo "- ⚠️ Tag does not exist yet - validated against current branch"

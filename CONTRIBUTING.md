@@ -9,7 +9,6 @@ Thank you for your interest in contributing to the Axeptio Flutter SDK! This doc
 - Flutter SDK 3.3.0 or later
 - Dart SDK 3.3.1 or later
 - Python 3.x (for pre-commit hooks)
-- Node.js 22+ (for semantic release)
 
 ### Initial Setup
 
@@ -280,59 +279,18 @@ For comprehensive testing guidance, patterns, and coverage strategies, see [TEST
 
 ## Release Process
 
-### Stable Releases
+Releases follow one path: `develop` → `master` PR → GitHub Release → `publish.yml` → pub.dev.
+See [RELEASE_PROCESS.md](RELEASE_PROCESS.md) for the full steps.
 
-Stable releases are managed through semantic versioning with GitHub Actions from the `master` branch:
+- The version bump is manual: set `version:` in `pubspec.yaml` and add a `## X.Y.Z` entry to `CHANGELOG.md` on `develop`.
+- Publishing a GitHub Release tagged `vX.Y.Z` on `master` triggers `publish.yml`, which fails if `pubspec.yaml` does not match the tag.
+- Pre-releases (e.g. `3.1.0-beta.1`) use the same path with a suffixed version and the GitHub "pre-release" flag.
+- `dry-run-publish.yml` validates a release tag without publishing.
 
-1. **Automatic Versioning**: Based on conventional commits
-2. **Manual Trigger**: Use "Semantic Version Release" workflow dispatch
-3. **Changelog**: Generated automatically from commit messages
-
-**Version Bumping Rules:**
-- `feat`: Minor version bump (2.0.11 → 2.1.0)
-- `fix`: Patch version bump (2.0.11 → 2.0.12)
-- `BREAKING CHANGE`: Major version bump (2.0.11 → 3.0.0)
-
-### Beta Releases
-
-Beta releases allow customers to test upcoming features before stable release:
-
-#### Creating Beta Releases
-
-1. **From develop branch**: Ensure your changes are committed to `develop`
-2. **Trigger workflow**: Use "Beta Release" workflow dispatch from GitHub Actions
-3. **Version format**: Next version with beta suffix (e.g., 2.1.0-beta.1)
-4. **Publishing**: Automatically published to pub.dev as a pre-release version (e.g., 2.1.0-beta.1)
-
-#### Beta Version Examples
-
-If current stable is `2.0.11`:
-- First beta of next minor: `2.1.0-beta.1`
-- Additional betas: `2.1.0-beta.2`, `2.1.0-beta.3`
-- Next patch beta: `2.0.12-beta.1`
-
-#### Customer Beta Testing
-
-**Installation:**
-```yaml
-dependencies:
-  axeptio_sdk: 2.1.0-beta.1  # Specific beta version
-```
-
-**Beta Process:**
-1. **Development** → Commit features to `develop`
-2. **Beta Release** → Create beta from develop branch
-3. **Customer Testing** → Share beta version with testers
-4. **Feedback & Fixes** → Apply fixes to develop, create new beta
-5. **Stable Release** → When ready, merge to master and release stable
-
-#### Beta Guidelines
-
-- **Use for testing**: Betas are for testing new features before stable release
-- **Not for production**: Avoid using betas in production unless necessary
-- **Feedback welcome**: Report issues and feedback for beta versions
-- **Multiple betas**: Can create multiple beta increments (beta.1, beta.2, etc.)
-- **Version progression**: Beta versions lead to the stable version (2.1.0-beta.1 → 2.1.0)
+**Choosing the version** (guidance, not automation):
+- `fix`: patch (3.0.0 → 3.0.1)
+- `feat`: minor (3.0.0 → 3.1.0)
+- `BREAKING CHANGE`: major (3.0.0 → 4.0.0)
 
 ## SDK Version Management
 
