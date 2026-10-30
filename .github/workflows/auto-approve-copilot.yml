@@ -1,0 +1,178 @@
+name: Auto-approve (Copilot)
+
+on:
+  pull_request:
+    # synchronize is deliberately absent (SUP-1104): a push already triggers
+    # CI, and CI finishing re-triggers this workflow through workflow_run
+    # moments later. The synchronize run only duplicated that.
+    types: [opened, ready_for_review, reopened]
+    branches: [develop, master]
+  pull_request_review:
+    types: [submitted]
+  workflow_run:
+    # The re-evaluation path that carries "a required check went green AFTER
+    # Copilot already reviewed". EVERY workflow producing a status context
+    # required on a protected branch must be listed here by its top-level
+    # `name:`. If the workflow that finishes last is not listed, nothing
+    # re-evaluates and the PR sits unapproved until a human re-runs this
+    # workflow by hand (ENG-13632 — four occurrences before it was fixed).
+    #
+    # Below is the org-standard set. Append this repo's own check-producing
+    # workflows and never leave the list empty: an empty list is not
+    # "everything", it is a trigger that can never match.
+    #
+    # tech-scripts asserts this against a mirror of live branch protection in
+    # tests/fixtures/required_contexts.json; cmp-proxy asserts the same thing
+    # against .github/required-status-checks.txt. ENG-13640 centralises both.
+    #
+    # What this list cannot cover (ENG-13727): a check whose workflow is not a
+    # file in this repo. copilot-pull-request-reviewer is one, from the
+    # dynamic workflow "Running Copilot Code Review" that the
+    # copilot_code_review ruleset rule starts. It is reached through
+    # pull_request_review instead, and decide.js's in-run poll absorbs the
+    # lag (measured: at most 21s over 550 reviews). A check from a non-Actions
+    # app would have no automatic recovery at all, check_run included; see the
+    # README, "Checks with no workflow file", before making one required.
+    workflows: ["CI", "Lint", "Terraform CI", "Validate PR Title", "Unit tests", "Dry-run Publish to pub.dev"]
+    types: [completed]
+
+  # check_run is deliberately absent (ENG-13632). GitHub documents that the
+  # event "does not trigger workflows if the check run's check suite was
+  # created by GitHub Actions or if the check suite's head SHA is associated
+  # with GitHub Actions" — every check this repo requires is produced by
+  # Actions, so the event is never delivered. Measured: 0 of the last 100
+  # runs on both axeptio/tech-scripts and axeptio/cmp-proxy, including after
+  # the SUP-1119 guard fix landed. The guards were correct and unreachable.
+  # The exclusion is platform-side; there is no setting that lifts it.
+  # workflow_run covers the same moment, one event per workflow instead of
+  # one per job.
+
+permissions:
+  pull-requests: write
+  contents: read
+  # `read` at workflow level on purpose: only gate-report creates a check, and
+  # it raises itself to `checks: write` at job level. A write-capable default
+  # would hand the approval job a stronger token than it needs.
+  checks: read
+
+jobs:
+  auto-approve:
+    # Skip fork PRs: org/repo secrets (BOT_GITHUB_TOKEN) are not exposed to
+    # workflows triggered from forks, so the approval call would always fail.
+    # This if: condition applies to every trigger above.
+    #
+    # The workflow_run branch deliberately does NOT test
+    # `toJSON(github.event.workflow_run.pull_requests) != '[]'`. That array is
+    # routinely empty on a legitimate PR run, and decide.js resolves the PR
+    # from head_sha via listPullRequestsAssociatedWithCommit precisely for
+    # that case — the guard discarded exactly the events that code exists to
+    # handle (ENG-13632). The trade-off is accepted knowingly: a workflow run
+    # on a branch with no open PR now reaches decide.js and is skipped there,
+    # costing a few runner-seconds, rather than being dropped along with the
+    # runs that mattered.
+    #
+    # This avoids the bot-actor approval gate that blocks pull_request_review
+    # runs triggered by the Copilot bot.
+    #
+    # NOTE: The base-branch list appears in five places — on.pull_request.branches
+    # (trigger filter), this if: OR-chain (runtime guard, also covers
+    # pull_request_review), the reusable workflow's own if:, with: base_branch
+    # (reusable workflow input), and AUTO_APPROVE_BASE_BRANCH on the gate-report
+    # job below. GitHub Actions has no shared-constant mechanism across the five.
+    # Update them together when changing eligible branches.
+    # The conclusion list is every run outcome decide.js treats as
+    # non-failing, not `success` alone: a workflow whose jobs are all
+    # path-filtered out completes as `skipped`, and dropping that event meant
+    # the last required producer finishing after Copilot's review
+    # re-evaluated nothing (ENG-13660). decide.js's
+    # PASSING_CONCLUSIONS is the source; test_workflows.py
+    # compares this list against it.
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       contains(fromJSON('["success","neutral","skipped","cancelled","stale"]'), github.event.workflow_run.conclusion) &&
+       github.event.workflow_run.head_repository.full_name == github.repository) ||
+      (github.event.pull_request != null &&
+       (github.event.pull_request.base.ref == 'develop' ||
+        github.event.pull_request.base.ref == 'master') &&
+       github.event.pull_request.draft == false &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'axeptio-bot')
+    # Pin to a released tag once auto-approve-copilot-v1.0.0 ships; @master for now.
+    # When pinning to a tag, also pass `with: tech_scripts_ref: <same tag>` so
+    # decide.js is version-locked (otherwise it loads from master by default).
+    uses: axeptio/tech-scripts/.github/workflows/auto-approve-copilot.yml@master
+    # workflow_run is a low-trust trigger: it runs in the base-repo context
+    # with secrets, and its cache access is read-only by default. Without an
+    # explicit limit the called workflow can request WRITE access anyway, so
+    # a run reachable from a fork-originated pull request could poison an
+    # entry every later run restores. `none` rather than `read` because the
+    # called workflow touches no cache at all — checkout and github-script
+    # only — so least privilege costs it nothing.
+    cache-mode: none
+    with:
+      # Comma-separated list of base branches eligible for auto-approval.
+      # Must match the branches listed in the if: condition above.
+      # Default covers all common branch names — restrict to a single branch
+      # (e.g. base_branch: develop) if this repo only uses one.
+      base_branch: develop,master
+    secrets:
+      BOT_GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
+
+  gate-report:
+    # Fork PRs are excluded despite always(): the checkout below needs
+    # BOT_GITHUB_TOKEN, which fork-triggered workflows never receive, so the
+    # job could only fail — a reporting job failing on every external
+    # contribution is worse than no report. Otherwise always runs, so a
+    # declined gate leaves a check row naming it (ENG-13632).
+    # When the guard above is false the reusable workflow never starts and the
+    # only trace is a skipped check row with no reason on it — which is how
+    # three separate defects stayed invisible. Reports only; concludes
+    # `neutral` so a misconfigured caller is visible, never merge-blocking.
+    name: Auto-approve gate report
+    needs: [auto-approve]
+    if: >-
+      always() &&
+      (github.event.pull_request == null ||
+       github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name != 'workflow_run' ||
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      # Job-level permissions REPLACE the workflow-level block, so this has to
+      # be restated here. gate-report.js resolves whether a workflow_run head
+      # has an open PR via listPullRequestsAssociatedWithCommit; without read
+      # access that call 403s, the catch leaves hasOpenPr true, and branch runs
+      # with no PR get a diagnostic check anyway — the guard silently off.
+      pull-requests: read
+    steps:
+      # The reporter lives in a trusted composite action rather than inline
+      # here. For a pull_request event GitHub runs the workflow file from the
+      # PR's own revision, so an inline `github-script` body would be
+      # PR-authored code executing with this job's checks: write token. When
+      # pinning `uses:` above to a release tag, pass that same tag as
+      # tech_scripts_ref so the reporter matches the decide.js it reports on.
+      - name: Report the auto-approve gate
+        uses: axeptio/tech-scripts/.github/actions/auto-approve-gate-report@master
+        with:
+          auto_approve_result: ${{ needs.auto-approve.result }}
+          # Empty when the reusable workflow's own guard declined the
+          # event: the call then reports `success` to this caller, and
+          # without this the decline is reported as a success.
+          auto_approve_decision: ${{ needs.auto-approve.outputs.decision }}
+          # decide.js's own answer, so the row reports the gate that
+          # actually stopped the run rather than only this action's model.
+          auto_approve_blocker: ${{ needs.auto-approve.outputs.blocker }}
+          auto_approve_clearance: ${{ needs.auto-approve.outputs.clearance }}
+          # Keep equal to the base_branch input above and to the job guard.
+          base_branch: develop,master
+          # The default GITHUB_TOKEN cannot read another repository.
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          # Defaults to master. When pinning a release, set this to the SAME
+          # tag as `uses:` above and as tech_scripts_ref on the auto-approve
+          # job, or gate-report.js comes from a different revision than the
+          # decide.js it reports on — including the external-id contract
+          # between them. Only master and auto-approve-copilot-vX.Y.Z are
+          # accepted; anything else skips the report.
+          # tech_scripts_ref: auto-approve-copilot-v0.0.1
