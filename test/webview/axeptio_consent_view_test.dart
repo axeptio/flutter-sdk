@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:webview_flutter/webview_flutter.dart' show WebViewController;
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 WebViewPlatform? _previousWebViewPlatform;
@@ -835,6 +837,45 @@ void main() {
         isFalse,
       );
     });
+
+    testWidgets('falls back to runJavaScript when registration throws an Error',
+        (tester) async {
+      final controller = await buildWithRegistrar(
+        tester,
+        (_) async => throw StateError('no webview id'),
+      );
+      final delegate = lastDelegate();
+
+      delegate.capturedOnPageFinished!('https://static.axept.io/test.html');
+      await tester.pump();
+
+      expect(controller.loadedUrl, testUri.toString());
+      expect(controller.runJavaScriptCalls, isNotEmpty);
+      expect(errors, isEmpty);
+    });
+
+    test('default registrar sends the Android webview id to the plugin',
+        () async {
+      const channel = MethodChannel('axeptio_sdk');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      MethodCall? received;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        received = call;
+        return true;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+      final added = await AxeptioConsentViewState.registerDocumentStartScript(
+        WebViewController.fromPlatform(_FakeAndroidWebViewController()),
+        'script',
+        'https://static.axept.io',
+      );
+
+      expect(added, isTrue);
+      expect(received!.method, 'addDocumentStartScript');
+      expect((received!.arguments as Map)['webViewId'], 7);
+    });
   });
 
   group('addDocumentStartScriptOnNative', () {
@@ -950,6 +991,12 @@ class _CapturingWebViewPlatform extends WebViewPlatform {
     lastDelegate = _CapturingNavigationDelegate(params);
     return lastDelegate!;
   }
+}
+
+class _FakeAndroidWebViewController extends Fake
+    implements AndroidWebViewController {
+  @override
+  int get webViewIdentifier => 7;
 }
 
 class _CapturingWebViewController extends PlatformWebViewController {
