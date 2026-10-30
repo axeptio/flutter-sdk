@@ -919,13 +919,18 @@ void main() {
   });
 
   group('Android media playback', () {
-    testWidgets('lets the cover video autoplay before the page loads',
-        (tester) async {
+    final defaultRegistrar =
+        AxeptioConsentViewState.registerDocumentStartScript;
+    late List<String> registered;
+    late List<AxeptioException> errors;
+
+    Future<_RecordingAndroidWebViewController> buildAndroid(
+      WidgetTester tester,
+      _AndroidCapturingWebViewPlatform platform,
+    ) async {
       final previousPlatform = WebViewPlatform.instance!;
-      final defaultRegistrar =
-          AxeptioConsentViewState.registerDocumentStartScript;
-      final platform = _AndroidCapturingWebViewPlatform();
-      final registered = <String>[];
+      registered = [];
+      errors = [];
       WebViewPlatform.instance = platform;
       AxeptioConsentViewState.registerDocumentStartScript =
           (controller, script, origin) async {
@@ -942,16 +947,53 @@ void main() {
           consentUrl: testUri,
           onJsEvent: (_, __) {},
           onClose: () {},
+          onError: errors.add,
         ),
       ));
       await tester.pump();
+      return platform.lastAndroidController!;
+    }
 
-      final controller = platform.lastAndroidController!;
+    testWidgets('lets the cover video autoplay before the page loads',
+        (tester) async {
+      final controller =
+          await buildAndroid(tester, _AndroidCapturingWebViewPlatform());
+
       expect(controller.mediaPlaybackRequiresUserGesture, isFalse);
       expect(registered, ['https://static.axept.io']);
       expect(controller.loadedUrl, testUri.toString());
       expect(controller.calls.indexOf('setMediaPlaybackRequiresUserGesture'),
           lessThan(controller.calls.indexOf('loadRequest')));
+    });
+
+    testWidgets('waits for the playback setting before loading',
+        (tester) async {
+      final gate = Completer<void>();
+      final controller = await buildAndroid(
+        tester,
+        _AndroidCapturingWebViewPlatform(mediaGate: gate),
+      );
+
+      expect(controller.mediaPlaybackRequiresUserGesture, isFalse);
+      expect(controller.loadedUrl, isNull);
+
+      gate.complete();
+      await tester.pump();
+
+      expect(controller.loadedUrl, testUri.toString());
+    });
+
+    testWidgets('still loads when the playback setting fails', (tester) async {
+      final controller = await buildAndroid(
+        tester,
+        _AndroidCapturingWebViewPlatform(
+          mediaError: PlatformException(code: 'settings'),
+        ),
+      );
+
+      expect(registered, ['https://static.axept.io']);
+      expect(controller.loadedUrl, testUri.toString());
+      expect(errors, isEmpty);
     });
   });
 
@@ -1038,12 +1080,19 @@ class _FakeAndroidWebViewController extends Fake
 }
 
 class _AndroidCapturingWebViewPlatform extends _CapturingWebViewPlatform {
+  _AndroidCapturingWebViewPlatform({this.mediaGate, this.mediaError});
+
+  final Completer<void>? mediaGate;
+  final Object? mediaError;
   _RecordingAndroidWebViewController? lastAndroidController;
 
   @override
   PlatformWebViewController createPlatformWebViewController(
       PlatformWebViewControllerCreationParams params) {
-    lastAndroidController = _RecordingAndroidWebViewController();
+    lastAndroidController = _RecordingAndroidWebViewController(
+      mediaGate: mediaGate,
+      mediaError: mediaError,
+    );
     return lastAndroidController!;
   }
 }
@@ -1051,6 +1100,10 @@ class _AndroidCapturingWebViewPlatform extends _CapturingWebViewPlatform {
 class _RecordingAndroidWebViewController extends Fake
     with MockPlatformInterfaceMixin
     implements AndroidWebViewController {
+  _RecordingAndroidWebViewController({this.mediaGate, this.mediaError});
+
+  final Completer<void>? mediaGate;
+  final Object? mediaError;
   final List<String> calls = [];
   bool? mediaPlaybackRequiresUserGesture;
   String? loadedUrl;
@@ -1061,6 +1114,8 @@ class _RecordingAndroidWebViewController extends Fake
   Future<void> setMediaPlaybackRequiresUserGesture(bool require) async {
     calls.add('setMediaPlaybackRequiresUserGesture');
     mediaPlaybackRequiresUserGesture = require;
+    if (mediaError != null) throw mediaError!;
+    await mediaGate?.future;
   }
 
   @override
