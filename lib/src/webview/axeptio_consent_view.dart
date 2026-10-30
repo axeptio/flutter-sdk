@@ -181,6 +181,12 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   Future<void> _loadAndroidWebView(WebViewController controller) async {
+    final platform = controller.platform;
+    if (platform is AndroidWebViewController) {
+      try {
+        await platform.setMediaPlaybackRequiresUserGesture(false);
+      } catch (_) {}
+    }
     try {
       _androidDocumentStart = await registerDocumentStartScript(
         controller,

@@ -65,6 +65,8 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
         let config = WKWebViewConfiguration()
         config.userContentController = contentController
         config.websiteDataStore = .nonPersistent()
+        config.allowsInlineMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
         webView = WKWebView(frame: frame, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
