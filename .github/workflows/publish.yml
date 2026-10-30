@@ -1,19 +1,5 @@
 name: Publish to pub.dev
 
-# This workflow publishes to pub.dev when a GitHub release is published,
-# or can be triggered manually via workflow_dispatch as a fallback.
-#
-# Key improvements:
-# 1. Version extracted from GitHub release tag (not pubspec.yaml)
-# 2. pubspec.yaml updated dynamically from tag
-# 3. Validates version doesn't already exist on pub.dev
-#
-# Process:
-# 1. Create GitHub release with version tag (e.g., v2.0.16)
-# 2. This workflow triggers automatically on release published event
-# 3. Extracts version from tag, updates pubspec.yaml
-# 4. Validates and publishes to pub.dev
-
 on:
   release:
     types: [published]
@@ -67,6 +53,14 @@ jobs:
           fi
           echo "✅ Release tag $TAG exists"
 
+      - name: Keep release scripts from the workflow ref
+        run: cp -R .github/scripts "$RUNNER_TEMP/release-scripts"
+
+      - name: Check out release tag
+        env:
+          RELEASE_TAG: ${{ steps.resolve-tag.outputs.tag }}
+        run: git checkout --detach "refs/tags/$RELEASE_TAG"
+
       - name: Extract version from release tag
         id: extract-version
         run: |
@@ -75,15 +69,15 @@ jobs:
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Validate version format
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
-            echo "❌ Invalid version format: $VERSION"
-            echo "Expected format: X.Y.Z or X.Y.Z-suffix"
-            exit 1
-          fi
-          echo "✅ Version format valid: $VERSION"
+      - name: Check pubspec.yaml version matches tag
+        env:
+          RELEASE_TAG: ${{ steps.resolve-tag.outputs.tag }}
+        run: '"$RUNNER_TEMP/release-scripts/check_release_version.sh" "$RELEASE_TAG"'
+
+      - name: Check release tag is on master
+        env:
+          RELEASE_TAG: ${{ steps.resolve-tag.outputs.tag }}
+        run: '"$RUNNER_TEMP/release-scripts/check_release_branch.sh" "$RELEASE_TAG" master'
 
       - name: Import GPG key
         id: import_gpg
@@ -105,10 +99,6 @@ jobs:
           git config --global gpg.program "$(which gpg)"
           git remote set-url origin https://x-access-token:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
-          # Ensure we're on master branch with proper upstream tracking
-          git checkout -B master
-          git branch --set-upstream-to=origin/master master
-
       - name: Check if version exists on pub.dev
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
@@ -126,34 +116,8 @@ jobs:
             echo "Proceeding with caution..."
           fi
 
-      - name: Update pubspec.yaml with release version
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Updating pubspec.yaml from release tag version: $VERSION"
-
-          # Backup original pubspec.yaml
-          cp pubspec.yaml pubspec.yaml.backup
-
-          # Update version in pubspec.yaml
-          sed -i "s/version: .*/version: $VERSION/" pubspec.yaml
-
-          echo "✅ Updated pubspec.yaml to version: $VERSION"
-          echo "Changes:"
-          diff pubspec.yaml.backup pubspec.yaml || true
-
       - name: Check if version exists in CHANGELOG
-        run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
-          echo "Checking if version $VERSION exists in CHANGELOG.md..."
-
-          if grep -q "^## $VERSION" CHANGELOG.md; then
-            echo "✅ Version $VERSION found in CHANGELOG.md"
-          else
-            echo "❌ Version $VERSION not found in CHANGELOG.md!"
-            echo "Cannot publish without changelog entry. Please add changelog entry for version $VERSION."
-            echo "Expected format: '## $VERSION' at the top of CHANGELOG.md"
-            exit 1
-          fi
+        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${{ steps.extract-version.outputs.version }}"'
 
       - name: Install dependencies
         run: flutter pub get
@@ -196,7 +160,7 @@ jobs:
             echo ""
             echo "### Process"
             echo "✅ Version extracted from GitHub release tag"
-            echo "✅ pubspec.yaml updated dynamically"
+            echo "✅ pubspec.yaml version matches tag"
             echo "✅ Version availability verified on pub.dev"
             echo "✅ Published to pub.dev successfully"
           } >> "$GITHUB_STEP_SUMMARY"

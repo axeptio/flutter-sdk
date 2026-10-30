@@ -24,4 +24,18 @@ internal class AxeptioSdkPluginTest {
 
     Mockito.verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE)
   }
+
+  @Test
+  fun onMethodCall_addDocumentStartScript_withoutEngine_returnsFalse() {
+    val plugin = AxeptioSdkPlugin()
+
+    val call = MethodCall(
+      "addDocumentStartScript",
+      mapOf("webViewId" to 1, "script" to "x", "origin" to "https://static.axept.io"),
+    )
+    val mockResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
+    plugin.onMethodCall(call, mockResult)
+
+    Mockito.verify(mockResult).success(false)
+  }
 }

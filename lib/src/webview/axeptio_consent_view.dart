@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 /// Duration in days for the Axeptio user cookie consent window.
 const int _axUserCookiesDurationDays = 190;
@@ -21,6 +22,45 @@ if (typeof window.axeptioAppSdk.onEvent !== 'function') {
   };
 }
 ''';
+
+const MethodChannel _pluginChannel = MethodChannel('axeptio_sdk');
+
+typedef DocumentStartScriptRegistrar = Future<bool> Function(
+  WebViewController controller,
+  String script,
+  String origin,
+);
+
+Future<bool> _addAndroidDocumentStartScript(
+  WebViewController controller,
+  String script,
+  String origin,
+) async {
+  final platform = controller.platform;
+  if (platform is! AndroidWebViewController) return false;
+  return addDocumentStartScriptOnNative(
+    platform.webViewIdentifier,
+    script,
+    origin,
+  );
+}
+
+@visibleForTesting
+Future<bool> addDocumentStartScriptOnNative(
+  int webViewId,
+  String script,
+  String origin,
+) async {
+  final added = await _pluginChannel.invokeMethod<bool>(
+    'addDocumentStartScript',
+    <String, Object>{
+      'webViewId': webViewId,
+      'script': script,
+      'origin': origin,
+    },
+  );
+  return added ?? false;
+}
 
 class AxeptioConsentView extends StatefulWidget {
   final Uri consentUrl;
@@ -49,12 +89,20 @@ class AxeptioConsentView extends StatefulWidget {
 /// Public state class to allow testing of message handling logic.
 @visibleForTesting
 class AxeptioConsentViewState extends State<AxeptioConsentView> {
+  @visibleForTesting
+  static DocumentStartScriptRegistrar registerDocumentStartScript =
+      _addAndroidDocumentStartScript;
+
   // iOS: native PlatformView channel
   MethodChannel? _channel;
 
   // Android: webview_flutter controller
   WebViewController? _androidController;
   bool _androidInjected = false;
+  bool _androidDocumentStart = false;
+
+  @visibleForTesting
+  WebViewController? get androidController => _androidController;
 
   @override
   void initState() {
@@ -83,7 +131,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   void _initAndroidWebView() {
-    _androidController = WebViewController()
+    final controller = WebViewController()
       ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -127,12 +175,33 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
             );
           }
         },
-      ))
-      ..loadRequest(widget.consentUrl);
+      ));
+    _androidController = controller;
+    unawaited(_loadAndroidWebView(controller));
+  }
+
+  Future<void> _loadAndroidWebView(WebViewController controller) async {
+    final platform = controller.platform;
+    if (platform is AndroidWebViewController) {
+      try {
+        await platform.setMediaPlaybackRequiresUserGesture(false);
+      } catch (_) {}
+    }
+    try {
+      _androidDocumentStart = await registerDocumentStartScript(
+        controller,
+        '${_androidLocalStorageScript()}\n$_androidPolyfillScript',
+        'https://${widget.consentUrl.host}',
+      );
+    } catch (_) {
+      _androidDocumentStart = false;
+    }
+    if (!mounted || _androidController == null) return;
+    await controller.loadRequest(widget.consentUrl);
   }
 
   Future<void> _androidInjectScripts() async {
-    if (_androidInjected) return;
+    if (_androidDocumentStart || _androidInjected) return;
     final controller = _androidController;
     if (controller == null) return;
     bool localStorageOk = false;
@@ -155,17 +224,20 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
   }
 
   Future<void> _androidInjectLocalStorage(WebViewController controller) async {
+    await controller.runJavaScript(_androidLocalStorageScript());
+  }
+
+  String _androidLocalStorageScript() {
     final items = <String, String>{
       '_ax_app_sdk_mode': 'true',
       '_ax_user_cookies_duration': _axUserCookiesDurationDays.toString(),
       if (widget.attDenied) '_ax_app_att_denied': 'true',
       if (widget.storedTcString != null) '_ax_tcstring': widget.storedTcString!,
     };
-    final script = items.entries
+    return items.entries
         .map((e) =>
             "localStorage.setItem(${jsonEncode(e.key)}, ${jsonEncode(e.value)});")
         .join('\n');
-    await controller.runJavaScript(script);
   }
 
   void _onAndroidJsMessage(JavaScriptMessage message) {

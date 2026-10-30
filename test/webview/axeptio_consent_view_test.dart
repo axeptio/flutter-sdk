@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
@@ -6,6 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:webview_flutter/webview_flutter.dart' show WebViewController;
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 WebViewPlatform? _previousWebViewPlatform;
@@ -684,7 +688,312 @@ void main() {
 
     testWidgets('loadRequest is called with consent URL', (tester) async {
       await buildAndroidWidget(tester);
+      await tester.pump();
       expect(capturedController.loadedUrl, testUri.toString());
+    });
+  });
+
+  group('Android document-start injection', () {
+    final defaultRegistrar =
+        AxeptioConsentViewState.registerDocumentStartScript;
+    late List<AxeptioException> errors;
+    late List<({String script, String origin, String? loadedUrl})> registered;
+
+    tearDown(() {
+      AxeptioConsentViewState.registerDocumentStartScript = defaultRegistrar;
+    });
+
+    _CapturingNavigationDelegate lastDelegate() =>
+        (WebViewPlatform.instance! as _CapturingWebViewPlatform).lastDelegate!;
+
+    Future<_CapturingWebViewController> buildWithRegistrar(
+      WidgetTester tester,
+      Future<bool> Function(_CapturingWebViewController controller) result, {
+      bool attDenied = false,
+      String? storedTcString,
+    }) async {
+      errors = [];
+      registered = [];
+      AxeptioConsentViewState.registerDocumentStartScript =
+          (controller, script, origin) {
+        final platform = controller.platform as _CapturingWebViewController;
+        registered.add(
+          (script: script, origin: origin, loadedUrl: platform.loadedUrl),
+        );
+        return result(platform);
+      };
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: (e) => errors.add(e),
+          attDenied: attDenied,
+          storedTcString: storedTcString,
+        ),
+      ));
+      await tester.pump();
+      final platform = WebViewPlatform.instance! as _CapturingWebViewPlatform;
+      return platform.lastController!;
+    }
+
+    testWidgets('registers bridge and localStorage before loadRequest',
+        (tester) async {
+      final controller = await buildWithRegistrar(
+        tester,
+        (_) async => true,
+        attDenied: true,
+        storedTcString: 'TC123',
+      );
+
+      expect(registered, hasLength(1));
+      expect(registered.single.loadedUrl, isNull);
+      expect(registered.single.origin, 'https://static.axept.io');
+      final script = registered.single.script;
+      expect(script, contains('_ax_app_sdk_mode'));
+      expect(script, contains('_ax_user_cookies_duration'));
+      expect(script, contains('_ax_app_att_denied'));
+      expect(script, contains('TC123'));
+      expect(script, contains('window.axeptioAppSdk'));
+      expect(controller.loadedUrl, testUri.toString());
+    });
+
+    testWidgets('skips runJavaScript injection when registered',
+        (tester) async {
+      final controller = await buildWithRegistrar(tester, (_) async => true);
+      final delegate = lastDelegate();
+
+      delegate.capturedOnPageStarted!('https://static.axept.io/test.html');
+      await tester.pump();
+      delegate.capturedOnPageFinished!('https://static.axept.io/test.html');
+      await tester.pump();
+
+      expect(controller.runJavaScriptCalls, isEmpty);
+      expect(errors, isEmpty);
+    });
+
+    testWidgets('falls back to runJavaScript when unsupported', (tester) async {
+      final controller = await buildWithRegistrar(tester, (_) async => false);
+      final delegate = lastDelegate();
+
+      delegate.capturedOnPageStarted!('https://static.axept.io/test.html');
+      await tester.pump();
+
+      expect(controller.loadedUrl, testUri.toString());
+      expect(controller.runJavaScriptCalls, isNotEmpty);
+    });
+
+    testWidgets('falls back to runJavaScript when registration throws',
+        (tester) async {
+      final controller = await buildWithRegistrar(
+        tester,
+        (_) async => throw PlatformException(code: 'boom'),
+      );
+      final delegate = lastDelegate();
+
+      delegate.capturedOnPageFinished!('https://static.axept.io/test.html');
+      await tester.pump();
+
+      expect(controller.loadedUrl, testUri.toString());
+      expect(controller.runJavaScriptCalls, isNotEmpty);
+      expect(errors, isEmpty);
+    });
+
+    testWidgets('does not load when disposed during registration',
+        (tester) async {
+      final pending = Completer<bool>();
+      final controller =
+          await buildWithRegistrar(tester, (_) => pending.future);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      pending.complete(true);
+      await tester.pump();
+
+      expect(controller.loadedUrl, isNull);
+    });
+
+    testWidgets('default registrar returns false for non-Android controller',
+        (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+        ),
+      ));
+      await tester.pump();
+      final platform = WebViewPlatform.instance! as _CapturingWebViewPlatform;
+      final controller = platform.lastController!;
+
+      expect(controller.loadedUrl, testUri.toString());
+      final state = tester.state<AxeptioConsentViewState>(
+        find.byType(AxeptioConsentView),
+      );
+      expect(
+        await AxeptioConsentViewState.registerDocumentStartScript(
+          state.androidController!,
+          'script',
+          'https://static.axept.io',
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('falls back to runJavaScript when registration throws an Error',
+        (tester) async {
+      final controller = await buildWithRegistrar(
+        tester,
+        (_) async => throw StateError('no webview id'),
+      );
+      final delegate = lastDelegate();
+
+      delegate.capturedOnPageFinished!('https://static.axept.io/test.html');
+      await tester.pump();
+
+      expect(controller.loadedUrl, testUri.toString());
+      expect(controller.runJavaScriptCalls, isNotEmpty);
+      expect(errors, isEmpty);
+    });
+
+    test('default registrar sends the Android webview id to the plugin',
+        () async {
+      const channel = MethodChannel('axeptio_sdk');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      MethodCall? received;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        received = call;
+        return true;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+      final added = await AxeptioConsentViewState.registerDocumentStartScript(
+        WebViewController.fromPlatform(_FakeAndroidWebViewController()),
+        'script',
+        'https://static.axept.io',
+      );
+
+      expect(added, isTrue);
+      expect(received!.method, 'addDocumentStartScript');
+      expect((received!.arguments as Map)['webViewId'], 7);
+    });
+  });
+
+  group('addDocumentStartScriptOnNative', () {
+    const channel = MethodChannel('axeptio_sdk');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    test('sends webview id, script and origin to the plugin', () async {
+      MethodCall? received;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        received = call;
+        return true;
+      });
+
+      final added = await addDocumentStartScriptOnNative(
+        42,
+        'script',
+        'https://static.axept.io',
+      );
+
+      expect(added, isTrue);
+      expect(received!.method, 'addDocumentStartScript');
+      expect(received!.arguments, {
+        'webViewId': 42,
+        'script': 'script',
+        'origin': 'https://static.axept.io',
+      });
+    });
+
+    test('treats a null reply as unsupported', () async {
+      messenger.setMockMethodCallHandler(channel, (_) async => null);
+
+      expect(
+        await addDocumentStartScriptOnNative(1, 's', 'https://a.b'),
+        isFalse,
+      );
+    });
+  });
+
+  group('Android media playback', () {
+    final defaultRegistrar =
+        AxeptioConsentViewState.registerDocumentStartScript;
+    late List<String> registered;
+    late List<AxeptioException> errors;
+
+    Future<_RecordingAndroidWebViewController> buildAndroid(
+      WidgetTester tester,
+      _AndroidCapturingWebViewPlatform platform,
+    ) async {
+      final previousPlatform = WebViewPlatform.instance!;
+      registered = [];
+      errors = [];
+      WebViewPlatform.instance = platform;
+      AxeptioConsentViewState.registerDocumentStartScript =
+          (controller, script, origin) async {
+        registered.add(origin);
+        return true;
+      };
+      addTearDown(() {
+        WebViewPlatform.instance = previousPlatform;
+        AxeptioConsentViewState.registerDocumentStartScript = defaultRegistrar;
+      });
+
+      await tester.pumpWidget(MaterialApp(
+        home: AxeptioConsentView(
+          consentUrl: testUri,
+          onJsEvent: (_, __) {},
+          onClose: () {},
+          onError: errors.add,
+        ),
+      ));
+      await tester.pump();
+      return platform.lastAndroidController!;
+    }
+
+    testWidgets('lets the cover video autoplay before the page loads',
+        (tester) async {
+      final controller =
+          await buildAndroid(tester, _AndroidCapturingWebViewPlatform());
+
+      expect(controller.mediaPlaybackRequiresUserGesture, isFalse);
+      expect(registered, ['https://static.axept.io']);
+      expect(controller.loadedUrl, testUri.toString());
+      expect(controller.calls.indexOf('setMediaPlaybackRequiresUserGesture'),
+          lessThan(controller.calls.indexOf('loadRequest')));
+    });
+
+    testWidgets('waits for the playback setting before loading',
+        (tester) async {
+      final gate = Completer<void>();
+      final controller = await buildAndroid(
+        tester,
+        _AndroidCapturingWebViewPlatform(mediaGate: gate),
+      );
+
+      expect(controller.mediaPlaybackRequiresUserGesture, isFalse);
+      expect(controller.loadedUrl, isNull);
+
+      gate.complete();
+      await tester.pump();
+
+      expect(controller.loadedUrl, testUri.toString());
+    });
+
+    testWidgets('still loads when the playback setting fails', (tester) async {
+      final controller = await buildAndroid(
+        tester,
+        _AndroidCapturingWebViewPlatform(
+          mediaError: PlatformException(code: 'settings'),
+        ),
+      );
+
+      expect(registered, ['https://static.axept.io']);
+      expect(controller.loadedUrl, testUri.toString());
+      expect(errors, isEmpty);
     });
   });
 
@@ -761,6 +1070,68 @@ class _CapturingWebViewPlatform extends WebViewPlatform {
       PlatformNavigationDelegateCreationParams params) {
     lastDelegate = _CapturingNavigationDelegate(params);
     return lastDelegate!;
+  }
+}
+
+class _FakeAndroidWebViewController extends Fake
+    implements AndroidWebViewController {
+  @override
+  int get webViewIdentifier => 7;
+}
+
+class _AndroidCapturingWebViewPlatform extends _CapturingWebViewPlatform {
+  _AndroidCapturingWebViewPlatform({this.mediaGate, this.mediaError});
+
+  final Completer<void>? mediaGate;
+  final Object? mediaError;
+  _RecordingAndroidWebViewController? lastAndroidController;
+
+  @override
+  PlatformWebViewController createPlatformWebViewController(
+      PlatformWebViewControllerCreationParams params) {
+    lastAndroidController = _RecordingAndroidWebViewController(
+      mediaGate: mediaGate,
+      mediaError: mediaError,
+    );
+    return lastAndroidController!;
+  }
+}
+
+class _RecordingAndroidWebViewController extends Fake
+    with MockPlatformInterfaceMixin
+    implements AndroidWebViewController {
+  _RecordingAndroidWebViewController({this.mediaGate, this.mediaError});
+
+  final Completer<void>? mediaGate;
+  final Object? mediaError;
+  final List<String> calls = [];
+  bool? mediaPlaybackRequiresUserGesture;
+  String? loadedUrl;
+
+  @override
+  int get webViewIdentifier => 7;
+  @override
+  Future<void> setMediaPlaybackRequiresUserGesture(bool require) async {
+    calls.add('setMediaPlaybackRequiresUserGesture');
+    mediaPlaybackRequiresUserGesture = require;
+    if (mediaError != null) throw mediaError!;
+    await mediaGate?.future;
+  }
+
+  @override
+  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) async {}
+  @override
+  Future<void> setBackgroundColor(Color color) async {}
+  @override
+  Future<void> setPlatformNavigationDelegate(
+      PlatformNavigationDelegate handler) async {}
+  @override
+  Future<void> addJavaScriptChannel(
+      JavaScriptChannelParams javaScriptChannelParams) async {}
+  @override
+  Future<void> loadRequest(LoadRequestParams params) async {
+    calls.add('loadRequest');
+    loadedUrl = params.uri.toString();
   }
 }
 

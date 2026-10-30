@@ -107,17 +107,13 @@ Examples:
 
 ### Release Process
 
-#### Stable Releases
-1. Releases are managed through semantic versioning from `master` branch
-2. Version bumps are automated based on conventional commits
-3. Use GitHub workflow dispatch to trigger releases manually
-4. Never manually edit version numbers - use the semver workflow
-
-#### Beta Releases
-1. Beta releases are created from `develop` branch for next version testing
-2. Use "Beta Release" workflow to create beta versions (e.g., 2.1.0-beta.1)
-3. Betas are published to pub.dev as pre-release versions for customer testing
-4. Multiple beta increments can be released before stable version
+See [RELEASE_PROCESS.md](RELEASE_PROCESS.md). One path: develop → master PR → GitHub Release → `publish.yml` → pub.dev.
+1. Bump `version:` in `pubspec.yaml` and add `## X.Y.Z` to `CHANGELOG.md` on `develop`
+2. Merge `develop` into `master` via PR
+3. Publish a GitHub Release tagged `vX.Y.Z` on `master`; `publish.yml` publishes on `release: published`
+4. `publish.yml` fails when the `pubspec.yaml` version differs from the tag
+5. Pre-releases use a suffixed version (e.g. `3.1.0-beta.1`) and the GitHub "pre-release" flag
+6. Validate first with the `dry-run-publish.yml` workflow
 
 ### Code Quality
 - Run `flutter analyze` before committing
@@ -132,3 +128,15 @@ ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 
 <!-- IMPORTANT_RULES_END -->
+
+## Contributor Protocol
+
+Beads config: `.beads/standard.json`. The Beads DB is local-only: this repo is public.
+
+- **Work:** `bd ready` / `bd list -a <role>`. Brief = `bd show <id>` + notes; read only named doc sections.
+- **Ack:** `bd note <id> "ack <token>"`, then `bd update <id> -s in_progress`. Never `--claim`: the assignee is preset and bd refuses it.
+- **File:** one parent (Feature epic or `<prefix>-tech`), one `release:<slug>` (Feature parent's, or `none`), one layer label, `--no-inherit-labels`, `--deps`. Never widen scope.
+- **Ask (fleet sessions):** the dispatcher session, never the user. No session names in beads or commits.
+- **Code:** worktree `git worktree add .worktrees/<x> -b <branch> origin/<dev>`; red-green per criterion; `git commit -S`, `%G?` = `G`; no cloud roles (use `ops-request`).
+- **PR:** base dev branch; body Objective/Changes/Verification + `Beads: <id>`; merge-ready = note with evidence + `needs-review` + `--external-ref gh-<PR>`. Humans merge.
+- **Done:** `bd close <id>`, `git worktree remove .worktrees/<x>`. Never `bd dolt push`: public repo, Beads DB is local-only.

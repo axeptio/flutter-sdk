@@ -51,7 +51,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^3.0.0
+  axeptio_sdk: ^3.1.0
 ```
 
 ### Navigator Key Setup
@@ -89,6 +89,9 @@ The Axeptio SDK supports **iOS versions 15.0 and higher**. To ensure compatibili
 platform :ios, '15.0'
 ```
 This ensures that your app targets devices running iOS 15 or later.
+
+##### Swift Package Manager
+The iOS plugin supports both CocoaPods and Swift Package Manager. With SPM enabled (`flutter config --enable-swift-package-manager`), set the minimum deployment target to iOS 15.0 in your Xcode project instead of the `Podfile`.
 
 <br><br><br>
 ## SDK Initialization

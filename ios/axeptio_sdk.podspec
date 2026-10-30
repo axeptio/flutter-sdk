@@ -4,13 +4,13 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'axeptio_sdk'
-  s.version          = '3.0.0'
+  s.version          = '3.1.0'
   s.summary          = 'AxeptioSDK for presenting cookies consent to the user'
   s.homepage         = 'https://github.com/axeptio/flutter-sdk'
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
   s.author           = { 'Axeptio' => 'support@axeptio.eu' }
   s.source           = { :git => "https://github.com/axeptio/flutter-sdk.git" }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'axeptio_sdk/Sources/axeptio_sdk/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '15.0'
 

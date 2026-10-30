@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "if command -v bd >/dev/null 2>&1; then bd prime --hook-json; fi" }
+        ]
+      }
+    ]
+  }
+}
