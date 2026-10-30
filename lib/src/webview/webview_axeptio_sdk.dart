@@ -1,12 +1,18 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:axeptio_sdk/src/channel/axeptio_sdk_platform_interface.dart';
 import 'package:axeptio_sdk/src/events/event_listener.dart';
 import 'package:axeptio_sdk/src/events/events_handler.dart';
 import 'package:axeptio_sdk/src/exceptions/axeptio_exceptions.dart';
 import 'package:axeptio_sdk/src/model/model.dart';
+import 'package:axeptio_sdk/src/network/axeptio_uploader.dart';
 import 'package:axeptio_sdk/src/webview/axeptio_consent_view.dart';
 import 'package:axeptio_sdk/src/webview/consent_url_builder.dart';
 import 'package:axeptio_sdk/src/webview/tcf_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   static GlobalKey<NavigatorState>? navigatorKey;
@@ -17,12 +23,19 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
   String? _token;
   bool _attDenied = false;
   TcfStorage? _storage;
+  AxeptioUploader? _uploader;
 
   late final EventsHandler _eventsHandler;
+  final http.Client _httpClient;
 
-  WebViewAxeptioSdk() : super() {
+  WebViewAxeptioSdk({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client(),
+        super() {
     _eventsHandler = EventsHandler();
   }
+
+  @visibleForTesting
+  AxeptioUploader? get uploader => _uploader;
 
   @override
   Future<String?> getPlatformVersion() async => null;
@@ -37,7 +50,12 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     _clientId = clientId;
     _cookiesVersion = cookiesVersion;
     _token = token;
-    _storage = await TcfStorage.create();
+    final prefs = await SharedPreferences.getInstance();
+    _storage = TcfStorage(prefs);
+    _uploader?.dispose();
+    final uploader = AxeptioUploader(prefs, _httpClient);
+    _uploader = uploader;
+    unawaited(uploader.start());
   }
 
   @override
@@ -47,9 +65,17 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
       throw const AxeptioNotInitializedException(
           'SDK not initialized. Call initialize() before setupUI().');
     }
-    if (storage.tcString == null || storage.tcString!.isEmpty) {
+    if (!_hasStoredConsent(storage)) {
       await showConsentScreen();
     }
+  }
+
+  bool _hasStoredConsent(TcfStorage storage) {
+    if (_targetService == AxeptioService.brands) {
+      final cookies = storage.getAllData()['axeptio_cookies'];
+      return cookies != null && cookies.toString().isNotEmpty;
+    }
+    return storage.tcString?.isNotEmpty ?? false;
   }
 
   @override
@@ -101,6 +127,13 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
 
   @override
   Future<void> clearConsent() async {
+    final uploader = _uploader;
+    if (uploader != null) {
+      await uploader.cancelConsentProof();
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(AxeptioUploader.pendingProofKey);
+    }
     await _storage?.clearAll();
     _token = null;
     for (final listener in List.of(_eventsHandler.listeners)) {
@@ -177,6 +210,11 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
         break;
       case 'consent:saved':
         await _storage?.writeConsentSaved(payload);
+        await _uploader?.sendConsentProof(_clientId!, payload);
+        break;
+      case 'analytics:collect':
+        if (_attDenied) break;
+        await _uploader?.enqueueEvent(_withSdkSource(payload));
         break;
       case 'axeptio:cookies':
         await _storage?.writeCookies(payload);
@@ -195,13 +233,20 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
     }
   }
 
+  Map<String, dynamic>? _withSdkSource(Map<String, dynamic>? event) {
+    final source = event?['source'];
+    if (source is! String || !source.startsWith('sdk-app-')) return event;
+    final os = Platform.operatingSystem;
+    return {...event!, 'source': source.replaceFirst('sdk-app-', 'sdk-$os-')};
+  }
+
   void handleGoogleConsentMode(Map<String, dynamic>? payload) {
     if (payload == null) return;
     final consents = ConsentsV2(
-      payload['analytics_storage'] == true,
-      payload['ad_storage'] == true,
-      payload['ad_user_data'] == true,
-      payload['ad_personalization'] == true,
+      payload['analytics_storage'] == 'granted',
+      payload['ad_storage'] == 'granted',
+      payload['ad_user_data'] == 'granted',
+      payload['ad_personalization'] == 'granted',
     );
     for (final listener in List.of(_eventsHandler.listeners)) {
       listener.onGoogleConsentModeUpdate(consents);

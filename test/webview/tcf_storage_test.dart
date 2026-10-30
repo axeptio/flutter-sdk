@@ -138,6 +138,43 @@ void main() {
         expect(all.containsKey('_ax_token'), isFalse);
         expect(s.axeptioToken, 'new-tok');
       });
+
+      test('stores the top level token sent by the consent page', () async {
+        // test: regression MSK-301, 3.0.0 read only axeptio_token
+        await storage.writeConsentSaved({'accept': true, 'token': 'page-tok'});
+        expect(storage.axeptioToken, 'page-tok');
+      });
+
+      test('stores the token nested in the brands cookies payload', () async {
+        const cookies = r'{"a":true,"$$token":"brands-tok"}';
+        await storage.writeConsentSaved({'axeptio_cookies': cookies});
+        expect(storage.axeptioToken, 'brands-tok');
+      });
+
+      test('stores the nested token when cookies arrive as a map', () async {
+        const cookies = {'a': true, r'$$token': 'map-tok'};
+        await storage.writeConsentSaved({'axeptio_cookies': cookies});
+        expect(storage.axeptioToken, 'map-tok');
+      });
+
+      test('prefers axeptio_token over the other token sources', () async {
+        await storage.writeConsentSaved({
+          'axeptio_token': 'top-tok',
+          'token': 'page-tok',
+          'axeptio_cookies': r'{"$$token":"nested-tok"}',
+        });
+        expect(storage.axeptioToken, 'top-tok');
+      });
+
+      test('stores no token when the cookies payload carries none', () async {
+        await storage.writeConsentSaved({'axeptio_cookies': '{"a":true}'});
+        expect(storage.axeptioToken, isNull);
+      });
+
+      test('stores no token when the cookies payload is not JSON', () async {
+        await storage.writeConsentSaved({'axeptio_cookies': 'not-json'});
+        expect(storage.axeptioToken, isNull);
+      });
     });
 
     group('writeCookies', () {
@@ -145,6 +182,13 @@ void main() {
         await storage.writeCookies({'axeptio_cookies': 'data'});
         final all = storage.getAllData();
         expect(all['axeptio_cookies'], 'data');
+      });
+
+      test('stores the token nested in axeptio_cookies', () async {
+        // test: regression MSK-301, brands token was never persisted
+        const cookies = r'{"$$completed":true,"$$token":"brands-tok"}';
+        await storage.writeCookies({'axeptio_cookies': cookies});
+        expect(storage.axeptioToken, 'brands-tok');
       });
 
       test('does nothing when null', () async {
