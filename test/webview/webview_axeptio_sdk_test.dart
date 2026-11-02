@@ -305,6 +305,17 @@ void main() {
         expect(view.storedCookies, isEmpty);
       });
 
+      testWidgets('seeds nothing when no token is stored', (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'axeptio_cookies': r'{"$$completed":true}',
+          'axeptio_all_vendors': ',google_analytics,',
+        });
+        final view = await openView(tester, AxeptioService.brands);
+        expect(view.consentUrl.queryParameters.containsKey('axeptio_token'),
+            isFalse);
+        expect(view.storedCookies, isEmpty);
+      });
+
       testWidgets('skips empty stored vendor values', (tester) async {
         SharedPreferences.setMockInitialValues({
           'AX_CLIENT_TOKEN': token,

@@ -90,7 +90,7 @@ class TcfStorage {
     final result = <String, String>{};
     final choices = _prefs.getString('axeptio_cookies');
     if (choices == null || choices.isEmpty) return result;
-    if (_tokenFromCookies(choices)?.toString() != token) {
+    if (token == null || _tokenFromCookies(choices)?.toString() != token) {
       return result;
     }
     result['axeptio_cookies'] = Uri.encodeComponent(choices);
