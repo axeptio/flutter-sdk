@@ -89,11 +89,11 @@ class TcfStorage {
   Map<String, String> widgetCookies({String? token}) {
     final result = <String, String>{};
     final choices = _prefs.getString('axeptio_cookies');
-    if (choices != null &&
-        choices.isNotEmpty &&
-        (token == null || _tokenFromCookies(choices)?.toString() == token)) {
-      result['axeptio_cookies'] = Uri.encodeComponent(choices);
+    if (choices == null || choices.isEmpty) return result;
+    if (_tokenFromCookies(choices)?.toString() != token) {
+      return result;
     }
+    result['axeptio_cookies'] = Uri.encodeComponent(choices);
     for (final key in ['axeptio_all_vendors', 'axeptio_authorized_vendors']) {
       final value = _prefs.getString(key);
       if (value != null && value.isNotEmpty) result[key] = value;

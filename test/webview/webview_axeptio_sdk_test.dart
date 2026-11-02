@@ -292,26 +292,31 @@ void main() {
         expect(view.storedCookies, isEmpty);
       });
 
-      testWidgets('skips axeptio_cookies whose token differs from the URL',
+      testWidgets('seeds nothing when the stored token differs from the URL',
           (tester) async {
         SharedPreferences.setMockInitialValues({
           'AX_CLIENT_TOKEN': 'other-user',
           'axeptio_cookies': cookiesJson,
           'axeptio_all_vendors': ',google_analytics,',
+          'axeptio_authorized_vendors': ',google_analytics,',
         });
         final view = await openView(tester, AxeptioService.brands);
         expect(view.consentUrl.queryParameters['axeptio_token'], 'other-user');
-        expect(
-            view.storedCookies, {'axeptio_all_vendors': ',google_analytics,'});
+        expect(view.storedCookies, isEmpty);
       });
 
-      testWidgets('skips empty stored cookie values', (tester) async {
+      testWidgets('skips empty stored vendor values', (tester) async {
         SharedPreferences.setMockInitialValues({
-          'axeptio_cookies': '',
-          'axeptio_all_vendors': ',a,',
+          'AX_CLIENT_TOKEN': token,
+          'axeptio_cookies': cookiesJson,
+          'axeptio_all_vendors': '',
+          'axeptio_authorized_vendors': ',a,',
         });
         final view = await openView(tester, AxeptioService.brands);
-        expect(view.storedCookies, {'axeptio_all_vendors': ',a,'});
+        expect(view.storedCookies, {
+          'axeptio_cookies': Uri.encodeComponent(cookiesJson),
+          'axeptio_authorized_vendors': ',a,',
+        });
       });
     });
 
