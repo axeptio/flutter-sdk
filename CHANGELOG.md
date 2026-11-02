@@ -1,3 +1,9 @@
+## Unreleased
+
+### 🔧 Fixes
+
+- iOS, brands mode: `showConsentScreen()` after a choice keeps the consent UI open instead of closing after ~1 s and re-uploading the stored consent; the stored widget cookies are seeded into the WebView before it loads (SUP-1282)
+
 ## 3.1.0
 
 ### ✨ New Features
