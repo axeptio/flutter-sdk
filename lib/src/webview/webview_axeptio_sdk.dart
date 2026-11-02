@@ -117,6 +117,9 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
           attDenied: _attDenied,
           storedTcString: _storage?.tcString,
           showConsentManager: true,
+          storedCookies: service == AxeptioService.brands
+              ? _storage?.widgetCookies() ?? const {}
+              : const {},
           onJsEvent: (name, payload) => handleJsEvent(name, payload),
           onClose: () => key.currentState?.pop(),
           onError: (error) => _eventsHandler.handleDAxeptioErrorEvent(error),

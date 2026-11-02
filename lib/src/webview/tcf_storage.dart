@@ -86,6 +86,19 @@ class TcfStorage {
     return result;
   }
 
+  Map<String, String> widgetCookies() {
+    final result = <String, String>{};
+    final choices = _prefs.getString('axeptio_cookies');
+    if (choices != null && choices.isNotEmpty) {
+      result['axeptio_cookies'] = Uri.encodeComponent(choices);
+    }
+    for (final key in ['axeptio_all_vendors', 'axeptio_authorized_vendors']) {
+      final value = _prefs.getString(key);
+      if (value != null && value.isNotEmpty) result[key] = value;
+    }
+    return result;
+  }
+
   Map<int, bool> getVendorConsents() {
     final bitString = _prefs.getString('IABTCF_VendorConsents') ?? '';
     final result = <int, bool>{};
