@@ -292,6 +292,19 @@ void main() {
         expect(view.storedCookies, isEmpty);
       });
 
+      testWidgets('skips axeptio_cookies whose token differs from the URL',
+          (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'AX_CLIENT_TOKEN': 'other-user',
+          'axeptio_cookies': cookiesJson,
+          'axeptio_all_vendors': ',google_analytics,',
+        });
+        final view = await openView(tester, AxeptioService.brands);
+        expect(view.consentUrl.queryParameters['axeptio_token'], 'other-user');
+        expect(
+            view.storedCookies, {'axeptio_all_vendors': ',google_analytics,'});
+      });
+
       testWidgets('skips empty stored cookie values', (tester) async {
         SharedPreferences.setMockInitialValues({
           'axeptio_cookies': '',
