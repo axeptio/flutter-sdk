@@ -51,7 +51,7 @@ Alternatively, you can manually add the dependency to your `pubspec.yaml` under 
 dependencies:
   flutter:
     sdk: flutter
-  axeptio_sdk: ^3.1.0
+  axeptio_sdk: ^3.1.1
 ```
 
 ### Navigator Key Setup
