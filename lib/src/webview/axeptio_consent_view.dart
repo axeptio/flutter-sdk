@@ -67,6 +67,7 @@ class AxeptioConsentView extends StatefulWidget {
   final bool attDenied;
   final String? storedTcString;
   final bool showConsentManager;
+  final Map<String, String> storedCookies;
   final void Function(String name, Map<String, dynamic>? payload) onJsEvent;
   final void Function() onClose;
   final void Function(AxeptioException error)? onError;
@@ -79,6 +80,7 @@ class AxeptioConsentView extends StatefulWidget {
     this.attDenied = false,
     this.storedTcString,
     this.showConsentManager = false,
+    this.storedCookies = const {},
     this.onError,
   });
 
@@ -377,6 +379,7 @@ class AxeptioConsentViewState extends State<AxeptioConsentView> {
           'attDenied': widget.attDenied,
           'storedTcString': widget.storedTcString,
           'showConsentManager': widget.showConsentManager,
+          'storedCookies': widget.storedCookies,
           'cookiesDurationDays': _axUserCookiesDurationDays,
         },
         creationParamsCodec: const StandardMessageCodec(),

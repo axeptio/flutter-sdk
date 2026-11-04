@@ -227,6 +227,110 @@ void main() {
       });
     });
 
+    group('showConsentScreen brands reopen (SUP-1282)', () {
+      const token = 'tok123';
+      const cookiesJson =
+          r'{"$$completed":true,"$$token":"tok123","google_analytics":true}';
+
+      Future<AxeptioConsentView> openView(
+          WidgetTester tester, AxeptioService service) async {
+        WebViewPlatform.instance = _MockWebViewPlatform();
+        final navKey = GlobalKey<NavigatorState>();
+        WebViewAxeptioSdk.navigatorKey = navKey;
+        await sdk.initialize(service, 'cid', 'cv', null);
+        await tester.pumpWidget(MaterialApp(
+          navigatorKey: navKey,
+          home: const Scaffold(body: Text('home')),
+        ));
+        await tester.pumpAndSettle();
+        unawaited(sdk.showConsentScreen());
+        await tester.pumpAndSettle();
+        WebViewAxeptioSdk.navigatorKey = null;
+        return tester
+            .widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
+      }
+
+      testWidgets('seeds the stored widget cookies matching the URL token',
+          (tester) async {
+        // test: regression SUP-1282, iOS nonPersistent jar made the widget refetch the token consent
+        SharedPreferences.setMockInitialValues({
+          'AX_CLIENT_TOKEN': token,
+          'axeptio_cookies': cookiesJson,
+          'axeptio_all_vendors': ',google_analytics,',
+          'axeptio_authorized_vendors': ',google_analytics,',
+        });
+        final view = await openView(tester, AxeptioService.brands);
+
+        expect(view.consentUrl.queryParameters['axeptio_token'], token);
+        expect(view.storedCookies, {
+          'axeptio_cookies': Uri.encodeComponent(cookiesJson),
+          'axeptio_all_vendors': ',google_analytics,',
+          'axeptio_authorized_vendors': ',google_analytics,',
+        });
+        final seeded = jsonDecode(
+                Uri.decodeComponent(view.storedCookies['axeptio_cookies']!))
+            as Map<String, dynamic>;
+        expect(seeded[r'$$completed'], isTrue);
+        expect(seeded[r'$$token'],
+            view.consentUrl.queryParameters['axeptio_token']);
+      });
+
+      testWidgets('seeds nothing on first launch', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final view = await openView(tester, AxeptioService.brands);
+        expect(view.consentUrl.queryParameters.containsKey('axeptio_token'),
+            isFalse);
+        expect(view.storedCookies, isEmpty);
+      });
+
+      testWidgets('seeds nothing for publishers', (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'AX_CLIENT_TOKEN': token,
+          'axeptio_cookies': cookiesJson,
+        });
+        final view = await openView(tester, AxeptioService.publishers);
+        expect(view.storedCookies, isEmpty);
+      });
+
+      testWidgets('seeds nothing when the stored token differs from the URL',
+          (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'AX_CLIENT_TOKEN': 'other-user',
+          'axeptio_cookies': cookiesJson,
+          'axeptio_all_vendors': ',google_analytics,',
+          'axeptio_authorized_vendors': ',google_analytics,',
+        });
+        final view = await openView(tester, AxeptioService.brands);
+        expect(view.consentUrl.queryParameters['axeptio_token'], 'other-user');
+        expect(view.storedCookies, isEmpty);
+      });
+
+      testWidgets('seeds nothing when no token is stored', (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'axeptio_cookies': r'{"$$completed":true}',
+          'axeptio_all_vendors': ',google_analytics,',
+        });
+        final view = await openView(tester, AxeptioService.brands);
+        expect(view.consentUrl.queryParameters.containsKey('axeptio_token'),
+            isFalse);
+        expect(view.storedCookies, isEmpty);
+      });
+
+      testWidgets('skips empty stored vendor values', (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'AX_CLIENT_TOKEN': token,
+          'axeptio_cookies': cookiesJson,
+          'axeptio_all_vendors': '',
+          'axeptio_authorized_vendors': ',a,',
+        });
+        final view = await openView(tester, AxeptioService.brands);
+        expect(view.storedCookies, {
+          'axeptio_cookies': Uri.encodeComponent(cookiesJson),
+          'axeptio_authorized_vendors': ',a,',
+        });
+      });
+    });
+
     group('setupUI calls showConsentScreen', () {
       testWidgets('setupUI shows consent when tcString is empty',
           (tester) async {

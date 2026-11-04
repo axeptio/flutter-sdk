@@ -106,9 +106,12 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
             }
         }
 
-        // 5. Load the consent URL
+        // 5. Seed the stored widget cookies, then load the consent URL
         if let urlString = args["url"] as? String, let url = URL(string: urlString) {
-            webView.load(URLRequest(url: url))
+            let storedCookies = args["storedCookies"] as? [String: String] ?? [:]
+            seedCookies(storedCookies, host: url.host ?? "") { [weak self] in
+                self?.webView.load(URLRequest(url: url))
+            }
         } else {
             channel.invokeMethod("onError", arguments: [
                 "type": "argument",
@@ -118,6 +121,24 @@ class AxeptioConsentWebView: NSObject, FlutterPlatformView, WKScriptMessageHandl
     }
 
     func view() -> UIView { webView }
+
+    // incident: SUP-1282, an empty nonPersistent jar made the widget refetch the token consent and close
+    private func seedCookies(_ cookies: [String: String], host: String, completion: @escaping () -> Void) {
+        let cookieStore = webView.configuration.websiteDataStore.httpCookieStore
+        let group = DispatchGroup()
+        for (name, value) in cookies {
+            guard let cookie = HTTPCookie(properties: [
+                .domain: host,
+                .path: "/",
+                .name: name,
+                .value: value,
+                .secure: "TRUE",
+            ]) else { continue }
+            group.enter()
+            cookieStore.setCookie(cookie) { group.leave() }
+        }
+        group.notify(queue: .main, execute: completion)
+    }
 
     // MARK: - WKScriptMessageHandler
 

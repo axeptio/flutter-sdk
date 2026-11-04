@@ -72,8 +72,35 @@ void main() {
           tester.widget<AxeptioConsentView>(find.byType(AxeptioConsentView));
       expect(widget.attDenied, false);
       expect(widget.storedTcString, isNull);
+      expect(widget.storedCookies, isEmpty);
       expect(widget.showConsentManager, false);
       expect(widget.onError, isNull);
+    });
+
+    testWidgets('iOS passes stored cookies to the native webview',
+        (tester) async {
+      // test: regression SUP-1282, the iOS jar must hold the widget cookies before load
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform_views, (_) async => null);
+      try {
+        await tester.pumpWidget(MaterialApp(
+          home: AxeptioConsentView(
+            consentUrl: testUri,
+            showConsentManager: true,
+            storedCookies: const {'axeptio_cookies': '%7B%7D'},
+            onJsEvent: (_, __) {},
+            onClose: () {},
+          ),
+        ));
+        final view = tester.widget<UiKitView>(find.byType(UiKitView));
+        final params = view.creationParams as Map<String, dynamic>;
+        expect(params['storedCookies'], {'axeptio_cookies': '%7B%7D'});
+      } finally {
+        tester.binding.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform_views, null);
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
 
     testWidgets('accepts onError parameter', (tester) async {

@@ -99,11 +99,12 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
           'Set AxeptioSdk.navigatorKey before calling showConsentScreen().');
     }
 
+    final token = _storage?.axeptioToken ?? _token;
     final url = ConsentUrlBuilder.build(
       service: service,
       clientId: clientId,
       cookiesVersion: cookiesVersion,
-      token: _storage?.axeptioToken ?? _token,
+      token: token,
       showConsentManager: true,
     );
 
@@ -117,6 +118,9 @@ class WebViewAxeptioSdk extends AxeptioSdkPlatform {
           attDenied: _attDenied,
           storedTcString: _storage?.tcString,
           showConsentManager: true,
+          storedCookies: service == AxeptioService.brands
+              ? _storage?.widgetCookies(token: token) ?? const {}
+              : const {},
           onJsEvent: (name, payload) => handleJsEvent(name, payload),
           onClose: () => key.currentState?.pop(),
           onError: (error) => _eventsHandler.handleDAxeptioErrorEvent(error),
