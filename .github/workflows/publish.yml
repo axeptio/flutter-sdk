@@ -20,13 +20,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: 'stable'
           flutter-version: '3.29.3'
@@ -81,7 +81,7 @@ jobs:
 
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
         with:
           gpg_private_key: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
           git_user_signingkey: true
@@ -133,7 +133,7 @@ jobs:
           dart pub publish --dry-run
 
       - name: Publish to pub.dev
-        uses: k-paxian/dart-package-publisher@v1.6
+        uses: k-paxian/dart-package-publisher@532e6f31bf6171f0043d3ff5fa31437afe5249c2 # v1.6
         with:
             accessToken: ${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}
             refreshToken: ${{ secrets.PUB_DEV_PUBLISH_REFRESH_TOKEN }}
