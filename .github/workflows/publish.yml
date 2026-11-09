@@ -47,8 +47,10 @@ jobs:
           echo "Resolved release tag: $TAG"
 
       - name: Validate release tag exists
+        env:
+          RESOLVE_TAG_TAG: ${{ steps.resolve-tag.outputs.tag }}
         run: |
-          TAG="${{ steps.resolve-tag.outputs.tag }}"
+          TAG="${RESOLVE_TAG_TAG}"
           if ! git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "❌ Release tag $TAG does not exist!"
             echo "Please create the GitHub release first before running this workflow."
@@ -66,8 +68,10 @@ jobs:
 
       - name: Extract version from release tag
         id: extract-version
+        env:
+          RESOLVE_TAG_TAG: ${{ steps.resolve-tag.outputs.tag }}
         run: |
-          TAG_VERSION="${{ steps.resolve-tag.outputs.tag }}"
+          TAG_VERSION="${RESOLVE_TAG_TAG}"
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -103,8 +107,10 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.BOT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: Check if version exists on pub.dev
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
+          VERSION="${EXTRACT_VERSION_VERSION}"
           echo "Checking if version $VERSION already exists on pub.dev..."
 
           HTTP_CODE=$(curl -s -w "%{http_code}" -o /dev/null "https://pub.dev/api/packages/axeptio_sdk/versions/$VERSION")
@@ -120,7 +126,9 @@ jobs:
           fi
 
       - name: Check if version exists in CHANGELOG
-        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${{ steps.extract-version.outputs.version }}"'
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
+        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${EXTRACT_VERSION_VERSION}"'
 
       - name: Install dependencies
         run: flutter pub get
@@ -130,8 +138,10 @@ jobs:
         run: flutter test
 
       - name: Check Publish Warnings
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
+          VERSION="${EXTRACT_VERSION_VERSION}"
           echo "Running dry-run publish for version: $VERSION"
           dart pub publish --dry-run
 
@@ -144,16 +154,20 @@ jobs:
             skipTests: true
 
       - name: Publish Summary
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
+          RESOLVE_TAG_TAG: ${{ steps.resolve-tag.outputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
+          VERSION="${EXTRACT_VERSION_VERSION}"
           {
             echo "## 📦 Stable Release Summary"
             echo "✅ Version **v$VERSION** published successfully to pub.dev!"
             echo ""
             echo "### Release Information"
-            echo "- **Tag**: ${{ steps.resolve-tag.outputs.tag }}"
+            echo "- **Tag**: ${RESOLVE_TAG_TAG}"
             echo "- **Version**: $VERSION"
-            echo "- **Triggered by**: ${{ github.event_name }}"
+            echo "- **Triggered by**: ${EVENT_NAME}"
             echo ""
             echo "### For Users"
             echo '```yaml'
