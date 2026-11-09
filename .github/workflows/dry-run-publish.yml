@@ -26,8 +26,10 @@ jobs:
 
       - name: Check if release tag exists
         id: check-tag
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          TAG="${{ inputs.release_tag }}"
+          TAG="${RELEASE_TAG}"
           if git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "tag_exists=true" >> "$GITHUB_OUTPUT"
             echo "✅ Release tag $TAG exists"
@@ -38,8 +40,10 @@ jobs:
 
       - name: Extract version from release tag
         id: extract-version
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          TAG_VERSION="${{ inputs.release_tag }}"
+          TAG_VERSION="${RELEASE_TAG}"
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -118,6 +122,8 @@ jobs:
           dryRunOnly: true
 
       - name: Dry-run Summary
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           VERSION="${{ steps.extract-version.outputs.version }}"
           {
@@ -136,17 +142,17 @@ jobs:
             echo "### Next Steps"
             if [ "${{ steps.check-tag.outputs.tag_exists }}" = "true" ]; then
               echo "🚀 **Ready for production release!**"
-              echo "1. GitHub release already created with tag: \`${{ inputs.release_tag }}\`"
+              echo "1. GitHub release already created with tag: \`${RELEASE_TAG}\`"
               echo "2. publish.yml runs when the GitHub release is published"
             else
               echo "🚀 **Ready for release preparation!**"
-              echo "1. Create GitHub release with tag: \`${{ inputs.release_tag }}\`"
+              echo "1. Create GitHub release with tag: \`${RELEASE_TAG}\`"
               echo "2. publish.yml publishes to pub.dev when the release is published"
             fi
             echo ""
             echo "### Important Notes"
             echo "- This was a **dry-run only** - no actual publishing occurred"
-            echo "- Validated release tag: \`${{ inputs.release_tag }}\`"
+            echo "- Validated release tag: \`${RELEASE_TAG}\`"
             if [ "${{ steps.check-tag.outputs.tag_exists }}" = "false" ]; then
               echo "- ⚠️ Tag does not exist yet - validated against current branch"
             fi

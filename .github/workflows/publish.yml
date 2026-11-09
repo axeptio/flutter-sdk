@@ -34,11 +34,14 @@ jobs:
 
       - name: Resolve release tag
         id: resolve-tag
+        env:
+          RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          if [ -n "${{ github.event.release.tag_name }}" ]; then
-            TAG="${{ github.event.release.tag_name }}"
+          if [ -n "${RELEASE_TAG_NAME}" ]; then
+            TAG="${RELEASE_TAG_NAME}"
           else
-            TAG="${{ inputs.release_tag }}"
+            TAG="${RELEASE_TAG}"
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Resolved release tag: $TAG"
