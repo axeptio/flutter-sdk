@@ -26,8 +26,10 @@ jobs:
 
       - name: Check if release tag exists
         id: check-tag
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          TAG="${{ inputs.release_tag }}"
+          TAG="${RELEASE_TAG}"
           if git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "tag_exists=true" >> "$GITHUB_OUTPUT"
             echo "✅ Release tag $TAG exists"
@@ -38,8 +40,10 @@ jobs:
 
       - name: Extract version from release tag
         id: extract-version
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          TAG_VERSION="${{ inputs.release_tag }}"
+          TAG_VERSION="${RELEASE_TAG}"
           VERSION="${TAG_VERSION#v}"
           echo "Extracting version from release tag: $TAG_VERSION -> $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -73,8 +77,10 @@ jobs:
           echo "✅ Validating the snapshot at release tag $RELEASE_TAG"
 
       - name: Check if version exists on pub.dev
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
+          VERSION="${EXTRACT_VERSION_VERSION}"
           echo "Checking if version $VERSION already exists on pub.dev..."
 
           HTTP_CODE=$(curl -s -w "%{http_code}" -o /dev/null "https://pub.dev/api/packages/axeptio_sdk/versions/$VERSION")
@@ -89,7 +95,9 @@ jobs:
           fi
 
       - name: Check if version exists in CHANGELOG
-        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${{ steps.extract-version.outputs.version }}"'
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
+        run: '"$RUNNER_TEMP/release-scripts/check_changelog_entry.sh" "${EXTRACT_VERSION_VERSION}"'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -104,8 +112,10 @@ jobs:
       - name: Run tests
         run: flutter test
       - name: Check Publish Warnings (Dry Run)
+        env:
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
+          VERSION="${EXTRACT_VERSION_VERSION}"
           echo "Running dry-run publish for version: $VERSION"
           dart pub publish --dry-run
       - name: Publish (Dry Run Only)
@@ -118,8 +128,12 @@ jobs:
           dryRunOnly: true
 
       - name: Dry-run Summary
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          EXTRACT_VERSION_VERSION: ${{ steps.extract-version.outputs.version }}
+          CHECK_TAG_TAG_EXISTS: ${{ steps.check-tag.outputs.tag_exists }}
         run: |
-          VERSION="${{ steps.extract-version.outputs.version }}"
+          VERSION="${EXTRACT_VERSION_VERSION}"
           {
             echo "## 🧪 Dry-run Publish Summary"
             echo "✅ Package validation completed successfully for version **$VERSION**"
@@ -134,20 +148,20 @@ jobs:
             echo "✅ Publishing credentials validated"
             echo ""
             echo "### Next Steps"
-            if [ "${{ steps.check-tag.outputs.tag_exists }}" = "true" ]; then
+            if [ "${CHECK_TAG_TAG_EXISTS}" = "true" ]; then
               echo "🚀 **Ready for production release!**"
-              echo "1. GitHub release already created with tag: \`${{ inputs.release_tag }}\`"
+              echo "1. GitHub release already created with tag: \`${RELEASE_TAG}\`"
               echo "2. publish.yml runs when the GitHub release is published"
             else
               echo "🚀 **Ready for release preparation!**"
-              echo "1. Create GitHub release with tag: \`${{ inputs.release_tag }}\`"
+              echo "1. Create GitHub release with tag: \`${RELEASE_TAG}\`"
               echo "2. publish.yml publishes to pub.dev when the release is published"
             fi
             echo ""
             echo "### Important Notes"
             echo "- This was a **dry-run only** - no actual publishing occurred"
-            echo "- Validated release tag: \`${{ inputs.release_tag }}\`"
-            if [ "${{ steps.check-tag.outputs.tag_exists }}" = "false" ]; then
+            echo "- Validated release tag: \`${RELEASE_TAG}\`"
+            if [ "${CHECK_TAG_TAG_EXISTS}" = "false" ]; then
               echo "- ⚠️ Tag does not exist yet - validated against current branch"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
